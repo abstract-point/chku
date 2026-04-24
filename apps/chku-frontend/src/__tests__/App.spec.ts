@@ -20,10 +20,12 @@ describe('App', () => {
     expect(wrapper.text()).toContain('Елена предложила «Тайную историю» — Донна Тартт')
     expect(wrapper.text()).toContain('Содержимое страницы')
     expect(wrapper.text()).toContain('Профиль')
-    expect(wrapper.text()).toContain('Тёмная')
     expect(wrapper.text()).not.toContain('Предложить книгу')
     expect(wrapper.findAllComponents(RouterLinkStub).map((link) => link.props('to'))).toEqual([
       '/',
+      '/',
+      '/archive',
+      '/profile',
       '/',
       '/archive',
       '/profile',
