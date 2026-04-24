@@ -1,0 +1,15 @@
+@import './base.css';
+
+#app {
+  font-weight: normal;
+}
+
+a {
+  transition: color 0.2s ease;
+}
+
+@media (hover: hover) {
+  a:hover {
+    color: var(--color-accent);
+  }
+}
