@@ -1,0 +1,318 @@
+<html lang="en" vid="0"><head vid="1">
+    <meta charset="UTF-8" vid="2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" vid="3">
+    <title vid="4">The Reading Cycle - Propose a Book</title>
+    <style vid="5">
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap');
+
+        :root {
+            --bg-base: #E8E2D9;       
+            --bg-surface: #D8CEBFC;   
+            --bg-surface-light: #F2EFEA; 
+            
+            --text-main: #2C2825;     
+            --text-muted: #6E6860;    
+            
+            --accent-rust: #AD6E53;   
+            --accent-blue: #9DA4CA;   
+            --accent-gold: #C2B49A;   
+            
+            --border-light: rgba(44, 40, 37, 0.15); 
+            --border-dark: #2C2825;   
+
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Inter', sans-serif;
+            
+            --radius-none: 0px;       
+            --border-width: 1px;
+            
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 32px;
+            --space-xl: 64px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: var(--space-xl);
+        }
+
+        h1, h2, h3, .serif {
+            font-family: var(--font-serif);
+            font-weight: 400;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 2rem;
+            line-height: 1.2;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            line-height: 1.3;
+        }
+
+        .subtitle-italic {
+            font-family: var(--font-serif);
+            font-style: italic;
+            font-size: 1.25rem;
+            color: var(--text-muted);
+        }
+
+        .label-text, .nav-link, button, .form-label {
+            font-family: var(--font-sans);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+
+        .body-text {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-lg) 0;
+            margin-bottom: var(--space-lg);
+            border-bottom: var(--border-width) solid var(--border-light);
+        }
+
+        .brand {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        nav {
+            display: flex;
+            gap: var(--space-lg);
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-main);
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--accent-rust);
+        }
+
+        .section-header {
+            border-bottom: 2px solid var(--border-dark);
+            padding-bottom: var(--space-sm);
+            margin-bottom: var(--space-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-xl);
+            margin-top: var(--space-xl);
+        }
+
+        .form-panel {
+            background-color: var(--bg-surface-light);
+            border: var(--border-width) solid var(--border-light);
+            padding: var(--space-lg);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-lg);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: var(--border-width) solid var(--border-light);
+            background-color: transparent;
+            font-family: var(--font-sans);
+            color: var(--text-main);
+            font-size: 1rem;
+            border-radius: var(--radius-none);
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            border-color: var(--text-main);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-md) var(--space-lg);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--text-main);
+            color: var(--bg-surface-light);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-rust);
+        }
+
+        .btn-secondary {
+            border: var(--border-width) solid var(--text-main);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-light);
+        }
+
+        .sidebar-guidelines {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+
+        .guideline-item {
+            padding-bottom: var(--space-md);
+            border-bottom: var(--border-width) solid var(--border-light);
+        }
+
+        .guideline-item:last-child {
+            border-bottom: none;
+        }
+
+        .guideline-title {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            margin-bottom: var(--space-xs);
+        }
+
+        .page-header {
+            margin-bottom: var(--space-xl);
+            max-width: 600px;
+        }
+
+    </style>
+</head>
+<body vid="6">
+
+<div class="container" vid="7">
+    <header vid="8">
+        <div class="brand" vid="9">Enlighten Society</div>
+        <nav vid="10">
+            <a href="#" class="label-text" vid="11">Dashboard</a>
+            <a href="#" class="label-text" vid="12">Archive</a>
+            <a href="#" class="label-text" vid="13">Verification</a>
+            <a href="#" class="label-text" vid="14">Profile</a>
+        </nav>
+    </header>
+
+    <main vid="15">
+        <div class="page-header" vid="16">
+            <span class="label-text" style="color: var(--text-muted); display: block; margin-bottom: var(--space-sm);" vid="17">Cycle #43 • Your Turn</span>
+            <h1 vid="18">Propose Next Selection</h1>
+            <p class="body-text" style="margin-top: var(--space-md);" vid="19">It is your turn to guide the society's reading. Submit your proposed book for the upcoming cycle. Ensure it aligns with our shared interests and provides ample ground for discussion.</p>
+        </div>
+
+        <div class="section-header" vid="20">
+            <h2 vid="21">Book Proposal Form</h2>
+            <span class="label-text" vid="22">Drafting</span>
+        </div>
+
+        <div class="form-grid" vid="23">
+            <div class="form-panel" vid="24">
+                <form action="#" vid="25">
+                    <div class="form-group" vid="26">
+                        <label class="form-label" for="book-title" vid="27">Book Title</label>
+                        <input type="text" id="book-title" class="form-input" placeholder="e.g. The Master and Margarita" vid="28">
+                    </div>
+
+                    <div class="form-group" vid="29">
+                        <label class="form-label" for="book-author" vid="30">Author</label>
+                        <input type="text" id="book-author" class="form-input" placeholder="e.g. Mikhail Bulgakov" vid="31">
+                    </div>
+
+                    <div class="form-group" vid="32">
+                        <label class="form-label" for="book-description" vid="33">Brief Description</label>
+                        <textarea id="book-description" class="form-textarea" placeholder="A short synopsis of the book..." vid="34"></textarea>
+                    </div>
+
+                    <div class="form-group" vid="35">
+                        <label class="form-label" for="book-reason" vid="36">Why this book?</label>
+                        <textarea id="book-reason" class="form-textarea" placeholder="Explain why you chose this book for the society. What themes or discussions do you hope it will spark?" vid="37"></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: var(--space-md); margin-top: var(--space-xl);" vid="38">
+                        <button type="button" class="btn btn-secondary label-text" vid="39">Cancel</button>
+                        <button type="submit" class="btn btn-primary label-text" vid="40">Submit Proposal</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="sidebar-guidelines" vid="41">
+                <div class="section-header" style="margin-bottom: var(--space-md); padding-bottom: 8px; border-bottom-width: 1px;" vid="42">
+                    <span class="label-text" vid="43">Selection Guidelines</span>
+                </div>
+                
+                <div class="guideline-item" vid="44">
+                    <h3 class="guideline-title" vid="45">Availability</h3>
+                    <p class="body-text" vid="46">Ensure the book is readily available in print, digital, and ideally audio formats to accommodate all members' preferences.</p>
+                </div>
+
+                <div class="guideline-item" vid="47">
+                    <h3 class="guideline-title" vid="48">Length</h3>
+                    <p class="body-text" vid="49">Aim for a length that is manageable within our standard 4-week reading cycle. Ideally between 250 and 450 pages.</p>
+                </div>
+
+                <div class="guideline-item" vid="50">
+                    <h3 class="guideline-title" vid="51">Discussion Potential</h3>
+                    <p class="body-text" vid="52">Select a work with complex themes, ambiguous characters, or provocative ideas that will fuel our gathering.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+
+</body></html>
