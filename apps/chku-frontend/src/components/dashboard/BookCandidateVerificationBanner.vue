@@ -7,19 +7,19 @@ defineProps<{
 </script>
 
 <template lang="pug">
-section.dashboard__verification.container(aria-labelledby="verification-title")
+section.book-candidate-banner.container(aria-labelledby="verification-title")
   div
-    span.label-text.dashboard__verification-label Требуется действие
-    h2#verification-title.dashboard__verification-title Проверка книги ожидает ответа
-    p.dashboard__verification-text
-      | {{ choice.proposerName }} предложила «{{ choice.bookTitle }}». Ты уже читал(а) эту книгу?
-  .dashboard__verification-actions
+    span.label-text.book-candidate-banner__label Требуется действие
+    h2#verification-title.book-candidate-banner__title Проверка книги ожидает ответа
+    p.book-candidate-banner__text
+      | {{ choice.proposerName }} предложила «{{ choice.bookTitle }}» — {{ choice.author }}. Ты уже читал(а) эту книгу?
+  .book-candidate-banner__actions
     button.button.button--secondary.button--light.label-text(type="button") Я читал(а)
     button.button.button--inverted.label-text(type="button") Не читал(а)
 </template>
 
 <style scoped>
-.dashboard__verification {
+.book-candidate-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -30,12 +30,12 @@ section.dashboard__verification.container(aria-labelledby="verification-title")
   color: var(--color-surface-light);
 }
 
-.dashboard__verification-label,
-.dashboard__verification-text {
+.book-candidate-banner__label,
+.book-candidate-banner__text {
   color: rgba(255, 255, 255, 0.86);
 }
 
-.dashboard__verification-title {
+.book-candidate-banner__title {
   margin-top: var(--space-xs);
   color: var(--color-surface-light);
   font-family: var(--font-sans);
@@ -46,26 +46,26 @@ section.dashboard__verification.container(aria-labelledby="verification-title")
   text-transform: uppercase;
 }
 
-.dashboard__verification-text {
+.book-candidate-banner__text {
   margin-top: var(--space-xs);
   font-size: 0.8rem;
   line-height: 1.5;
 }
 
-.dashboard__verification-actions {
+.book-candidate-banner__actions {
   display: flex;
   flex: 0 0 auto;
   gap: var(--space-sm);
 }
 
 @media (max-width: 760px) {
-  .dashboard__verification {
+  .book-candidate-banner {
     align-items: stretch;
     flex-direction: column;
     padding: var(--space-md);
   }
 
-  .dashboard__verification-actions {
+  .book-candidate-banner__actions {
     flex-direction: column;
   }
 }

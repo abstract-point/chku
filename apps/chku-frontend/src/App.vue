@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import DashboardVerification from '@/components/dashboard/DashboardVerification.vue'
+import BookCandidateVerificationBanner from '@/components/dashboard/BookCandidateVerificationBanner.vue'
 import { useClubStore } from '@/stores/club'
 
 const club = useClubStore()
@@ -16,10 +16,9 @@ const club = useClubStore()
     nav.app-header__nav(aria-label="Основная навигация")
       RouterLink.label-text(to="/") Дашборд
       a.label-text(href="#archive") Архив
-      a.label-text(href="#verification") Проверка
-      a.label-text(href="#profile") Профиль
+      RouterLink.label-text(to="/profile") Профиль
 
-  DashboardVerification(v-if="club.activeBookChoice" :choice="club.activeBookChoice")
+  BookCandidateVerificationBanner(v-if="club.activeBookChoice" :choice="club.activeBookChoice")
   RouterView
 </template>
 
