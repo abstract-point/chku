@@ -28,4 +28,12 @@ describe('router', () => {
 
     expect(router.currentRoute.value.name).toBe('propose-selection')
   })
+
+  it('registers archive routes', async () => {
+    await router.push('/archive')
+    expect(router.currentRoute.value.name).toBe('archive')
+
+    await router.push('/archive/duna')
+    expect(router.currentRoute.value.name).toBe('archive-book')
+  })
 })

@@ -29,6 +29,11 @@ describe('ProfileView', () => {
     expect(wrapper.text()).toContain('История чтения')
     expect(wrapper.text()).toContain('Тайная история')
     expect(wrapper.text()).toContain('Дюна')
+    expect(
+      wrapper
+        .findAllComponents(RouterLinkStub)
+        .some((link) => link.props('to') === '/archive'),
+    ).toBe(true)
   })
 
   it('shows the proposal action only for the current selector', async () => {

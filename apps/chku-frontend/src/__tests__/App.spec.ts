@@ -24,6 +24,7 @@ describe('App', () => {
     expect(wrapper.findAllComponents(RouterLinkStub).map((link) => link.props('to'))).toEqual([
       '/',
       '/',
+      '/archive',
       '/profile',
     ])
   })
