@@ -4,7 +4,7 @@ PROD_COMPOSE := infra/docker/prod/docker-compose.yml
 .PHONY: dev dev-build dev-down dev-logs prod prod-build prod-down prod-logs deploy backup-db restore-db
 
 dev:
-	docker compose -f $(DEV_COMPOSE) up
+	docker compose -f $(DEV_COMPOSE) up -d
 
 dev-build:
 	docker compose -f $(DEV_COMPOSE) build
