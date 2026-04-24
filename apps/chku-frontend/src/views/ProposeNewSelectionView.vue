@@ -116,7 +116,6 @@ main.proposal.container
 
 <style scoped>
 .proposal__header {
-  max-width: 38rem;
   margin-bottom: var(--space-xl);
 }
 
