@@ -1,0 +1,10 @@
+services:
+  frontend:
+    build:
+      context: ../../../apps/chku-frontend
+      dockerfile: ../../infra/docker/prod/Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
