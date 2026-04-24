@@ -13,26 +13,31 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+      meta: { title: 'Дашборд' },
     },
     {
       path: '/profile',
       name: 'profile',
       component: ProfileView,
+      meta: { title: 'Профиль' },
     },
     {
       path: '/archive',
       name: 'archive',
       component: ArchiveView,
+      meta: { title: 'Архив' },
     },
     {
       path: '/archive/:slug',
       name: 'archive-book',
       component: ArchiveBookView,
+      meta: { title: 'Архив' },
     },
     {
       path: '/propose-selection',
       name: 'propose-selection',
       component: ProposeNewSelectionView,
+      meta: { title: 'Предложить книгу' },
       beforeEnter: () => {
         const club = useClubStore()
 
@@ -44,6 +49,12 @@ const router = createRouter({
       },
     },
   ],
+})
+
+router.afterEach((to) => {
+  const pageTitle = to.meta.title as string | undefined
+  const clubName = 'Читальный клуб умничек'
+  document.title = pageTitle ? `${pageTitle} | ${clubName}` : clubName
 })
 
 export default router
