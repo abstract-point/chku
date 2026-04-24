@@ -1,0 +1,140 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { BookProgressMember, CurrentBook } from '@/types/dashboard'
+
+const props = defineProps<{
+  book: CurrentBook
+  members: BookProgressMember[]
+}>()
+
+const coverTitleLines = computed(() => props.book.coverTitle.split('\n'))
+</script>
+
+<template lang="pug">
+section.dashboard__main(aria-labelledby="current-cycle-title")
+  .section-header
+    h2#current-cycle-title Текущий цикл
+    span.label-text Цикл #42 · до 15 октября
+
+  article.current-book
+    .book-cover.current-book__cover(:aria-label="`Обложка книги ${book.title}`")
+      .book-cover__content
+        span.current-book__cover-label.label-text Выбрал {{ book.selectedBy }}
+        template(v-for="line in coverTitleLines" :key="line")
+          | {{ line }}
+          br
+
+    .current-book__details
+      .current-book__meta
+        h1 {{ book.title }}
+        p.subtitle-italic {{ book.author }}
+      p.body-text.current-book__description
+        | {{ book.description }}
+
+      .current-book__progress
+        .current-book__progress-header
+          span.label-text Мой прогресс
+          span.label-text {{ book.progressLabel }}
+        .progress(:aria-label="`Мой прогресс чтения ${book.progress}%`")
+          .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
+        button.button.button--ghost.label-text(type="button") Обновить прогресс
+
+  .section-header.dashboard__section-spaced
+    h3 Прогресс клуба
+    span.label-text 4 из 6 участников активны
+
+  ul.data-list(role="list")
+    li.data-list__item(v-for="member in members" :key="member.name")
+      .member-status
+        span.avatar {{ member.initials }}
+        span.member-status__name {{ member.name }}
+      span.label-text(v-if="member.status") {{ member.status }}
+      .member-status__progress(v-else-if="member.progress")
+        .progress.member-status__progress-track(:aria-label="`${member.name}: ${member.progress}%`")
+          .progress__bar(:style="{ '--progress-value': `${member.progress}%` }")
+        span.label-text {{ member.progress }}%
+      span.badge.badge--reading.label-text(v-else) {{ member.badge }}
+</template>
+
+<style scoped>
+.dashboard__section-spaced {
+  margin-top: var(--space-xl);
+}
+
+.current-book {
+  display: grid;
+  grid-template-columns: minmax(13rem, 15rem) minmax(0, 1fr);
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.current-book__cover-label {
+  display: block;
+  margin-bottom: var(--space-sm);
+  font-size: 0.5rem;
+  opacity: 0.7;
+}
+
+.current-book__details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.current-book__meta {
+  margin-bottom: var(--space-lg);
+}
+
+.current-book__description {
+  max-width: 36rem;
+  margin-bottom: var(--space-lg);
+}
+
+.current-book__progress-header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.member-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.member-status__name {
+  color: var(--color-heading);
+  font-size: 0.9rem;
+}
+
+.member-status__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 9.5rem;
+}
+
+.member-status__progress-track {
+  flex: 1;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .current-book {
+    grid-template-columns: 1fr;
+  }
+
+  .current-book__cover {
+    width: min(100%, 13rem);
+  }
+
+  .current-book__progress-header {
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .member-status__progress {
+    width: 100%;
+  }
+}
+</style>
