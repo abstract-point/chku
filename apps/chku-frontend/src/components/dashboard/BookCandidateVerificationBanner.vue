@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template lang="pug">
-section.book-candidate-banner.container(aria-labelledby="verification-title")
+section.book-candidate-banner(aria-labelledby="verification-title")
   div
     span.label-text.book-candidate-banner__label Требуется действие
     h2#verification-title.book-candidate-banner__title Ожидает проверки: «{{ choice.bookTitle }}»
@@ -16,7 +16,6 @@ section.book-candidate-banner.container(aria-labelledby="verification-title")
   .book-candidate-banner__actions
     button.button.button--secondary.label-text(type="button") Я читал(а)
     button.button.button--inverted.label-text(type="button") Не читал(а)
-    button.button.button--secondary.label-text(type="button") Не уверен(а)
 </template>
 
 <style scoped>
@@ -26,8 +25,7 @@ section.book-candidate-banner.container(aria-labelledby="verification-title")
   justify-content: space-between;
   gap: var(--space-lg);
   margin-bottom: var(--space-xl);
-  padding-top: var(--space-lg);
-  padding-bottom: var(--space-lg);
+  padding: var(--space-lg);
   border: var(--border-width) solid var(--border);
   background: var(--bg-panel);
   color: var(--text-main);
