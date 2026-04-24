@@ -160,7 +160,7 @@ main.archive.container
 
 <style scoped>
 .archive__title {
-  font-size: clamp(2.25rem, 5vw, 2.5rem);
+  font-size: clamp(1.8rem, 4vw, 2.2rem);
 }
 
 .archive__controls {
@@ -174,10 +174,10 @@ main.archive.container
 .archive__search,
 .archive__select {
   min-height: 3rem;
-  border: var(--border-width) solid var(--color-border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0;
-  background: var(--color-surface-light);
-  color: var(--color-heading);
+  background: var(--bg-surface);
+  color: var(--text-main);
   outline: none;
 }
 
@@ -188,7 +188,7 @@ main.archive.container
 }
 
 .archive__search::placeholder {
-  color: var(--color-muted);
+  color: var(--text-muted);
 }
 
 .archive__select {
@@ -198,7 +198,7 @@ main.archive.container
 
 .archive__search:focus,
 .archive__select:focus {
-  border-color: var(--color-heading);
+  border-color: var(--text-main);
 }
 
 .archive__filters {
@@ -217,19 +217,19 @@ main.archive.container
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  border: var(--border-width) solid var(--color-border);
-  background: var(--color-surface-light);
+  border: var(--border-width) solid var(--border);
+  background: var(--bg-surface);
   color: inherit;
   transition:
+    background-color 0.2s ease,
     border-color 0.2s ease,
-    box-shadow 0.2s ease,
     transform 0.2s ease;
 }
 
 .archive-card:hover {
-  border-color: var(--color-heading);
-  box-shadow: 0 0.5rem 1rem rgba(44, 40, 37, 0.06);
-  transform: translateY(-0.25rem);
+  border-color: var(--border-strong);
+  background: var(--bg-panel);
+  transform: translateY(-0.15rem);
 }
 
 .archive-card__cover {
@@ -240,8 +240,8 @@ main.archive.container
   height: 23.75rem;
   padding: var(--space-md);
   overflow: hidden;
-  border-bottom: var(--border-width) solid var(--color-border);
-  color: var(--color-surface-light);
+  border-bottom: var(--border-width) solid var(--border);
+  color: var(--bg-base);
   text-align: center;
 }
 
@@ -260,8 +260,8 @@ main.archive.container
 .archive-card__cover-title {
   position: relative;
   z-index: 1;
-  font-family: var(--font-serif);
   font-size: 1.35rem;
+  font-weight: 600;
   line-height: 1.2;
   white-space: pre-line;
 }
@@ -301,12 +301,12 @@ main.archive.container
   gap: var(--space-md);
   margin-top: auto;
   padding-top: var(--space-sm);
-  border-top: var(--border-width) solid var(--color-border);
+  border-top: var(--border-width) solid var(--border);
 }
 
 .archive-card__proposer {
   gap: var(--space-xs);
-  color: var(--color-muted);
+  color: var(--text-muted);
 }
 
 .archive-card__avatar {
@@ -316,11 +316,11 @@ main.archive.container
 }
 
 .archive-card__by {
-  color: var(--color-muted);
+  color: var(--text-muted);
 }
 
 .archive-card__rating {
-  color: var(--color-accent);
+  color: var(--accent-dim);
   white-space: nowrap;
 }
 
@@ -342,8 +342,8 @@ main.archive.container
 .archive__page {
   min-width: 2.5rem;
   padding: var(--space-sm) var(--space-md);
-  border: var(--border-width) solid var(--color-border);
-  color: var(--color-heading);
+  border: var(--border-width) solid var(--border);
+  color: var(--text-main);
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -352,13 +352,13 @@ main.archive.container
 
 .archive__page:hover:not(:disabled),
 .archive__page--active {
-  border-color: var(--color-heading);
-  background: var(--color-heading);
-  color: var(--color-surface-light);
+  border-color: var(--text-main);
+  background: var(--text-main);
+  color: var(--bg-base);
 }
 
 .archive__page:disabled {
-  color: var(--color-muted);
+  color: var(--text-muted);
   opacity: 0.5;
 }
 

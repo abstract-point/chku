@@ -123,7 +123,7 @@ main.proposal.container
 .proposal__eyebrow {
   display: block;
   margin-bottom: var(--space-sm);
-  color: var(--color-muted);
+  color: var(--text-muted);
 }
 
 .proposal__intro {
@@ -147,20 +147,20 @@ main.proposal.container
 .proposal__input {
   width: 100%;
   padding: 0.75rem;
-  border: var(--border-width) solid var(--color-border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0;
-  background: transparent;
-  color: var(--color-text);
+  background: var(--bg-surface);
+  color: var(--text-main);
   outline: none;
   transition: border-color 0.2s ease;
 }
 
 .proposal__input:focus {
-  border-color: var(--color-heading);
+  border-color: var(--text-main);
 }
 
 .proposal__input[aria-invalid='true'] {
-  border-color: var(--color-accent);
+  border-color: var(--warn);
 }
 
 .proposal__textarea {
@@ -168,7 +168,7 @@ main.proposal.container
 }
 
 .proposal__error {
-  color: var(--color-accent);
+  color: var(--warn);
   font-size: 0.8rem;
   line-height: 1.4;
 }
@@ -188,7 +188,7 @@ main.proposal.container
 
 .proposal__guideline {
   padding-bottom: var(--space-md);
-  border-bottom: var(--border-width) solid var(--color-border);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 .proposal__guideline:last-child {

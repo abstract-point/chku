@@ -89,7 +89,8 @@ main.profile.container
 .avatar--large {
   width: 6rem;
   height: 6rem;
-  background: var(--color-heading);
+  background: var(--text-main);
+  color: var(--bg-base);
   font-size: 2rem;
 }
 
@@ -107,15 +108,15 @@ main.profile.container
   display: grid;
   gap: var(--space-xs);
   padding: var(--space-md);
-  border: var(--border-width) solid var(--color-border);
-  background: var(--color-surface-light);
+  border: var(--border-width) solid var(--border);
+  background: var(--bg-surface);
   text-align: center;
 }
 
 .profile__stat-value {
-  color: var(--color-heading);
-  font-family: var(--font-serif);
+  color: var(--text-main);
   font-size: 2.5rem;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -138,15 +139,15 @@ main.profile.container
 .profile__input {
   width: 100%;
   padding: 0.75rem;
-  border: var(--border-width) solid var(--color-border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0;
-  background: var(--color-surface-light);
-  color: var(--color-text);
+  background: var(--bg-surface);
+  color: var(--text-main);
   outline: none;
 }
 
 .profile__input:focus {
-  border-color: var(--color-heading);
+  border-color: var(--text-main);
 }
 
 .profile__save {
@@ -158,7 +159,7 @@ main.profile.container
   display: flex;
   gap: var(--space-md);
   padding: var(--space-md) 0;
-  border-bottom: var(--border-width) solid var(--color-border);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 .profile__book:last-child {
@@ -175,10 +176,10 @@ main.profile.container
   height: 5.625rem;
   padding: var(--space-xs);
   overflow: hidden;
-  background: var(--color-heading);
-  color: var(--color-surface-light);
-  font-family: var(--font-serif);
+  background: var(--text-main);
+  color: var(--bg-base);
   font-size: 0.65rem;
+  font-weight: 600;
   line-height: 1.2;
   text-align: center;
   white-space: pre-line;
@@ -197,11 +198,11 @@ main.profile.container
 }
 
 .profile__book-cover--accent {
-  background: var(--color-accent);
+  background: var(--accent);
 }
 
 .profile__book-cover--blue {
-  background: var(--color-accent-blue);
+  background: var(--warn);
 }
 
 .profile__book-details {
@@ -224,7 +225,7 @@ main.profile.container
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-md);
-  color: var(--color-muted);
+  color: var(--text-muted);
 }
 
 .profile__archive-link {

@@ -9,8 +9,9 @@ describe('HomeView', () => {
 
     expect(wrapper.text()).toContain('Текущий цикл')
     expect(wrapper.text()).toContain('Тень ветра')
-    expect(wrapper.text()).toContain('Ближайшая встреча')
-    expect(wrapper.text()).toContain('Порядок выбора')
+    expect(wrapper.text()).toContain('Следующая встреча')
+    expect(wrapper.text()).toContain('Очередь выбора')
+    expect(wrapper.text()).toContain('Клубная сводка')
     expect(wrapper.text()).not.toContain('Проверка книги ожидает ответа')
     expect(wrapper.text()).not.toContain('Базовое Vue-приложение')
   })

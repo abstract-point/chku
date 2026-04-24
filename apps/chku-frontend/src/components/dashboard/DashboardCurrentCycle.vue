@@ -14,7 +14,7 @@ const coverTitleLines = computed(() => props.book.coverTitle.split('\n'))
 section.dashboard__main(aria-labelledby="current-cycle-title")
   .section-header
     h2#current-cycle-title Текущий цикл
-    span.label-text Цикл #42 · до 15 октября
+    span.label-text Цикл #42 • Завершение 15 окт
 
   article.current-book
     .book-cover.current-book__cover(:aria-label="`Обложка книги ${book.title}`")
@@ -31,7 +31,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
       p.body-text.current-book__description
         | {{ book.description }}
 
-      .current-book__progress
+      .panel.panel--filled.current-book__progress
         .current-book__progress-header
           span.label-text Мой прогресс
           span.label-text {{ book.progressLabel }}
@@ -57,13 +57,17 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 </template>
 
 <style scoped>
+.dashboard__main {
+  min-width: 0;
+}
+
 .dashboard__section-spaced {
   margin-top: var(--space-xl);
 }
 
 .current-book {
   display: grid;
-  grid-template-columns: minmax(13rem, 15rem) minmax(0, 1fr);
+  grid-template-columns: minmax(10rem, 11.25rem) minmax(0, 1fr);
   gap: var(--space-lg);
   margin-bottom: var(--space-xl);
 }
@@ -82,12 +86,16 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 }
 
 .current-book__meta {
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .current-book__description {
   max-width: 36rem;
   margin-bottom: var(--space-lg);
+}
+
+.current-book__progress {
+  padding: var(--space-md);
 }
 
 .current-book__progress-header {
@@ -103,8 +111,8 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 }
 
 .member-status__name {
-  color: var(--color-heading);
-  font-size: 0.9rem;
+  color: var(--text-main);
+  font-size: 0.82rem;
 }
 
 .member-status__progress {

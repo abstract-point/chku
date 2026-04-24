@@ -112,12 +112,12 @@ main.archive-book.container
   align-items: center;
   gap: var(--space-sm);
   margin-bottom: var(--space-lg);
-  color: var(--color-muted);
+  color: var(--text-muted);
 }
 
 .archive-book__breadcrumb a:hover,
 .archive-book__breadcrumb-current {
-  color: var(--color-heading);
+  color: var(--text-main);
 }
 
 .archive-book__hero {
@@ -153,7 +153,7 @@ main.archive-book.container
   margin-top: var(--space-md);
   margin-bottom: var(--space-lg);
   padding-bottom: var(--space-md);
-  border-bottom: var(--border-width) solid var(--color-border);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 .archive-book__meta-item {
@@ -175,11 +175,11 @@ main.archive-book.container
 }
 
 .archive-book__muted {
-  color: var(--color-muted);
+  color: var(--text-muted);
 }
 
 .archive-book__rating {
-  color: var(--color-accent);
+  color: var(--accent-dim);
 }
 
 .archive-book__synopsis {
@@ -194,7 +194,7 @@ main.archive-book.container
 
 .archive-book__review {
   padding: var(--space-md) 0;
-  border-bottom: var(--border-width) solid var(--color-border);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 .archive-book__review:last-of-type {
@@ -220,9 +220,9 @@ main.archive-book.container
 
 .archive-book__prompt-text {
   margin-top: var(--space-sm);
-  color: var(--color-heading);
-  font-family: var(--font-serif);
-  font-size: 1.35rem;
+  color: var(--text-main);
+  font-size: 1.1rem;
+  font-weight: 600;
   line-height: 1.35;
 }
 
@@ -234,8 +234,8 @@ main.archive-book.container
 
 .archive-book__message {
   padding: var(--space-md);
-  border: var(--border-width) solid var(--color-border);
-  background: var(--color-surface-light);
+  border: var(--border-width) solid var(--border);
+  background: var(--bg-surface);
 }
 
 .archive-book__sidebar {

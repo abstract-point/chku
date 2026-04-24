@@ -1,22 +1,64 @@
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import BookCandidateVerificationBanner from '@/components/dashboard/BookCandidateVerificationBanner.vue'
 import { useClubStore } from '@/stores/club'
 
 const club = useClubStore()
+const theme = ref<'light' | 'dark'>('light')
+const themeLabel = computed(() => (theme.value === 'dark' ? 'Светлая' : 'Тёмная'))
+const themeIcon = computed(() => (theme.value === 'dark' ? '◑' : '◐'))
+
+function getPreferredTheme() {
+  const storedTheme = localStorage.getItem('chku-theme')
+
+  if (storedTheme === 'dark' || storedTheme === 'light') {
+    return storedTheme
+  }
+
+  if (!window.matchMedia) {
+    return 'light'
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function applyTheme(nextTheme: 'light' | 'dark') {
+  theme.value = nextTheme
+  document.documentElement.setAttribute('data-theme', nextTheme)
+  localStorage.setItem('chku-theme', nextTheme)
+}
+
+function toggleTheme() {
+  applyTheme(theme.value === 'dark' ? 'light' : 'dark')
+}
+
+onMounted(() => {
+  applyTheme(getPreferredTheme())
+
+  window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+    if (!localStorage.getItem('chku-theme')) {
+      applyTheme(event.matches ? 'dark' : 'light')
+    }
+  })
+})
 </script>
 
 <template lang="pug">
 .app-shell
-  header.app-header.container
-    RouterLink.app-header__brand(to="/")
-      span.app-header__brand-mark {{ club.shortName }}
-      span.app-header__brand-name {{ club.name }}
+  .container
+    header.app-header
+      RouterLink.app-header__brand(to="/")
+        span.app-header__brand-mark {{ club.shortName }}
+        span.app-header__brand-name {{ club.name }}
 
-    nav.app-header__nav(aria-label="Основная навигация")
-      RouterLink.label-text(to="/") Дашборд
-      RouterLink.label-text(to="/archive") Архив
-      RouterLink.label-text(to="/profile") Профиль
+      nav.app-header__nav(aria-label="Основная навигация")
+        RouterLink(to="/") Дашборд
+        RouterLink(to="/archive") Архив
+        RouterLink(to="/profile") Профиль
+        button.app-header__theme(type="button" aria-label="Переключить тему" @click="toggleTheme")
+          span {{ themeIcon }}
+          span {{ themeLabel }}
 
   BookCandidateVerificationBanner(v-if="club.activeBookChoice" :choice="club.activeBookChoice")
   RouterView
@@ -26,6 +68,7 @@ const club = useClubStore()
 .app-shell {
   min-height: 100vh;
   padding-bottom: var(--space-xl);
+  background: var(--bg-base);
 }
 
 .app-header {
@@ -35,36 +78,33 @@ const club = useClubStore()
   gap: var(--space-lg);
   padding-top: var(--space-lg);
   padding-bottom: var(--space-lg);
-  margin-bottom: var(--space-lg);
-  border-bottom: var(--border-width) solid var(--color-border);
+  margin-bottom: var(--space-xl);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 .app-header__brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-md);
-  color: var(--color-heading);
+  display: inline-block;
+  color: var(--text-main);
   text-decoration: none;
 }
 
 .app-header__brand-mark {
-  display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
-  place-items: center;
-  border: var(--border-width) solid var(--color-border-strong);
-  color: var(--color-heading);
-  font-family: var(--font-sans);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .app-header__brand-name {
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  letter-spacing: 0.05em;
-  line-height: 1;
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  line-height: 1.3;
   text-transform: uppercase;
 }
 
@@ -72,16 +112,45 @@ const club = useClubStore()
   display: flex;
   align-items: center;
   gap: var(--space-lg);
+  flex-wrap: wrap;
 }
 
 .app-header__nav a {
-  color: var(--color-heading);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   transition: color 0.2s ease;
+  white-space: nowrap;
 }
 
 .app-header__nav a:hover,
 .app-header__nav a.router-link-exact-active {
-  color: var(--color-accent);
+  color: var(--text-main);
+}
+
+.app-header__theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.65rem;
+  border: var(--border-width) solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.app-header__theme:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+  color: var(--text-main);
 }
 
 @media (max-width: 760px) {
@@ -98,7 +167,7 @@ const club = useClubStore()
   }
 
   .app-header__brand-name {
-    font-size: 1.2rem;
+    font-size: 0.55rem;
   }
 }
 </style>

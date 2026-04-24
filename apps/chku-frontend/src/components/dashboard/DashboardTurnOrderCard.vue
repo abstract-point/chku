@@ -9,7 +9,7 @@ defineProps<{
 <template lang="pug">
 section.panel.dashboard-card(aria-labelledby="turn-order-title")
   .section-header.section-header--compact
-    span#turn-order-title.label-text Порядок выбора
+    span#turn-order-title.label-text Очередь выбора
   ul.data-list(role="list")
     li.data-list__item.turn-order__item(
       v-for="member in members"
@@ -23,15 +23,16 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
 
 <style scoped>
 .turn-order__item {
-  color: var(--color-muted);
+  color: var(--text-muted);
 }
 
 .turn-order__item--active {
-  margin: calc(var(--space-xs) * -1) calc(var(--space-md) * -1);
-  padding: var(--space-sm) var(--space-md);
-  border-left: 2px solid var(--color-heading);
-  background: var(--color-background);
-  color: var(--color-heading);
+  margin: 0 calc(var(--space-lg) * -1);
+  padding: 0.65rem var(--space-lg);
+  border-bottom: 0;
+  border-left: 2px solid var(--accent);
+  background: var(--accent-bg);
+  color: var(--text-main);
 }
 
 .turn-order__name {
@@ -43,7 +44,7 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
 }
 
 .turn-order__status {
-  color: var(--color-muted);
+  color: var(--text-muted);
   font-size: 0.5rem;
 }
 </style>
