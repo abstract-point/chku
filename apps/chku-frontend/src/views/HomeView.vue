@@ -1,47 +1,35 @@
 <script setup lang="ts">
-import { useClubStore } from '@/stores/club'
-
-const club = useClubStore()
+import DashboardCurrentCycle from '@/components/dashboard/DashboardCurrentCycle.vue'
+import DashboardMeetingCard from '@/components/dashboard/DashboardMeetingCard.vue'
+import DashboardTurnOrderCard from '@/components/dashboard/DashboardTurnOrderCard.vue'
+import { currentBook, memberProgress, nextMeeting, turnOrder } from '@/data/dashboard'
 </script>
 
 <template lang="pug">
-main.home-view
-  section.hero-section
-    p.hero-kicker {{ club.shortName }}
-    h1 {{ club.name }}
-    p.hero-copy
-      | Базовое Vue-приложение для читального клуба: маршрутизация, состояние и Pug-шаблоны готовы к развитию интерфейса.
+main.dashboard.container
+  .dashboard__grid
+    DashboardCurrentCycle(:book="currentBook" :members="memberProgress")
+    aside.dashboard__sidebar(aria-label="Сводка клуба")
+      DashboardMeetingCard(:meeting="nextMeeting")
+      DashboardTurnOrderCard(:members="turnOrder")
 </template>
 
 <style scoped>
-.home-view {
-  width: min(100%, 1120px);
-  margin: 0 auto;
-  padding: 4rem 1.5rem;
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  gap: var(--space-xl);
 }
 
-.hero-section {
-  max-width: 44rem;
+.dashboard__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
 }
 
-.hero-kicker {
-  margin-bottom: 0.75rem;
-  color: var(--color-accent);
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-h1 {
-  color: var(--color-heading);
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  font-weight: 800;
-  line-height: 0.95;
-}
-
-.hero-copy {
-  margin-top: 1.5rem;
-  max-width: 38rem;
-  color: var(--color-muted);
-  font-size: 1.1rem;
+@media (max-width: 960px) {
+  .dashboard__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
