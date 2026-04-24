@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useClubStore } from '@/stores/club'
+import ArchiveBookView from '../views/ArchiveBookView.vue'
+import ArchiveView from '../views/ArchiveView.vue'
 import HomeView from '../views/HomeView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import ProposeNewSelectionView from '../views/ProposeNewSelectionView.vue'
@@ -16,6 +18,16 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView,
+    },
+    {
+      path: '/archive',
+      name: 'archive',
+      component: ArchiveView,
+    },
+    {
+      path: '/archive/:slug',
+      name: 'archive-book',
+      component: ArchiveBookView,
     },
     {
       path: '/propose-selection',

@@ -64,7 +64,7 @@ main.profile.container
               span.label-text Завершено: {{ book.completedLabel }}
               span.label-text Предложил(а): {{ book.proposedBy }}
 
-      a.button.button--ghost.label-text.profile__archive-link(href="#archive") Смотреть весь архив
+      RouterLink.button.button--ghost.label-text.profile__archive-link(to="/archive") Смотреть весь архив
 </template>
 
 <style scoped>

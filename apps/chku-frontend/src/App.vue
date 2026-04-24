@@ -15,7 +15,7 @@ const club = useClubStore()
 
     nav.app-header__nav(aria-label="Основная навигация")
       RouterLink.label-text(to="/") Дашборд
-      a.label-text(href="#archive") Архив
+      RouterLink.label-text(to="/archive") Архив
       RouterLink.label-text(to="/profile") Профиль
 
   BookCandidateVerificationBanner(v-if="club.activeBookChoice" :choice="club.activeBookChoice")
