@@ -32,8 +32,7 @@ const memberOptions = computed(() => {
 const filteredBooks = computed(() => {
   const normalizedQuery = searchQuery.value.trim().toLocaleLowerCase('ru')
 
-  return [
-    ...archiveBooks.filter((book) => {
+  return archiveBooks.filter((book) => {
       const matchesQuery =
         !normalizedQuery ||
         [book.title, book.author, book.proposedBy].some((value) =>
@@ -43,8 +42,7 @@ const filteredBooks = computed(() => {
       const matchesMember = !selectedMember.value || book.proposedBy === selectedMember.value
 
       return matchesQuery && matchesGenre && matchesMember
-    }),
-  ].sort((left, right) => {
+    }).sort((left, right) => {
     if (sortMode.value === 'oldest') {
       return left.cycleNumber - right.cycleNumber
     }
