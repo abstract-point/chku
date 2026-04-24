@@ -1,5 +1,7 @@
+name: chku
 services:
   frontend:
+    container_name: chku-frontend
     build:
       context: ../../../apps/chku-frontend
       dockerfile: ../../infra/docker/dev/Dockerfile
@@ -10,11 +12,12 @@ services:
       - "5180"
 
   nginx:
+    container_name: chku-frontend-nginx
     image: nginx:1.29-alpine
     depends_on:
       - frontend
     ports:
-      - "8080:80"
+      - "8090:80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
 
