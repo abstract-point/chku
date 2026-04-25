@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import type { MeetingSummary } from '@/types/dashboard'
 
 defineProps<{
@@ -17,6 +18,7 @@ section.panel.dashboard-card(aria-labelledby="meeting-title")
     span.avatar.avatar--outlined(v-for="initials in meeting.participantInitials" :key="initials") {{ initials }}
     span.avatar.avatar--more +{{ meeting.extraParticipantsCount }}
   button.button.button--primary.dashboard-card__button(type="button") Подтвердить участие
+  RouterLink.button.button--ghost.label-text.dashboard-card__link(:to="`/meetings/${meeting.id}`") Подробнее о встрече
 </template>
 
 <style scoped>
@@ -38,5 +40,10 @@ section.panel.dashboard-card(aria-labelledby="meeting-title")
 
 .dashboard-card__button {
   width: 100%;
+}
+
+.dashboard-card__link {
+  width: 100%;
+  margin-top: var(--space-sm);
 }
 </style>

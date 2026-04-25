@@ -1,6 +1,7 @@
 import type { MeetingSummary } from '@/types/dashboard'
 
 export const nextMeeting = {
+  id: 'october-42',
   dateLabel: '18 октября, 19:00',
   place: 'Библиотека имени Некрасова, зал «Сад».',
   participantInitials: ['ЕЛ', 'МК'],
