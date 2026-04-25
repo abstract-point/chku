@@ -3,6 +3,8 @@ import { useClubStore } from '@/stores/club'
 import ArchiveBookView from '../views/ArchiveBookView.vue'
 import ArchiveView from '../views/ArchiveView.vue'
 import HomeView from '../views/HomeView.vue'
+import MemberDetailView from '../views/MemberDetailView.vue'
+import MembersView from '../views/MembersView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import MeetingDetailView from '../views/MeetingDetailView.vue'
 import ProposeNewSelectionView from '../views/ProposeNewSelectionView.vue'
@@ -15,6 +17,18 @@ const router = createRouter({
       name: 'home',
       component: HomeView,
       meta: { title: 'Дашборд' },
+    },
+    {
+      path: '/members',
+      name: 'members',
+      component: MembersView,
+      meta: { title: 'Участники' },
+    },
+    {
+      path: '/members/:id',
+      name: 'member-detail',
+      component: MemberDetailView,
+      meta: { title: 'Участник' },
     },
     {
       path: '/profile',

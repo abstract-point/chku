@@ -57,6 +57,7 @@ onMounted(() => {
 
       nav.app-header__nav(aria-label="Основная навигация")
         RouterLink(to="/") Дашборд
+        RouterLink(to="/members") Участники
         RouterLink(to="/archive") Архив
         RouterLink(to="/profile") Профиль
         button.app-header__theme(type="button" :aria-label="theme === 'dark' ? 'Переключить на светлую тему' : 'Переключить на тёмную тему'" @click="toggleTheme")
