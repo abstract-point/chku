@@ -12,9 +12,11 @@ export const useClubStore = defineStore('club', () => {
   const currentSelectorName = ref('Елена')
   const currentCycleLabel = ref('Цикл #43')
   const currentMember = ref<MemberProfile>({
+    id: 1,
     name: 'Елена',
     initials: 'ЕЛ',
     memberSince: '2021',
+    isActive: true,
     email: 'elena@example.com',
     favoriteGenre: 'Современная проза',
     stats: {

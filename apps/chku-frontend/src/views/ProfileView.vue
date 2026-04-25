@@ -86,14 +86,6 @@ main.profile.container
   gap: var(--space-lg);
 }
 
-.avatar--large {
-  width: 6rem;
-  height: 6rem;
-  background: var(--text-main);
-  color: var(--bg-base);
-  font-size: 2rem;
-}
-
 .profile__name {
   font-size: clamp(2rem, 4vw, 2.5rem);
 }

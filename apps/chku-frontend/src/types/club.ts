@@ -15,9 +15,11 @@ export type BookProposalForm = {
 }
 
 export type MemberProfile = {
+  id: number
   name: string
   initials: string
   memberSince: string
+  isActive: boolean
   email: string
   favoriteGenre: string
   stats: {
