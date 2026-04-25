@@ -4,6 +4,7 @@ import ArchiveBookView from '../views/ArchiveBookView.vue'
 import ArchiveView from '../views/ArchiveView.vue'
 import HomeView from '../views/HomeView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import MeetingDetailView from '../views/MeetingDetailView.vue'
 import ProposeNewSelectionView from '../views/ProposeNewSelectionView.vue'
 
 const router = createRouter({
@@ -32,6 +33,12 @@ const router = createRouter({
       name: 'archive-book',
       component: ArchiveBookView,
       meta: { title: 'Архив' },
+    },
+    {
+      path: '/meetings/:id',
+      name: 'meeting-detail',
+      component: MeetingDetailView,
+      meta: { title: 'Встреча' },
     },
     {
       path: '/propose-selection',
