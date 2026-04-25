@@ -216,6 +216,14 @@ select:focus-visible {
   background: transparent;
 }
 
+.avatar--large {
+  width: 6rem;
+  height: 6rem;
+  background: var(--text-main);
+  color: var(--bg-base);
+  font-size: 2rem;
+}
+
 .progress {
   position: relative;
   width: 100%;
