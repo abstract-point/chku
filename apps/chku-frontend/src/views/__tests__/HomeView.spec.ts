@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, RouterLinkStub } from '@vue/test-utils'
 
 import HomeView from '../HomeView.vue'
 
 describe('HomeView', () => {
   it('renders the dashboard content', () => {
-    const wrapper = mount(HomeView)
+    const wrapper = mount(HomeView, {
+      global: {
+        stubs: {
+          RouterLink: RouterLinkStub,
+        },
+      },
+    })
 
     expect(wrapper.text()).toContain('Текущий цикл')
     expect(wrapper.text()).toContain('Тень ветра')
