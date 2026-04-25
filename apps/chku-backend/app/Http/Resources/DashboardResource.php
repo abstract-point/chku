@@ -2,9 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\DTOs\DashboardData;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @property DashboardData $resource
+ */
 class DashboardResource extends JsonResource
 {
     public function toArray(Request $request): array
