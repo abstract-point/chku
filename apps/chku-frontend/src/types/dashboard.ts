@@ -23,8 +23,36 @@ export type TurnOrderMember = {
 }
 
 export type MeetingSummary = {
+  id: string
   dateLabel: string
   place: string
   participantInitials: string[]
   extraParticipantsCount: number
+}
+
+export type MeetingAttendee = {
+  name: string
+  initials: string
+}
+
+export type MeetingBook = {
+  title: string
+  author: string
+  cycleSlug?: string
+}
+
+export type MeetingDetail = {
+  id: string
+  title: string
+  cycleLabel: string
+  dateLabel: string
+  timeLabel: string
+  place: string
+  placeAddress?: string
+  placeReservation?: string
+  meetingLink?: string
+  topics: string[]
+  rsvpStatus: 'attending' | 'not_attending' | 'pending'
+  attendees: MeetingAttendee[]
+  book: MeetingBook
 }
