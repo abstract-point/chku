@@ -1,7 +1,7 @@
 DEV_COMPOSE := infra/docker/dev/docker-compose.yml
 PROD_COMPOSE := infra/docker/prod/docker-compose.yml
 
-.PHONY: dev dev-build dev-down dev-logs prod prod-build prod-down prod-logs deploy backup-db restore-db
+.PHONY: dev dev-build dev-down dev-logs prod prod-build prod-down prod-logs backend-install backend-key backend-migrate backend-shell backend-test deploy backup-db restore-db
 
 dev:
 	docker compose -f $(DEV_COMPOSE) up -d
@@ -26,6 +26,21 @@ prod-down:
 
 prod-logs:
 	docker compose -f $(PROD_COMPOSE) logs -f
+
+backend-install:
+	docker compose -f $(DEV_COMPOSE) run --rm backend composer install
+
+backend-key:
+	docker compose -f $(DEV_COMPOSE) run --rm backend php artisan key:generate
+
+backend-migrate:
+	docker compose -f $(DEV_COMPOSE) exec backend php artisan migrate
+
+backend-shell:
+	docker compose -f $(DEV_COMPOSE) exec backend sh
+
+backend-test:
+	docker compose -f $(DEV_COMPOSE) exec backend php artisan test
 
 deploy:
 	infra/deploy/deploy.sh
