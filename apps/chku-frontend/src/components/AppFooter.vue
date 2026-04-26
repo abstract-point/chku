@@ -21,6 +21,7 @@ footer.app-footer
 
 <style scoped>
 .app-footer {
+  margin-top: var(--space-xl);
   padding-top: var(--space-lg);
   padding-bottom: var(--space-lg);
   border-top: var(--border-width) solid var(--border);
