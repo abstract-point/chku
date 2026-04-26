@@ -22,6 +22,19 @@ class MemberDetailResource extends JsonResource
                 'proposed' => $this->proposedCycles()->count(),
                 'meetings' => $this->meetingRsvps()->where('status', 'attending')->count(),
             ],
+            'readingHistory' => $this->readingProgress()
+                ->with('readingCycle.book', 'readingCycle.proposer.user')
+                ->where('status', 'finished')
+                ->latest()
+                ->get()
+                ->map(fn ($progress) => [
+                    'title' => $progress->readingCycle?->book?->title,
+                    'coverTitle' => $progress->readingCycle?->book?->title,
+                    'author' => $progress->readingCycle?->book?->author,
+                    'completedLabel' => $progress->readingCycle?->completed_at?->translatedFormat('F Y')
+                        ?? "Цикл #{$progress->readingCycle?->cycle_number}",
+                    'proposedBy' => $progress->readingCycle?->proposer?->user?->name,
+                ]),
         ];
     }
 }

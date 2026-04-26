@@ -15,6 +15,10 @@ use App\Models\TurnOrder;
 
 final class DashboardService
 {
+    public function __construct(private readonly CurrentMemberService $currentMember)
+    {
+    }
+
     public function getData(): DashboardData
     {
         $club = Club::with([
@@ -55,7 +59,10 @@ final class DashboardService
         return new DashboardData(
             club: $club,
             currentCycle: $currentCycle,
-            currentUserProgress: $currentCycle?->readingProgress->first(),
+            currentUserProgress: $currentCycle?->readingProgress->firstWhere(
+                'club_member_id',
+                $this->currentMember->get()->id,
+            ),
             memberProgress: $currentCycle?->readingProgress,
             nextMeeting: $nextMeeting,
             turnOrder: $turnOrder,

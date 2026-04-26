@@ -22,6 +22,7 @@ class MeetingResource extends JsonResource
             'topics' => $this->topics,
             'notes' => $this->notes,
             'rsvps' => MeetingRsvpResource::collection($this->whenLoaded('rsvps')),
+            'book' => $this->whenLoaded('readingCycle', fn () => new BookResource($this->readingCycle->book)),
         ];
     }
 }

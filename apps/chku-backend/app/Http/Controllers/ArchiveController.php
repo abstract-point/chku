@@ -15,7 +15,7 @@ final class ArchiveController extends Controller
         return ArchiveBookResource::collection(
             ReadingCycle::with([
                 'book.genre',
-                'proposer.user',AnonymousResourceCollection
+                'proposer.user',
                 'meeting',
                 'reviews.clubMember.user',
                 'discussionMessages.clubMember.user',

@@ -17,6 +17,11 @@ class MemberResource extends JsonResource
             'isActive' => $this->is_active,
             'memberSince' => $this->joined_at?->format('Y'),
             'favoriteGenre' => $this->favoriteGenre?->name,
+            'stats' => [
+                'read' => $this->readingProgress()->where('status', 'finished')->count(),
+                'proposed' => $this->proposedCycles()->count(),
+                'meetings' => $this->meetingRsvps()->where('status', 'attending')->count(),
+            ],
         ];
     }
 }
