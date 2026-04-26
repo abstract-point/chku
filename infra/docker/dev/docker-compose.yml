@@ -38,8 +38,8 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql
-    expose:
-      - "5432"
+    ports:
+      - "5448:5432"
 
   nginx:
     container_name: chku-nginx
