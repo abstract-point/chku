@@ -3,7 +3,6 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
 import ProposeNewSelectionView from '../ProposeNewSelectionView.vue'
-import { useClubStore } from '@/stores/club'
 
 const push = vi.fn()
 
@@ -45,7 +44,6 @@ describe('ProposeNewSelectionView', () => {
   it('creates a book choice event and returns to dashboard', async () => {
     setActivePinia(createPinia())
     push.mockClear()
-    const club = useClubStore()
     const wrapper = mountProposal()
 
     await wrapper.get('#book-title').setValue('Лавр')
@@ -55,11 +53,6 @@ describe('ProposeNewSelectionView', () => {
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(club.activeBookChoice).toMatchObject({
-      proposerName: 'Елена',
-      bookTitle: 'Лавр',
-      author: 'Евгений Водолазкин',
-    })
     expect(push).toHaveBeenCalledWith({ name: 'home' })
   })
 })

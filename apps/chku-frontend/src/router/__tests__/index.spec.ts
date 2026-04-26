@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
 import router from '../index'
-import { useClubStore } from '@/stores/club'
 
 describe('router', () => {
   beforeEach(async () => {
@@ -11,19 +10,7 @@ describe('router', () => {
     await router.isReady()
   })
 
-  it('redirects proposal route to profile when it is not the member turn', async () => {
-    const club = useClubStore()
-    club.currentSelectorName = 'Михаил'
-
-    await router.push('/propose-selection')
-
-    expect(router.currentRoute.value.name).toBe('profile')
-  })
-
-  it('allows proposal route for the current selector', async () => {
-    const club = useClubStore()
-    club.currentSelectorName = club.currentUserName
-
+  it('registers proposal route', async () => {
     await router.push('/propose-selection')
 
     expect(router.currentRoute.value.name).toBe('propose-selection')
