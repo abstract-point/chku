@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useClubStore } from '@/stores/club'
+import { useCreateCandidateMutation } from '@/queries/candidateQueries'
+import { useDashboardQuery } from '@/queries/dashboardQueries'
 import type { BookProposalForm } from '@/types/club'
 
 const router = useRouter()
-const club = useClubStore()
+const dashboardQuery = useDashboardQuery()
+const createCandidateMutation = useCreateCandidateMutation()
 
 const proposal = reactive<BookProposalForm>({
   title: '',
@@ -31,15 +33,24 @@ function submitProposal() {
     return
   }
 
-  club.submitBookProposal(proposal)
-  router.push({ name: 'home' })
+  createCandidateMutation.mutate(
+    {
+      title: proposal.title.trim(),
+      author: proposal.author.trim(),
+      description: proposal.description.trim(),
+      reason: proposal.reason.trim(),
+    },
+    {
+      onSuccess: () => router.push({ name: 'home' }),
+    },
+  )
 }
 </script>
 
 <template lang="pug">
 main.proposal.container
   .proposal__header
-    span.label-text.proposal__eyebrow {{ club.currentCycleLabel }} • Твоя очередь
+    span.label-text.proposal__eyebrow {{ dashboardQuery.data?.currentBook ? 'Следующий цикл' : 'Новый цикл' }} • Твоя очередь
     h1 Предложить следующую книгу
     p.body-text.proposal__intro
       | Сейчас твоя очередь направить чтение клуба. Отправь книгу-кандидата на проверку: участники подтвердят, что ещё не читали её.
@@ -91,7 +102,9 @@ main.proposal.container
 
         .proposal__actions
           button.button.button--secondary.label-text(type="button" @click="router.push({ name: 'profile' })") Отмена
-          button.button.button--primary.label-text(type="submit") Отправить на проверку
+          button.button.button--primary.label-text(type="submit" :disabled="createCandidateMutation.isPending.value")
+            | {{ createCandidateMutation.isPending.value ? 'Отправляем...' : 'Отправить на проверку' }}
+          p.proposal__error(v-if="createCandidateMutation.error.value") Не удалось отправить предложение.
 
     aside.proposal__guidelines(aria-label="Правила выбора")
       .section-header.section-header--compact

@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useClubStore } from '@/stores/club'
 import ArchiveBookView from '../views/ArchiveBookView.vue'
 import ArchiveView from '../views/ArchiveView.vue'
 import HomeView from '../views/HomeView.vue'
@@ -59,15 +58,6 @@ const router = createRouter({
       name: 'propose-selection',
       component: ProposeNewSelectionView,
       meta: { title: 'Предложить книгу' },
-      beforeEnter: () => {
-        const club = useClubStore()
-
-        if (!club.canProposeNextBook) {
-          return { name: 'profile' }
-        }
-
-        return true
-      },
     },
   ],
 })

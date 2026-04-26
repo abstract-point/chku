@@ -1,32 +1,46 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useClubStore } from '@/stores/club'
+import { useDashboardQuery } from '@/queries/dashboardQueries'
+import { useCurrentUserQuery } from '@/queries/memberQueries'
 
-const club = useClubStore()
+const currentUserQuery = useCurrentUserQuery()
+const dashboardQuery = useDashboardQuery()
+const currentMember = computed(() => currentUserQuery.data.value)
+const currentMemberFirstName = computed(() => currentMember.value?.name.split(' ')[0] ?? '')
+const canProposeNextBook = computed(() =>
+  dashboardQuery.data.value?.turnOrder.some(
+    (member) => member.active && currentMemberFirstName.value && member.name.includes(currentMemberFirstName.value),
+  ),
+)
 </script>
 
 <template lang="pug">
 main.profile.container
-  .profile__grid
+  section.panel(v-if="currentUserQuery.isLoading.value" aria-live="polite")
+    p.body-text Загружаем профиль...
+  section.panel(v-else-if="currentUserQuery.error.value || !currentMember" aria-live="polite")
+    p.body-text Не удалось загрузить профиль.
+  .profile__grid(v-else)
     aside.profile__sidebar(aria-label="Профиль участника")
       .profile__hero
-        .avatar.avatar--large {{ club.currentMember.initials }}
+        .avatar.avatar--large {{ currentMember.initials }}
         div
-          h1.profile__name {{ club.currentMember.name }}
-          p.subtitle-italic Участник клуба с {{ club.currentMember.memberSince }}
+          h1.profile__name {{ currentMember.name }}
+          p.subtitle-italic Участник клуба с {{ currentMember.memberSince }}
 
       .profile__stats(aria-label="Статистика участника")
         .profile__stat
-          span.profile__stat-value {{ club.currentMember.stats.read }}
+          span.profile__stat-value {{ currentMember.stats.read }}
           span.label-text Прочитано
         .profile__stat
-          span.profile__stat-value {{ club.currentMember.stats.proposed }}
+          span.profile__stat-value {{ currentMember.stats.proposed }}
           span.label-text Предложено
         .profile__stat
-          span.profile__stat-value {{ club.currentMember.stats.meetings }}
+          span.profile__stat-value {{ currentMember.stats.meetings }}
           span.label-text Встреч
 
-      section.panel.profile__turn(v-if="club.canProposeNextBook" aria-labelledby="profile-turn-title")
+      section.panel.profile__turn(v-if="canProposeNextBook" aria-labelledby="profile-turn-title")
         .section-header.section-header--compact
           span#profile-turn-title.label-text Сейчас твоя очередь
         p.body-text
@@ -39,13 +53,13 @@ main.profile.container
           span#profile-settings-title.label-text Настройки профиля
         .profile__input-group
           label.label-text(for="member-name") Имя
-          input#member-name.profile__input(type="text" :value="club.currentMember.name")
+          input#member-name.profile__input(type="text" :value="currentMember.name")
         .profile__input-group
           label.label-text(for="member-email") Email
-          input#member-email.profile__input(type="email" :value="club.currentMember.email")
+          input#member-email.profile__input(type="email" :value="currentMember.email")
         .profile__input-group
           label.label-text(for="member-genre") Любимый жанр
-          input#member-genre.profile__input(type="text" :value="club.currentMember.favoriteGenre")
+          input#member-genre.profile__input(type="text" :value="currentMember.favoriteGenre")
         button.button.button--secondary.label-text.profile__save(type="button") Сохранить изменения
 
     section.profile__history(aria-labelledby="reading-history-title")
@@ -54,7 +68,7 @@ main.profile.container
         span.label-text Цикл #28 - сейчас
 
       .profile__book-list
-        article.profile__book(v-for="book in club.currentMember.readingHistory" :key="book.title")
+        article.profile__book(v-for="book in currentMember.readingHistory" :key="book.title")
           .profile__book-cover(:class="`profile__book-cover--${book.coverVariant ?? 'default'}`")
             span {{ book.coverTitle }}
           .profile__book-details
