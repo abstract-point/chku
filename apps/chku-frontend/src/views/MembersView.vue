@@ -1,16 +1,22 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { members } from '@/data/members'
+import { useMembersQuery } from '@/queries/memberQueries'
+
+const membersQuery = useMembersQuery()
 </script>
 
 <template lang="pug">
 main.members.container
   .section-header
     h1.members__title Участники
-    span.label-text {{ members.length }} человек в клубе
+    span.label-text {{ membersQuery.data.value?.length ?? 0 }} человек в клубе
 
-  .members__grid
-    RouterLink.member-card(v-for="member in members" :key="member.id" :to="`/members/${member.id}`")
+  section.panel(v-if="membersQuery.isLoading.value" aria-live="polite")
+    p.body-text Загружаем участников...
+  section.panel(v-else-if="membersQuery.error.value" aria-live="polite")
+    p.body-text Не удалось загрузить список участников.
+  .members__grid(v-else)
+    RouterLink.member-card(v-for="member in membersQuery.data.value" :key="member.id" :to="`/members/${member.id}`")
       .member-card__hero
         span.avatar.member-card__avatar {{ member.initials }}
         .member-card__info

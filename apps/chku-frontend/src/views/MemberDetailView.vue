@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { members } from '@/data/members'
+import { useMemberQuery } from '@/queries/memberQueries'
 
 const route = useRoute()
 const memberId = computed(() => Number(route.params.id))
-const member = computed(() => members.find((m) => m.id === memberId.value))
-const activeMembersCount = computed(() => members.filter((m) => m.isActive).length)
+const memberQuery = useMemberQuery(memberId)
+const member = computed(() => memberQuery.data.value)
 </script>
 
 <template lang="pug">
-main.member-detail.container(v-if="member")
+section.panel.container(v-if="memberQuery.isLoading.value" aria-live="polite")
+  p.body-text Загружаем участника...
+section.panel.container(v-else-if="memberQuery.error.value" aria-live="polite")
+  .section-header.section-header--compact
+    h2 Участник не найден
+  p.body-text Участника с таким идентификатором не существует.
+  RouterLink.button.button--secondary.label-text(to="/members") Вернуться к списку участников
+main.member-detail.container(v-else-if="member")
   .section-header
     RouterLink.button.button--ghost.label-text(to="/members") ← Назад к списку
 
