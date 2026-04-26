@@ -55,6 +55,7 @@ export const useClubStore = defineStore('club', () => {
 
   function submitBookProposal(form: BookProposalForm) {
     activeBookChoice.value = {
+      id: Date.now(),
       type: 'book-choice',
       proposerName: currentMember.value.name,
       bookTitle: form.title.trim(),

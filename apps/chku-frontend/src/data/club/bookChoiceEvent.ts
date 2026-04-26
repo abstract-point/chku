@@ -1,6 +1,7 @@
 import type { BookChoiceEvent } from '@/types/club'
 
 export const activeBookChoice = {
+  id: 1,
   type: 'book-choice',
   proposerName: 'Елена',
   bookTitle: 'Тайную историю',

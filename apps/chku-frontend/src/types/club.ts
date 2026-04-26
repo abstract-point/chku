@@ -1,10 +1,20 @@
 export type BookChoiceEvent = {
+  id: number
   type: 'book-choice'
   proposerName: string
   bookTitle: string
   author: string
   description: string
   reason: string
+  responses?: {
+    id: number
+    member: {
+      id: number
+      name: string
+      initials: string
+    }
+    response: 'not_read' | 'read' | 'not_sure' | 'pending'
+  }[]
 }
 
 export type BookProposalForm = {

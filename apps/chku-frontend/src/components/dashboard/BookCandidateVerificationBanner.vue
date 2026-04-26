@@ -1,9 +1,21 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useCandidateResponseMutation } from '@/queries/candidateQueries'
 import type { BookChoiceEvent } from '@/types/club'
 
-defineProps<{
+const props = defineProps<{
   choice: BookChoiceEvent
 }>()
+
+const responseMutation = useCandidateResponseMutation()
+const isPending = computed(() => responseMutation.isPending.value)
+
+function respond(response: 'read' | 'not_read' | 'not_sure') {
+  responseMutation.mutate({
+    candidateId: props.choice.id,
+    response,
+  })
+}
 </script>
 
 <template lang="pug">
@@ -14,8 +26,9 @@ section.book-candidate-banner(aria-labelledby="verification-title")
     p.book-candidate-banner__text
       | {{ choice.proposerName }} предложила «{{ choice.bookTitle }}» — {{ choice.author }}. Ты уже читал(а) эту книгу?
   .book-candidate-banner__actions
-    button.button.button--secondary.label-text(type="button") Я читал(а)
-    button.button.button--inverted.label-text(type="button") Не читал(а)
+    button.button.button--secondary.label-text(type="button" :disabled="isPending" @click="respond('read')") Я читал(а)
+    button.button.button--secondary.label-text(type="button" :disabled="isPending" @click="respond('not_sure')") Не уверен(а)
+    button.button.button--inverted.label-text(type="button" :disabled="isPending" @click="respond('not_read')") Не читал(а)
 </template>
 
 <style scoped>

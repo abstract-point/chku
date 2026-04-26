@@ -3,9 +3,15 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
 import BookCandidateVerificationBanner from '@/components/dashboard/BookCandidateVerificationBanner.vue'
+import { mapCandidateToChoice } from '@/mappers/candidateMapper'
+import { useActiveCandidateQuery } from '@/queries/candidateQueries'
 import { useClubStore } from '@/stores/club'
 
 const club = useClubStore()
+const activeCandidateQuery = useActiveCandidateQuery()
+const activeBookChoice = computed(() =>
+  activeCandidateQuery.data.value ? mapCandidateToChoice(activeCandidateQuery.data.value) : null,
+)
 const theme = ref<'light' | 'dark'>('light')
 
 function getPreferredTheme() {
@@ -74,8 +80,8 @@ onMounted(() => {
             line(x1="4.22" y1="19.78" x2="5.64" y2="18.36")
             line(x1="18.36" y1="5.64" x2="19.78" y2="4.22")
 
-  .container(v-if="club.activeBookChoice")
-    BookCandidateVerificationBanner(:choice="club.activeBookChoice")
+  .container(v-if="activeBookChoice")
+    BookCandidateVerificationBanner(:choice="activeBookChoice")
   main.app-main
     RouterView
   AppFooter
