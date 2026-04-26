@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { meetingDetail } from '@/data/meetings/meetingDetail'
-import type { MeetingDetail } from '@/types/dashboard'
+import { useMeetingQuery } from '@/queries/meetingQueries'
 
 const route = useRoute()
-
-const meeting = computed<MeetingDetail | null>(() => {
-  if (route.params.id !== meetingDetail.id) return null
-  return meetingDetail
-})
-
+const meetingId = computed(() => String(route.params.id ?? ''))
+const meetingQuery = useMeetingQuery(meetingId)
+const meeting = computed(() => meetingQuery.data.value)
 const newTopic = ref('')
-const rsvpStatus = ref<'attending' | 'not_attending' | 'pending'>(meetingDetail.rsvpStatus)
+const rsvpStatus = ref<'attending' | 'not_attending' | 'pending'>('pending')
+
+watchEffect(() => {
+  rsvpStatus.value = meeting.value?.rsvpStatus ?? 'pending'
+})
 
 function setRsvp(status: 'attending' | 'not_attending') {
   rsvpStatus.value = status
@@ -32,7 +32,14 @@ function submitTopic() {
 
 <template lang="pug">
 main.meeting-detail.container
-  template(v-if="meeting")
+  section.panel(v-if="meetingQuery.isLoading.value" aria-live="polite")
+    p.body-text Загружаем встречу...
+  section.panel.meeting-detail__missing(v-else-if="meetingQuery.error.value")
+    .section-header.section-header--compact
+      h1 Встреча не найдена
+    p.body-text Возможно, ссылка устарела или встреча ещё не назначена.
+    RouterLink.button.button--primary.label-text(to="/") Вернуться на дашборд
+  template(v-else-if="meeting")
     nav.meeting-detail__breadcrumb.label-text(aria-label="Навигация")
       RouterLink(to="/") Дашборд
       span /

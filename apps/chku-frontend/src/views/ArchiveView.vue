@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { archiveBooks } from '@/data/club/archiveBooks'
+import { useArchiveQuery } from '@/queries/archiveQueries'
 import type { ArchiveBookGenre } from '@/types/club'
 
 type SortMode = 'newest' | 'oldest' | 'rating'
@@ -12,11 +12,13 @@ const selectedMember = ref('')
 const sortMode = ref<SortMode>('newest')
 const currentPage = ref(1)
 const pageSize = 6
+const archiveQuery = useArchiveQuery()
+const archiveBooks = computed(() => archiveQuery.data.value ?? [])
 
 const genreOptions = computed(() => {
   const genres = new Map<ArchiveBookGenre, string>()
 
-  for (const book of archiveBooks) {
+  for (const book of archiveBooks.value) {
     genres.set(book.genre, book.genreLabel)
   }
 
@@ -24,7 +26,7 @@ const genreOptions = computed(() => {
 })
 
 const memberOptions = computed(() => {
-  return [...new Set(archiveBooks.map((book) => book.proposedBy))].sort((left, right) =>
+  return [...new Set(archiveBooks.value.map((book) => book.proposedBy))].sort((left, right) =>
     left.localeCompare(right, 'ru'),
   )
 })
@@ -32,7 +34,7 @@ const memberOptions = computed(() => {
 const filteredBooks = computed(() => {
   const normalizedQuery = searchQuery.value.trim().toLocaleLowerCase('ru')
 
-  return archiveBooks.filter((book) => {
+  return archiveBooks.value.filter((book) => {
       const matchesQuery =
         !normalizedQuery ||
         [book.title, book.author, book.proposedBy].some((value) =>
@@ -111,7 +113,11 @@ main.archive.container
         option(value="oldest") Сначала старые
         option(value="rating") По рейтингу
 
-  .archive__grid(v-if="paginatedBooks.length")
+  section.panel(v-if="archiveQuery.isLoading.value" aria-live="polite")
+    p.body-text Загружаем архив...
+  section.panel(v-else-if="archiveQuery.error.value" aria-live="polite")
+    p.body-text Не удалось загрузить архив.
+  .archive__grid(v-else-if="paginatedBooks.length")
     RouterLink.archive-card(v-for="book in paginatedBooks" :key="book.slug" :to="`/archive/${book.slug}`")
       .archive-card__cover(:style="{ backgroundColor: book.coverColor }" :aria-label="`Обложка книги ${book.title}`")
         span.archive-card__cover-title {{ book.coverTitle }}

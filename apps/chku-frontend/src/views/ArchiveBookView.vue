@@ -1,16 +1,24 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { archiveBooks } from '@/data/club/archiveBooks'
+import { useArchiveBookQuery } from '@/queries/archiveQueries'
 
 const route = useRoute()
-
-const book = computed(() => archiveBooks.find((item) => item.slug === route.params.slug))
+const slug = computed(() => String(route.params.slug ?? ''))
+const bookQuery = useArchiveBookQuery(slug)
+const book = computed(() => bookQuery.data.value)
 </script>
 
 <template lang="pug">
 main.archive-book.container
-  template(v-if="book")
+  section.panel(v-if="bookQuery.isLoading.value" aria-live="polite")
+    p.body-text Загружаем книгу...
+  section.panel.archive-book__missing(v-else-if="bookQuery.error.value")
+    .section-header.section-header--compact
+      h1 Книга не найдена
+    p.body-text Возможно, ссылка устарела или книга ещё не добавлена в архив.
+    RouterLink.button.button--primary.label-text(to="/archive") Вернуться в архив
+  template(v-else-if="book")
     nav.archive-book__breadcrumb.label-text(aria-label="Навигация по архиву")
       RouterLink(to="/archive") Архив
       span /
