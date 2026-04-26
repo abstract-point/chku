@@ -21,21 +21,8 @@ services:
         APP_GID: ${APP_GID:-1000}
     depends_on:
       - db
-    environment:
-      APP_NAME: CHKU
-      APP_KEY: REMOVED_APP_KEY 
-      APP_ENV: local
-      APP_DEBUG: "true"
-      APP_URL: http://localhost:8090
-      APP_LOCALE: ru
-      APP_FALLBACK_LOCALE: en
-      APP_FAKER_LOCALE: ru_RU
-      DB_CONNECTION: pgsql
-      DB_HOST: db
-      DB_PORT: "5432"
-      DB_DATABASE: chku
-      DB_USERNAME: chku
-      DB_PASSWORD: chku
+    env_file:
+      - ../../../apps/chku-backend/.env
     volumes:
       - ../../../apps/chku-backend:/var/www/backend
       - backend_vendor:/var/www/backend/vendor
@@ -46,9 +33,9 @@ services:
     container_name: chku-db
     image: postgres:18.3-alpine
     environment:
-      POSTGRES_DB: chku
-      POSTGRES_USER: chku
-      POSTGRES_PASSWORD: chku
+      POSTGRES_DB: ${DB_DATABASE:?DB_DATABASE is required}
+      POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME is required}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql
     expose:

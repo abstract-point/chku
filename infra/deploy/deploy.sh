@@ -3,4 +3,4 @@ set -eu
 
 cd "$(dirname "$0")/../.."
 
-docker compose -f infra/docker/prod/docker-compose.yml up -d --build
+docker compose --env-file apps/chku-backend/.env -f infra/docker/prod/docker-compose.yml up -d --build
