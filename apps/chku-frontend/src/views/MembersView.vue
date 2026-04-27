@@ -1,8 +1,21 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { useMembersQuery } from '@/queries/memberQueries'
+import { http } from '@/api/http'
 
+const auth = useAuthStore()
 const membersQuery = useMembersQuery()
+
+async function deactivateMember(id: number) {
+  if (!confirm('Деактивировать участника?')) return
+  try {
+    await http.post(`/members/${id}/deactivate`)
+    membersQuery.refetch()
+  } catch (e: unknown) {
+    alert((e as Error).message || 'Ошибка деактивации')
+  }
+}
 </script>
 
 <template lang="pug">
@@ -10,6 +23,7 @@ main.members.container
   .section-header
     h1.members__title Участники
     span.label-text {{ membersQuery.data.value?.length ?? 0 }} человек в клубе
+    RouterLink.button.button--primary.label-text(v-if="auth.isAdmin" to="/members/add") Добавить участника
 
   section.panel(v-if="membersQuery.isLoading.value" aria-live="polite")
     p.body-text Загружаем участников...
@@ -32,6 +46,11 @@ main.members.container
         .member-card__stat
           span.member-card__stat-value {{ member.stats.meetings }}
           span.label-text Встреч
+      button.member-card__deactivate(
+        v-if="auth.isAdmin && member.isActive && member.id !== auth.user?.id"
+        type="button"
+        @click.prevent="deactivateMember(member.id)"
+      ) Деактивировать
 </template>
 
 <style scoped>
@@ -110,6 +129,29 @@ main.members.container
   font-size: 1.4rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.member-card__deactivate {
+  margin-top: var(--space-sm);
+  padding: 0.35rem 0.6rem;
+  border: var(--border-width) solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.member-card__deactivate:hover {
+  border-color: var(--warn);
+  color: var(--warn);
+  background: rgba(173, 110, 83, 0.08);
 }
 
 @media (max-width: 640px) {
