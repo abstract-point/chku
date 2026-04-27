@@ -28,6 +28,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(RolePermissionSeeder::class);
+
         $club = Club::create([
             'name' => 'Читальный клуб умничек',
             'short_name' => 'ЧКУ',
@@ -68,6 +70,8 @@ class DatabaseSeeder extends Seeder
                 'joined_at' => $data['joined'],
                 'favorite_genre_id' => Genre::where('slug', $data['genre'])->value('id'),
             ]);
+
+            $user->assignRole('member');
         }
 
         $booksData = [
