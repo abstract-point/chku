@@ -19,7 +19,12 @@ export const http = axios.create({
     Accept: 'application/json',
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 })
+
+export async function fetchCsrfCookie(): Promise<void> {
+  await axios.get('/sanctum/csrf-cookie', { withCredentials: true })
+}
 
 http.interceptors.response.use(
   (response) => {
@@ -41,4 +46,3 @@ http.interceptors.response.use(
     return Promise.reject(new ApiError(message, status, error.response?.data?.errors))
   },
 )
-
