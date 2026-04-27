@@ -1,65 +1,103 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import ArchiveBookView from '../views/ArchiveBookView.vue'
 import ArchiveView from '../views/ArchiveView.vue'
 import HomeView from '../views/HomeView.vue'
+import LoginView from '../views/LoginView.vue'
 import MemberDetailView from '../views/MemberDetailView.vue'
 import MembersView from '../views/MembersView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import MeetingDetailView from '../views/MeetingDetailView.vue'
+import AddMemberView from '../views/AddMemberView.vue'
 import ProposeNewSelectionView from '../views/ProposeNewSelectionView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+      meta: { title: 'Вход', public: true },
+    },
+    {
       path: '/',
       name: 'home',
       component: HomeView,
-      meta: { title: 'Дашборд' },
+      meta: { title: 'Дашборд', requiresAuth: true },
     },
     {
       path: '/members',
       name: 'members',
       component: MembersView,
-      meta: { title: 'Участники' },
+      meta: { title: 'Участники', requiresAuth: true },
+    },
+    {
+      path: '/members/add',
+      name: 'add-member',
+      component: AddMemberView,
+      meta: { title: 'Добавить участника', requiresAuth: true },
     },
     {
       path: '/members/:id',
       name: 'member-detail',
       component: MemberDetailView,
-      meta: { title: 'Участник' },
+      meta: { title: 'Участник', requiresAuth: true },
     },
     {
       path: '/profile',
       name: 'profile',
       component: ProfileView,
-      meta: { title: 'Профиль' },
+      meta: { title: 'Профиль', requiresAuth: true },
     },
     {
       path: '/archive',
       name: 'archive',
       component: ArchiveView,
-      meta: { title: 'Архив' },
+      meta: { title: 'Архив', requiresAuth: true },
     },
     {
       path: '/archive/:slug',
       name: 'archive-book',
       component: ArchiveBookView,
-      meta: { title: 'Архив' },
+      meta: { title: 'Архив', requiresAuth: true },
     },
     {
       path: '/meetings/:id',
       name: 'meeting-detail',
       component: MeetingDetailView,
-      meta: { title: 'Встреча' },
+      meta: { title: 'Встреча', requiresAuth: true },
     },
     {
       path: '/propose-selection',
       name: 'propose-selection',
       component: ProposeNewSelectionView,
-      meta: { title: 'Предложить книгу' },
+      meta: { title: 'Предложить книгу', requiresAuth: true },
     },
   ],
+})
+
+router.beforeEach(async (to, from, next) => {
+  const auth = useAuthStore()
+
+  if (to.meta.public) {
+    if (auth.isAuthenticated) {
+      next('/')
+      return
+    }
+    next()
+    return
+  }
+
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    const ok = await auth.fetchUser()
+    if (!ok) {
+      next({ name: 'login', query: { redirect: to.fullPath } })
+      return
+    }
+  }
+
+  next()
 })
 
 router.afterEach((to) => {
