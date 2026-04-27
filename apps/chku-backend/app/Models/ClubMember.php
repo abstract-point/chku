@@ -16,6 +16,7 @@ class ClubMember extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'joined_at' => 'date',
+        'deactivated_at' => 'datetime',
     ];
 
     public function club(): BelongsTo
