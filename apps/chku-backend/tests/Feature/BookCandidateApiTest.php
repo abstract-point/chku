@@ -8,6 +8,7 @@ use App\Models\BookCandidate;
 use App\Models\BookCandidateResponse;
 use App\Models\ClubMember;
 use App\Models\ReadingCycle;
+use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -16,9 +17,16 @@ class BookCandidateApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function actingAsFirstMember(): self
+    {
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+        return $this->actingAs($user);
+    }
+
     public function test_candidate_can_be_created_for_current_member(): void
     {
         $this->seed(DatabaseSeeder::class);
+        $this->actingAsFirstMember();
 
         $response = $this->postJson('/api/candidates', [
             'title' => 'Пикник на обочине',
@@ -42,6 +50,7 @@ class BookCandidateApiTest extends TestCase
     public function test_current_member_can_answer_candidate_verification(): void
     {
         $this->seed(DatabaseSeeder::class);
+        $this->actingAsFirstMember();
 
         $candidate = BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
 
@@ -59,6 +68,7 @@ class BookCandidateApiTest extends TestCase
     public function test_candidate_cannot_be_approved_until_all_active_members_have_not_read_it(): void
     {
         $this->seed(DatabaseSeeder::class);
+        $this->actingAsFirstMember();
 
         $candidate = BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
 
@@ -74,6 +84,7 @@ class BookCandidateApiTest extends TestCase
     public function test_candidate_can_be_approved_when_all_active_members_have_not_read_it(): void
     {
         $this->seed(DatabaseSeeder::class);
+        $this->actingAsFirstMember();
 
         $candidate = BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
         BookCandidateResponse::where('book_candidate_id', $candidate->id)->update([
