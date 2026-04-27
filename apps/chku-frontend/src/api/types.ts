@@ -115,6 +115,13 @@ export type ApiDashboard = {
   }[]
 }
 
+export type ApiAuthUser = {
+  user: ApiMember | null
+  roles: string[]
+  permissions: string[]
+  twoFactorEnabled?: boolean
+}
+
 export type ApiArchiveBook = {
   slug: string
   title: string
