@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import AppLogo from '@/components/AppLogo.vue'
+import { useAuthStore } from '@/stores/auth'
 import { useClubStore } from '@/stores/club'
 
 const club = useClubStore()
+const auth = useAuthStore()
+const router = useRouter()
 const theme = ref<'light' | 'dark'>('light')
 
 function getPreferredTheme() {
@@ -31,6 +34,11 @@ function toggleTheme() {
   applyTheme(theme.value === 'dark' ? 'light' : 'dark')
 }
 
+async function handleLogout() {
+  await auth.logout()
+  router.push('/login')
+}
+
 onMounted(() => {
   applyTheme(getPreferredTheme())
 
@@ -49,10 +57,17 @@ header.app-header
     span.app-header__brand-name {{ club.name }}
 
   nav.app-header__nav(aria-label="Основная навигация")
-    RouterLink(to="/") Дашборд
-    RouterLink(to="/members") Участники
-    RouterLink(to="/archive") Архив
-    RouterLink(to="/profile") Профиль
+    template(v-if="auth.isAuthenticated")
+      RouterLink(to="/") Дашборд
+      RouterLink(to="/members") Участники
+      RouterLink(to="/archive") Архив
+      RouterLink(to="/profile") Профиль
+      .app-header__user(v-if="auth.user")
+        span.app-header__user-name {{ auth.user.name }}
+        span.app-header__user-role(v-if="auth.isAdmin") {{ auth.isDeveloper ? 'Разработчик' : 'Администратор' }}
+      button.app-header__action(type="button" @click="handleLogout") Выйти
+    template(v-else)
+      RouterLink(to="/login") Вход
     button.app-header__theme(type="button" :aria-label="theme === 'dark' ? 'Переключить на светлую тему' : 'Переключить на тёмную тему'" @click="toggleTheme")
       svg(v-if="theme === 'light'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18")
         path(d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z")
@@ -116,6 +131,48 @@ header.app-header
 
 .app-header__nav a:hover,
 .app-header__nav a.router-link-exact-active {
+  color: var(--text-main);
+}
+
+.app-header__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.app-header__user-name {
+  color: var(--text-main);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.app-header__user-role {
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.app-header__action {
+  padding: 0.35rem 0.6rem;
+  border: var(--border-width) solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.app-header__action:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
   color: var(--text-main);
 }
 
