@@ -1,14 +1,17 @@
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
+import { authApi } from '@/api/endpoints/auth'
 import { membersApi } from '@/api/endpoints/members'
-import { sessionApi } from '@/api/endpoints/session'
 import { mapMember } from '@/mappers/memberMapper'
 import { queryKeys } from '@/queries/keys'
 
 export function useCurrentUserQuery() {
   return useQuery({
     queryKey: queryKeys.currentUser,
-    queryFn: async () => mapMember(await sessionApi.me()),
+    queryFn: async () => {
+      const data = await authApi.me()
+      return data.user ? mapMember(data.user) : null
+    },
     staleTime: 60_000,
   })
 }
@@ -29,4 +32,3 @@ export function useMemberQuery(id: MaybeRefOrGetter<number>) {
     staleTime: 60_000,
   })
 }
-
