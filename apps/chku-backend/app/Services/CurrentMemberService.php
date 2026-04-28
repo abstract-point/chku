@@ -18,7 +18,7 @@ final class CurrentMemberService
             throw new AuthenticationException('Unauthenticated.');
         }
 
-        $member = ClubMember::with('user', 'favoriteGenre')
+        $member = ClubMember::with(['user', 'favoriteGenre'])
             ->where('user_id', $user->id)
             ->first();
 

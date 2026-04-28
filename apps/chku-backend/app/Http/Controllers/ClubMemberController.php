@@ -6,12 +6,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Club;
 use App\Models\ClubMember;
-use App\Models\Genre;
 use App\Models\User;
 use App\Http\Resources\MemberDetailResource;
 use App\Http\Resources\MemberResource;
 use App\Services\AuditLogService;
-use App\Services\CurrentMemberService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
