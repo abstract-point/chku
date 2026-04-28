@@ -19,11 +19,17 @@ class ClubMemberPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'developer']);
+        return $this->canManageMembers($user);
     }
 
     public function deactivate(User $user, ClubMember $clubMember): bool
     {
-        return $user->hasAnyRole(['admin', 'developer']);
+        return $this->canManageMembers($user);
+    }
+
+    private function canManageMembers(User $user): bool
+    {
+        return $user->hasAnyRole(['admin', 'developer'])
+            && $user->two_factor_confirmed_at !== null;
     }
 }

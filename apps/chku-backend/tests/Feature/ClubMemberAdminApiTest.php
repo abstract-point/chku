@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\AuditLog;
 use App\Models\ClubMember;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -13,11 +12,16 @@ class ClubMemberAdminApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function actingAsAdmin(): self
+    private function actingAsAdmin(bool $withTwoFactor = true): self
     {
         $this->seed(DatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $user->assignRole('admin');
+
+        if ($withTwoFactor) {
+            $user->forceFill(['two_factor_confirmed_at' => now()])->save();
+        }
+
         return $this->actingAs($user)->startSession();
     }
 
@@ -57,6 +61,22 @@ class ClubMemberAdminApiTest extends TestCase
         $response->assertForbidden();
     }
 
+    public function test_admin_without_two_factor_cannot_create_member(): void
+    {
+        $this->actingAsAdmin(withTwoFactor: false);
+
+        $response = $this->postJson('/api/members', [
+            'name' => 'Новый Участник',
+            'email' => 'new@example.com',
+            'password' => 'secret123',
+            'initials' => 'НУ',
+            'joined_at' => '2024-01-15',
+            'role' => 'member',
+        ]);
+
+        $response->assertForbidden();
+    }
+
     public function test_admin_can_deactivate_member(): void
     {
         $this->actingAsAdmin();
@@ -80,5 +100,15 @@ class ClubMemberAdminApiTest extends TestCase
         $response = $this->postJson("/api/members/{$member->id}/deactivate");
 
         $response->assertUnprocessable();
+    }
+
+    public function test_admin_without_two_factor_cannot_deactivate_member(): void
+    {
+        $this->actingAsAdmin(withTwoFactor: false);
+        $member = ClubMember::whereHas('user', fn ($q) => $q->where('email', 'mikhail@example.com'))->firstOrFail();
+
+        $response = $this->postJson("/api/members/{$member->id}/deactivate");
+
+        $response->assertForbidden();
     }
 }
