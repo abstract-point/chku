@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useMembersQuery } from '@/queries/memberQueries'
@@ -6,6 +7,7 @@ import { http } from '@/api/http'
 
 const auth = useAuthStore()
 const membersQuery = useMembersQuery()
+const canManageMembers = computed(() => auth.isAdmin && auth.twoFactorEnabled)
 
 async function deactivateMember(id: number) {
   if (!confirm('Деактивировать участника?')) return
@@ -23,7 +25,11 @@ main.members.container
   .section-header
     h1.members__title Участники
     span.label-text {{ membersQuery.data.value?.length ?? 0 }} человек в клубе
-    RouterLink.button.button--primary.label-text(v-if="auth.isAdmin" to="/members/add") Добавить участника
+    RouterLink.button.button--primary.label-text(v-if="canManageMembers" to="/members/add") Добавить участника
+
+  section.panel.members__notice(v-if="auth.isAdmin && !auth.twoFactorEnabled")
+    p.body-text Управление участниками станет доступно после включения 2FA.
+    RouterLink.button.button--secondary.label-text(to="/profile/settings") Настроить 2FA
 
   section.panel(v-if="membersQuery.isLoading.value" aria-live="polite")
     p.body-text Загружаем участников...
@@ -47,7 +53,7 @@ main.members.container
           span.member-card__stat-value {{ member.stats.meetings }}
           span.label-text Встреч
       button.member-card__deactivate(
-        v-if="auth.isAdmin && member.isActive && member.id !== auth.user?.id"
+        v-if="canManageMembers && member.isActive && member.id !== auth.user?.id"
         type="button"
         @click.prevent="deactivateMember(member.id)"
       ) Деактивировать
@@ -62,6 +68,14 @@ main.members.container
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
   gap: var(--space-lg);
+}
+
+.members__notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
 }
 
 .member-card {
@@ -155,6 +169,11 @@ main.members.container
 }
 
 @media (max-width: 640px) {
+  .members__notice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .member-card__stats {
     grid-template-columns: 1fr;
     align-items: flex-start;

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { http } from '@/api/http'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
+const canManageMembers = computed(() => auth.isAdmin && auth.twoFactorEnabled)
 
 const form = ref({
   name: '',
@@ -40,32 +41,38 @@ main.add-member.container
     h1.add-member__title Добавить участника
 
   form.panel(@submit.prevent="submit")
-    .add-member__group
-      label.label-text(for="am-name") Имя
-      input#am-name.add-member__input(type="text" v-model="form.name" required)
-    .add-member__group
-      label.label-text(for="am-email") Email
-      input#am-email.add-member__input(type="email" v-model="form.email" required)
-    .add-member__group
-      label.label-text(for="am-password") Пароль
-      input#am-password.add-member__input(type="password" v-model="form.password" required minlength="8")
-    .add-member__group
-      label.label-text(for="am-initials") Инициалы
-      input#am-initials.add-member__input(type="text" v-model="form.initials" required maxlength="10")
-    .add-member__group
-      label.label-text(for="am-joined") Дата вступления
-      input#am-joined.add-member__input(type="date" v-model="form.joined_at" required)
-    .add-member__group
-      label.label-text(for="am-role") Роль
-      select#am-role.add-member__input(v-model="form.role" required)
-        option(value="member") Участник
-        option(value="admin") Администратор
-        option(value="developer") Разработчик
-    p.add-member__error(v-if="error") {{ error }}
-    .add-member__actions
-      button.button.button--secondary.label-text(type="button" @click="router.back()") Отмена
-      button.button.button--primary.label-text(type="submit" :disabled="isSubmitting")
-        | {{ isSubmitting ? 'Создание...' : 'Создать участника' }}
+    template(v-if="!canManageMembers")
+      p.body-text Для добавления участников Админу и Разработчику нужно включить 2FA.
+      .add-member__actions
+        button.button.button--secondary.label-text(type="button" @click="router.back()") Назад
+        RouterLink.button.button--primary.label-text(to="/profile/settings") Настроить 2FA
+    template(v-else)
+      .add-member__group
+        label.label-text(for="am-name") Имя
+        input#am-name.add-member__input(type="text" v-model="form.name" required)
+      .add-member__group
+        label.label-text(for="am-email") Email
+        input#am-email.add-member__input(type="email" v-model="form.email" required)
+      .add-member__group
+        label.label-text(for="am-password") Пароль
+        input#am-password.add-member__input(type="password" v-model="form.password" required minlength="8")
+      .add-member__group
+        label.label-text(for="am-initials") Инициалы
+        input#am-initials.add-member__input(type="text" v-model="form.initials" required maxlength="10")
+      .add-member__group
+        label.label-text(for="am-joined") Дата вступления
+        input#am-joined.add-member__input(type="date" v-model="form.joined_at" required)
+      .add-member__group
+        label.label-text(for="am-role") Роль
+        select#am-role.add-member__input(v-model="form.role" required)
+          option(value="member") Участник
+          option(value="admin") Администратор
+          option(value="developer") Разработчик
+      p.add-member__error(v-if="error") {{ error }}
+      .add-member__actions
+        button.button.button--secondary.label-text(type="button" @click="router.back()") Отмена
+        button.button.button--primary.label-text(type="submit" :disabled="isSubmitting")
+          | {{ isSubmitting ? 'Создание...' : 'Создать участника' }}
 </template>
 
 <style scoped>
