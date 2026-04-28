@@ -49,4 +49,3 @@ export function useApproveCandidateMutation() {
     onSuccess: () => invalidateCandidateState(queryClient),
   })
 }
-

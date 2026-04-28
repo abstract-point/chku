@@ -6,4 +6,3 @@ export const dashboardApi = {
     return http.get<unknown, ApiDashboard>('/dashboard')
   },
 }
-

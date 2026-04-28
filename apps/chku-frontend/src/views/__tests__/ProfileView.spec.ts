@@ -28,9 +28,7 @@ describe('ProfileView', () => {
     expect(wrapper.text()).toContain('Тайная история')
     expect(wrapper.text()).toContain('Франкенштейн')
     expect(
-      wrapper
-        .findAllComponents(RouterLinkStub)
-        .some((link) => link.props('to') === '/archive'),
+      wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/archive'),
     ).toBe(true)
   })
 

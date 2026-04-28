@@ -4,7 +4,10 @@ import type { ApiAuthUser, ApiMember } from '@/api/types'
 export const authApi = {
   async login(email: string, password: string) {
     await fetchCsrfCookie()
-    return http.post<unknown, (ApiAuthUser & { two_factor_required?: false }) | { two_factor_required: true }>('/login', {
+    return http.post<
+      unknown,
+      (ApiAuthUser & { two_factor_required?: false }) | { two_factor_required: true }
+    >('/login', {
       email,
       password,
     })
@@ -24,7 +27,11 @@ export const authApi = {
     return http.get<unknown, ApiAuthUser>('/me')
   },
 
-  async updateProfile(payload: { name: string; initials: string; favorite_genre_id: number | null }) {
+  async updateProfile(payload: {
+    name: string
+    initials: string
+    favorite_genre_id: number | null
+  }) {
     return http.patch<unknown, ApiMember>('/me/profile', payload)
   },
 

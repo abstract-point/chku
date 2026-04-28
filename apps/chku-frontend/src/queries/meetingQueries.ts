@@ -12,4 +12,3 @@ export function useMeetingQuery(id: MaybeRefOrGetter<string>) {
     staleTime: 60_000,
   })
 }
-

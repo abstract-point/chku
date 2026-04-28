@@ -19,4 +19,3 @@ export function useArchiveBookQuery(slug: MaybeRefOrGetter<string>) {
     staleTime: 60_000,
   })
 }
-

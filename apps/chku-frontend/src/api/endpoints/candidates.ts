@@ -21,4 +21,3 @@ export const candidatesApi = {
     return http.post<unknown, ApiBookCandidate>(`/candidates/${candidateId}/approve`)
   },
 }
-

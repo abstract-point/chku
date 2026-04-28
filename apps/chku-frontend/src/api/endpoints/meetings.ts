@@ -6,4 +6,3 @@ export const meetingsApi = {
     return http.get<unknown, ApiMeeting>(`/meetings/${id}`)
   },
 }
-

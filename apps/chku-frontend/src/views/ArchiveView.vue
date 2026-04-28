@@ -34,7 +34,8 @@ const memberOptions = computed(() => {
 const filteredBooks = computed(() => {
   const normalizedQuery = searchQuery.value.trim().toLocaleLowerCase('ru')
 
-  return archiveBooks.value.filter((book) => {
+  return archiveBooks.value
+    .filter((book) => {
       const matchesQuery =
         !normalizedQuery ||
         [book.title, book.author, book.proposedBy].some((value) =>
@@ -44,17 +45,18 @@ const filteredBooks = computed(() => {
       const matchesMember = !selectedMember.value || book.proposedBy === selectedMember.value
 
       return matchesQuery && matchesGenre && matchesMember
-    }).sort((left, right) => {
-    if (sortMode.value === 'oldest') {
-      return left.cycleNumber - right.cycleNumber
-    }
+    })
+    .sort((left, right) => {
+      if (sortMode.value === 'oldest') {
+        return left.cycleNumber - right.cycleNumber
+      }
 
-    if (sortMode.value === 'rating') {
-      return right.rating - left.rating
-    }
+      if (sortMode.value === 'rating') {
+        return right.rating - left.rating
+      }
 
-    return right.cycleNumber - left.cycleNumber
-  })
+      return right.cycleNumber - left.cycleNumber
+    })
 })
 
 const totalPages = computed(() => Math.max(1, Math.ceil(filteredBooks.value.length / pageSize)))

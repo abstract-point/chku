@@ -10,4 +10,3 @@ export const archiveApi = {
     return http.get<unknown, ApiArchiveBook>(`/archive/${slug}`)
   },
 }
-

@@ -12,13 +12,15 @@ const activeCandidate = {
     slug: 'taynaya-istoriya',
     title: 'Тайную историю',
     author: 'Донна Тартт',
-    description: 'Роман о закрытом круге студентов, античной культуре и последствиях одного решения.',
+    description:
+      'Роман о закрытом круге студентов, античной культуре и последствиях одного решения.',
   },
   proposer: {
     ...members[0]!,
     name: 'Елена',
   },
-  reason: 'Подойдёт для обсуждения ответственности, дружбы и того, как интеллектуальная среда меняет людей.',
+  reason:
+    'Подойдёт для обсуждения ответственности, дружбы и того, как интеллектуальная среда меняет людей.',
   description: 'Роман о закрытом круге студентов, античной культуре и последствиях одного решения.',
   status: 'pending' as const,
   responses: [],
@@ -99,7 +101,9 @@ vi.mock('@/queries/archiveQueries', () => ({
 
 vi.mock('@/queries/meetingQueries', () => ({
   useMeetingQuery: (id: unknown) => {
-    const data = computed(() => (String(toValue(id)) === meetingDetail.id ? meetingDetail : undefined))
+    const data = computed(() =>
+      String(toValue(id)) === meetingDetail.id ? meetingDetail : undefined,
+    )
     const error = computed(() => (data.value ? null : new Error('Not found')))
 
     return {

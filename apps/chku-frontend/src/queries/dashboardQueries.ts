@@ -10,4 +10,3 @@ export function useDashboardQuery() {
     staleTime: 30_000,
   })
 }
-

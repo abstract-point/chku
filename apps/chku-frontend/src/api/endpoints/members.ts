@@ -10,4 +10,3 @@ export const membersApi = {
     return http.get<unknown, ApiMember>(`/members/${id}`)
   },
 }
-

@@ -23,4 +23,3 @@ export function mapDashboard(dto: ApiDashboard) {
     nextMeeting: dto.nextMeeting ? mapMeetingSummary(dto.nextMeeting) : null,
   }
 }
-

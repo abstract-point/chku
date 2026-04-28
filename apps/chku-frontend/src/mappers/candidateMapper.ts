@@ -13,4 +13,3 @@ export function mapCandidateToChoice(candidate: ApiBookCandidate): BookChoiceEve
     responses: candidate.responses,
   }
 }
-

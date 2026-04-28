@@ -57,9 +57,7 @@ describe('MemberDetailView', () => {
     const wrapper = mountMemberDetail('1')
 
     expect(
-      wrapper
-        .findAllComponents(RouterLinkStub)
-        .some((link) => link.props('to') === '/members'),
+      wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/members'),
     ).toBe(true)
   })
 

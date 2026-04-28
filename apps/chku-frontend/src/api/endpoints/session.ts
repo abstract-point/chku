@@ -6,4 +6,3 @@ export const sessionApi = {
     return http.get<unknown, ApiMember>('/me')
   },
 }
-

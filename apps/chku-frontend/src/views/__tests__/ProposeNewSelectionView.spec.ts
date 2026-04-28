@@ -48,8 +48,12 @@ describe('ProposeNewSelectionView', () => {
 
     await wrapper.get('#book-title').setValue('Лавр')
     await wrapper.get('#book-author').setValue('Евгений Водолазкин')
-    await wrapper.get('#book-description').setValue('История странника и его попытки искупить прошлое.')
-    await wrapper.get('#book-reason').setValue('Подойдёт для разговора о времени, вине и милосердии.')
+    await wrapper
+      .get('#book-description')
+      .setValue('История странника и его попытки искупить прошлое.')
+    await wrapper
+      .get('#book-reason')
+      .setValue('Подойдёт для разговора о времени, вине и милосердии.')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 

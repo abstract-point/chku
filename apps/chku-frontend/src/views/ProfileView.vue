@@ -10,7 +10,10 @@ const currentMember = computed(() => currentUserQuery.data.value)
 const currentMemberFirstName = computed(() => currentMember.value?.name.split(' ')[0] ?? '')
 const canProposeNextBook = computed(() =>
   dashboardQuery.data.value?.turnOrder.some(
-    (member) => member.active && currentMemberFirstName.value && member.name.includes(currentMemberFirstName.value),
+    (member) =>
+      member.active &&
+      currentMemberFirstName.value &&
+      member.name.includes(currentMemberFirstName.value),
   ),
 )
 </script>
