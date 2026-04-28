@@ -1,11 +1,21 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
+import { members } from '@/data/members'
+import { useAuthStore } from '@/stores/auth'
 
 import router from '../index'
 
 describe('router', () => {
   beforeEach(async () => {
-    setActivePinia(createPinia())
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const auth = useAuthStore()
+    auth.authData = {
+      user: members[0]!,
+      roles: ['member'],
+      permissions: [],
+      twoFactorEnabled: false,
+    }
     await router.push('/')
     await router.isReady()
   })

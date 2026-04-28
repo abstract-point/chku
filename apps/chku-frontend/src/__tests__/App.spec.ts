@@ -1,14 +1,26 @@
 import { describe, expect, it } from 'vitest'
 import { mount, RouterLinkStub } from '@vue/test-utils'
-import { createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
+import { members } from '@/data/members'
+import { useAuthStore } from '@/stores/auth'
 
 import App from '@/App.vue'
 
 describe('App', () => {
   it('renders book choice verification above page content', () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const auth = useAuthStore()
+    auth.authData = {
+      user: members[0]!,
+      roles: ['member'],
+      permissions: [],
+      twoFactorEnabled: false,
+    }
+
     const wrapper = mount(App, {
       global: {
-        plugins: [createPinia()],
+        plugins: [pinia],
         stubs: {
           RouterLink: RouterLinkStub,
           RouterView: { template: '<main>Содержимое страницы</main>' },
@@ -26,7 +38,6 @@ describe('App', () => {
       '/',
       '/members',
       '/archive',
-      '/profile',
       '/',
       '/archive',
       '/profile',

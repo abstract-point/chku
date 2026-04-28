@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { mount, RouterLinkStub } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 
 import MembersView from '../MembersView.vue'
 
 function mountMembers() {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+
   return mount(MembersView, {
     global: {
+      plugins: [pinia],
       stubs: {
         RouterLink: RouterLinkStub,
       },
