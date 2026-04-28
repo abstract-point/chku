@@ -31,6 +31,7 @@ export type MemberProfile = {
   memberSince: string
   isActive: boolean
   email: string
+  favoriteGenreId?: number | null
   favoriteGenre: string
   stats: {
     read: number

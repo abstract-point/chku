@@ -5,6 +5,7 @@ export type ApiMember = {
   email: string
   isActive: boolean
   memberSince: string
+  favoriteGenreId?: number | null
   favoriteGenre: string
   stats?: {
     read: number
@@ -120,6 +121,12 @@ export type ApiAuthUser = {
   roles: string[]
   permissions: string[]
   twoFactorEnabled?: boolean
+}
+
+export type ApiGenre = {
+  id: number
+  slug: string
+  name: string
 }
 
 export type ApiArchiveBook = {

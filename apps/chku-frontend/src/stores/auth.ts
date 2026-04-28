@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.two_factor_required) {
         return { twoFactorRequired: true }
       }
-      authData.value = response.user as unknown as ApiAuthUser
+      authData.value = response
       return { twoFactorRequired: false }
     } finally {
       isLoading.value = false
@@ -32,8 +32,8 @@ export const useAuthStore = defineStore('auth', () => {
   async function confirmTwoFactor(code: string): Promise<void> {
     isLoading.value = true
     try {
-      const response = await authApi.twoFactorChallenge(code)
-      authData.value = response.user as unknown as ApiAuthUser
+      await authApi.twoFactorChallenge(code)
+      authData.value = await authApi.me()
     } finally {
       isLoading.value = false
     }
