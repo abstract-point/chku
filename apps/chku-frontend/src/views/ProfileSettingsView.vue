@@ -6,6 +6,7 @@ import { useGenresQuery } from '@/queries/genreQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
 import { queryKeys } from '@/queries/keys'
 import { useAuthStore } from '@/stores/auth'
+import TwoFactorSetup from '@/components/TwoFactorSetup.vue'
 
 const auth = useAuthStore()
 const queryClient = useQueryClient()
@@ -13,7 +14,6 @@ const currentUserQuery = useCurrentUserQuery()
 const genresQuery = useGenresQuery()
 
 const currentMember = computed(() => currentUserQuery.data.value)
-const isTwoFactorEnabled = computed(() => auth.twoFactorEnabled)
 
 const profileForm = reactive({
   name: '',
@@ -27,19 +27,12 @@ const passwordForm = reactive({
   passwordConfirmation: '',
 })
 
-const twoFactorCode = ref('')
-const qrCodeSvg = ref('')
-const secretKey = ref('')
-const recoveryCodes = ref<string[]>([])
 const isProfileSaving = ref(false)
 const isPasswordSaving = ref(false)
-const isTwoFactorBusy = ref(false)
 const profileMessage = ref('')
 const passwordMessage = ref('')
-const twoFactorMessage = ref('')
 const profileError = ref('')
 const passwordError = ref('')
-const twoFactorError = ref('')
 
 watch(
   currentMember,
@@ -103,96 +96,6 @@ async function savePassword() {
     isPasswordSaving.value = false
   }
 }
-
-async function loadTwoFactorSetup() {
-  const [qrCode, secret] = await Promise.all([authApi.twoFactorQrCode(), authApi.twoFactorSecretKey()])
-  qrCodeSvg.value = qrCode.svg
-  secretKey.value = secret.secretKey
-}
-
-async function enableTwoFactor() {
-  twoFactorError.value = ''
-  twoFactorMessage.value = ''
-  isTwoFactorBusy.value = true
-
-  try {
-    await authApi.enableTwoFactor()
-    await loadTwoFactorSetup()
-    twoFactorMessage.value = 'Отсканируй QR-код и введи код подтверждения.'
-  } catch (error) {
-    twoFactorError.value = errorMessage(error, 'Не удалось начать настройку 2FA.')
-  } finally {
-    isTwoFactorBusy.value = false
-  }
-}
-
-async function confirmTwoFactor() {
-  twoFactorError.value = ''
-  twoFactorMessage.value = ''
-  isTwoFactorBusy.value = true
-
-  try {
-    await authApi.confirmTwoFactorSetup(twoFactorCode.value)
-    recoveryCodes.value = await authApi.twoFactorRecoveryCodes()
-    qrCodeSvg.value = ''
-    secretKey.value = ''
-    twoFactorCode.value = ''
-    await refreshUser()
-    twoFactorMessage.value = '2FA включена. Сохрани резервные коды.'
-  } catch (error) {
-    twoFactorError.value = errorMessage(error, 'Код подтверждения не подошёл.')
-  } finally {
-    isTwoFactorBusy.value = false
-  }
-}
-
-async function loadRecoveryCodes() {
-  twoFactorError.value = ''
-  isTwoFactorBusy.value = true
-
-  try {
-    recoveryCodes.value = await authApi.twoFactorRecoveryCodes()
-  } catch (error) {
-    twoFactorError.value = errorMessage(error, 'Не удалось загрузить резервные коды.')
-  } finally {
-    isTwoFactorBusy.value = false
-  }
-}
-
-async function regenerateRecoveryCodes() {
-  twoFactorError.value = ''
-  twoFactorMessage.value = ''
-  isTwoFactorBusy.value = true
-
-  try {
-    await authApi.regenerateTwoFactorRecoveryCodes()
-    recoveryCodes.value = await authApi.twoFactorRecoveryCodes()
-    twoFactorMessage.value = 'Резервные коды обновлены.'
-  } catch (error) {
-    twoFactorError.value = errorMessage(error, 'Не удалось обновить резервные коды.')
-  } finally {
-    isTwoFactorBusy.value = false
-  }
-}
-
-async function disableTwoFactor() {
-  twoFactorError.value = ''
-  twoFactorMessage.value = ''
-  isTwoFactorBusy.value = true
-
-  try {
-    await authApi.disableTwoFactor()
-    recoveryCodes.value = []
-    qrCodeSvg.value = ''
-    secretKey.value = ''
-    await refreshUser()
-    twoFactorMessage.value = '2FA выключена.'
-  } catch (error) {
-    twoFactorError.value = errorMessage(error, 'Не удалось выключить 2FA.')
-  } finally {
-    isTwoFactorBusy.value = false
-  }
-}
 </script>
 
 <template lang="pug">
@@ -242,43 +145,7 @@ main.profile-settings.container
       button.button.button--secondary.label-text.profile-settings__submit(type="submit" :disabled="isPasswordSaving")
         | {{ isPasswordSaving ? 'Обновление...' : 'Обновить пароль' }}
 
-    section.panel.profile-settings__section.profile-settings__section--wide(aria-labelledby="two-factor-title")
-      .section-header.section-header--compact
-        h2#two-factor-title Двухфакторная защита
-        span.badge.label-text(:class="isTwoFactorEnabled ? 'badge--reading' : 'badge--action'")
-          | {{ isTwoFactorEnabled ? 'Включена' : 'Выключена' }}
-
-      p.body-text(v-if="!isTwoFactorEnabled")
-        | Для Админа и Разработчика 2FA обязательна перед управлением участниками.
-      p.body-text(v-else)
-        | При входе система будет запрашивать одноразовый код из приложения-аутентификатора.
-
-      .profile-settings__two-factor(v-if="!isTwoFactorEnabled")
-        button.button.button--primary.label-text(type="button" :disabled="isTwoFactorBusy" @click="enableTwoFactor")
-          | {{ qrCodeSvg ? 'Обновить QR-код' : 'Включить 2FA' }}
-        .profile-settings__setup(v-if="qrCodeSvg")
-          .profile-settings__qr(v-html="qrCodeSvg")
-          .profile-settings__secret
-            span.label-text Ручной ключ
-            code {{ secretKey }}
-          .profile-settings__group
-            label.label-text(for="settings-2fa-code") Код из приложения
-            input#settings-2fa-code.profile-settings__input(type="text" v-model="twoFactorCode" required autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*")
-          button.button.button--secondary.label-text(type="button" :disabled="isTwoFactorBusy || !twoFactorCode" @click="confirmTwoFactor")
-            | Подтвердить 2FA
-
-      .profile-settings__two-factor(v-else)
-        .profile-settings__actions
-          button.button.button--secondary.label-text(type="button" :disabled="isTwoFactorBusy" @click="loadRecoveryCodes") Показать резервные коды
-          button.button.button--secondary.label-text(type="button" :disabled="isTwoFactorBusy" @click="regenerateRecoveryCodes") Обновить коды
-          button.button.button--ghost.label-text(type="button" :disabled="isTwoFactorBusy" @click="disableTwoFactor") Выключить 2FA
-
-      ul.profile-settings__codes(v-if="recoveryCodes.length" role="list" aria-label="Резервные коды")
-        li(v-for="code in recoveryCodes" :key="code")
-          code {{ code }}
-
-      p.profile-settings__message(v-if="twoFactorMessage") {{ twoFactorMessage }}
-      p.profile-settings__error(v-if="twoFactorError") {{ twoFactorError }}
+    TwoFactorSetup.profile-settings__section--wide
 </template>
 
 <style scoped>
@@ -341,68 +208,9 @@ main.profile-settings.container
   color: var(--warn);
 }
 
-.profile-settings__two-factor {
-  display: grid;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
-}
-
-.profile-settings__setup {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--space-lg);
-  align-items: start;
-}
-
-.profile-settings__qr {
-  width: 11rem;
-  padding: var(--space-sm);
-  border: var(--border-width) solid var(--border);
-  background: #ffffff;
-}
-
-.profile-settings__secret {
-  display: grid;
-  gap: var(--space-xs);
-  align-self: center;
-}
-
-.profile-settings__secret code,
-.profile-settings__codes code {
-  color: var(--text-main);
-  font-size: 0.8rem;
-  overflow-wrap: anywhere;
-}
-
-.profile-settings__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-md);
-}
-
-.profile-settings__codes {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: var(--space-sm);
-  margin: var(--space-lg) 0 0;
-  list-style: none;
-}
-
-.profile-settings__codes li {
-  padding: var(--space-sm);
-  border: var(--border-width) solid var(--border);
-  background: var(--bg-panel);
-}
-
 @media (max-width: 760px) {
-  .profile-settings__grid,
-  .profile-settings__setup {
+  .profile-settings__grid {
     grid-template-columns: 1fr;
-  }
-
-  .profile-settings__qr {
-    width: 100%;
-    max-width: 14rem;
   }
 }
 </style>
