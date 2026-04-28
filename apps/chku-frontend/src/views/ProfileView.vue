@@ -51,16 +51,9 @@ main.profile.container
       section.panel(aria-labelledby="profile-settings-title")
         .section-header.section-header--compact
           span#profile-settings-title.label-text Настройки профиля
-        .profile__input-group
-          label.label-text(for="member-name") Имя
-          input#member-name.profile__input(type="text" :value="currentMember.name")
-        .profile__input-group
-          label.label-text(for="member-email") Email
-          input#member-email.profile__input(type="email" :value="currentMember.email")
-        .profile__input-group
-          label.label-text(for="member-genre") Любимый жанр
-          input#member-genre.profile__input(type="text" :value="currentMember.favoriteGenre")
-        button.button.button--secondary.label-text.profile__save(type="button") Сохранить изменения
+        p.body-text
+          | Имя, инициалы, любимый жанр, пароль и двухфакторная защита настраиваются на отдельной странице.
+        RouterLink.button.button--secondary.label-text.profile__save(to="/profile/settings") Открыть настройки
 
     section.profile__history(aria-labelledby="reading-history-title")
       .section-header

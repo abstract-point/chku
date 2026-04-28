@@ -7,6 +7,7 @@ import LoginView from '../views/LoginView.vue'
 import MemberDetailView from '../views/MemberDetailView.vue'
 import MembersView from '../views/MembersView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import ProfileSettingsView from '../views/ProfileSettingsView.vue'
 import MeetingDetailView from '../views/MeetingDetailView.vue'
 import AddMemberView from '../views/AddMemberView.vue'
 import ProposeNewSelectionView from '../views/ProposeNewSelectionView.vue'
@@ -49,6 +50,12 @@ const router = createRouter({
       name: 'profile',
       component: ProfileView,
       meta: { title: 'Профиль', requiresAuth: true },
+    },
+    {
+      path: '/profile/settings',
+      name: 'profile-settings',
+      component: ProfileSettingsView,
+      meta: { title: 'Настройки профиля', requiresAuth: true },
     },
     {
       path: '/archive',
