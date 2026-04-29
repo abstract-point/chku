@@ -128,18 +128,19 @@ The dashboard should quickly answer:
 
 ## Frontend Design Patterns
 
-The frontend uses a restrained monochrome, monospace, sharp-edged interface. Keep new UI aligned with the existing system instead of introducing a separate visual language.
+The frontend now uses a dark-first, calm, premium product interface. Keep future iterations aligned with this system instead of returning to a terminal-like or sharp-edged prototype style.
 
 - Build Vue 3 SFCs with `<script setup lang="ts">`, Pug templates, scoped styles, and BEM-like classes.
-- Use shared tokens from `src/assets/base.css`: `--bg-*`, `--text-*`, `--border*`, `--space-*`, `--accent`, and `--warn`. Avoid hard-coded colors unless a component already owns a specific book-cover color.
-- Reuse global primitives from `src/assets/main.css`: `.container`, `.section-header`, `.label-text`, `.body-text`, `.button`, `.panel`, `.badge`, `.avatar`, `.progress`, `.data-list`, and `.book-cover`.
-- Keep panels, cards, buttons, inputs, selects, textareas, and avatars rectangular with `border-radius: 0`. Use circles only for icon-only controls or explicitly round elements already established in a component.
-- Prefer quiet, dense layouts: CSS grid/flex, clear borders, modest spacing via `var(--space-*)`, and information-first sections. Do not add marketing-style heroes, decorative gradients, parchment textures, playful illustrations, or card-heavy landing-page composition.
-- Page views usually start with `.container`, then `.section-header`, then a grid or panel-based content area. Dashboard-style screens should answer the current club state quickly.
-- For loading, empty, and error states, use `section.panel` with concise `.body-text` copy and `aria-live` when the content changes asynchronously.
-- For forms, pair `label.label-text` with full-width rectangular controls, use `border-color: var(--text-main)` on focus, and `--warn` for validation errors.
-- Use `.button` modifiers for actions: primary for the main commit action, secondary for neutral actions, ghost for low-emphasis links, inverted for positive confirmation. Keep button text short and uppercase through `.label-text`.
-- Use `@lucide/vue` icons for recognizable actions when helpful, but do not replace clear text labels with ambiguous icon-only controls unless the control has an accessible label.
+- Use IBM Plex Sans as the main UI font through `--font-sans`; reserve `--font-mono` for cycle numbers, badges, compact labels, percentages, counters, and other short technical text.
+- Use shared tokens from `src/assets/base.css`: `--bg-*`, `--text-*`, `--border*`, `--space-*`, `--accent`, `--warn`, `--danger`, `--radius-*`, and shadows. Avoid hard-coded colors except for intentional book-cover colors.
+- Reuse global primitives from `src/assets/main.css`: `.container`, `.section-header`, `.label-text`, `.body-text`, `.button`, `.panel`, `.badge`, `.avatar`, `.progress`, `.data-list`, `.book-cover`, `.field-control`, `.inline-alert`, and `.status-dot`.
+- Panels and cards should use dark graphite surfaces, subtle borders, `--radius-panel` / `--radius-inner`, and restrained shadows. Avoid nested decorative cards; use one clear surface per section.
+- Keep layouts quiet and information-first: CSS grid/flex, generous but controlled spacing, consistent vertical rhythm, and strong hierarchy for current book, meetings, progress, archive entries, and forms.
+- Header active indicators belong only to the main header navigation links. Do not show the green active dot inside dropdown menus.
+- Banners should share the same structure: icon on the left, copy in the middle, actions on the right; stack actions on mobile.
+- Archive cards should keep the footer simple and centered around the rating. Do not place proposer/member metadata in the card footer if it creates crowding.
+- Forms should use `.field-control`, visible focus states, inline validation/errors, and mobile-safe action stacks. Avoid `window.alert()` for UI feedback.
+- Use `@lucide/vue` icons for recognizable actions and metrics when helpful. Keep icons aligned with text, and ensure compact cards do not overflow at desktop, tablet, or mobile widths.
 - Responsive behavior should collapse two-column grids to one column around `960px`; stack form actions and banner actions vertically around `640-760px`.
 
 ## Commit & Pull Request Guidelines
