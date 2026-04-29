@@ -62,16 +62,16 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
         | {{ book.description }}
 
       .panel.panel--filled.current-book__progress
-        .current-book__progress-header
-          span.label-text Мой прогресс
-          span.label-text {{ book.progressLabel }}
-        .progress(:aria-label="`Мой прогресс чтения ${book.progress}%`")
-          .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
-        button.button.button--secondary.label-text(
-          v-if="!isProgressFormOpen"
-          type="button"
-          @click="openProgressForm"
-        ) Обновить прогресс
+        template(v-if="!isProgressFormOpen")
+          .current-book__progress-header
+            span.label-text Мой прогресс
+            span.label-text {{ book.progressLabel }}
+          .progress(:aria-label="`Мой прогресс чтения ${book.progress}%`")
+            .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
+          button.button.button--secondary.label-text(
+            type="button"
+            @click="openProgressForm"
+          ) Обновить прогресс
         DashboardReadingProgressForm(
           v-else
           :model-value="book.progress"

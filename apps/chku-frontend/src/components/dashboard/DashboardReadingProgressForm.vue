@@ -59,7 +59,7 @@ form.reading-progress-form(@submit.prevent="submitForm")
       span.label-text 0%
       span.label-text 100%
 
-  label.reading-progress-form__field
+  .reading-progress-form__field
     span.label-text Процент
     .reading-progress-form__number
       input.field-control(
@@ -86,12 +86,6 @@ form.reading-progress-form(@submit.prevent="submitForm")
   display: grid;
   gap: var(--space-md);
   margin-top: var(--space-md);
-  padding: var(--space-md);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-inner);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01)),
-    var(--bg-surface-2);
 }
 
 .reading-progress-form__header {
@@ -122,48 +116,50 @@ form.reading-progress-form(@submit.prevent="submitForm")
 .reading-progress-form__slider input {
   width: 100%;
   height: 1.7rem;
-  accent-color: var(--accent);
   cursor: pointer;
+  background: transparent;
 }
 
 .reading-progress-form__slider input::-webkit-slider-runnable-track {
-  height: 0.34rem;
+  height: 0.2rem;
   border-radius: 999px;
   background: linear-gradient(
     90deg,
     var(--accent) 0 var(--range-value),
-    rgba(255, 255, 255, 0.16) var(--range-value) 100%
+    rgba(255, 255, 255, 0.12) var(--range-value) 100%
   );
 }
 
 .reading-progress-form__slider input::-webkit-slider-thumb {
-  width: 1.1rem;
-  height: 1.1rem;
-  margin-top: -0.38rem;
-  border: 0.18rem solid var(--accent);
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: -0.52rem;
+  border: 0.15rem solid var(--accent);
   border-radius: 50%;
   background: var(--bg-surface);
   appearance: none;
+  box-shadow: 0 0 0 0.1rem var(--bg-surface);
 }
 
 .reading-progress-form__slider input::-moz-range-track {
-  height: 0.34rem;
+  height: 0.2rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .reading-progress-form__slider input::-moz-range-progress {
-  height: 0.34rem;
+  height: 0.2rem;
   border-radius: 999px;
   background: var(--accent);
 }
 
 .reading-progress-form__slider input::-moz-range-thumb {
-  width: 0.8rem;
-  height: 0.8rem;
-  border: 0.18rem solid var(--accent);
+  width: 1rem;
+  height: 1rem;
+  border: 0.15rem solid var(--accent);
   border-radius: 50%;
   background: var(--bg-surface);
+  box-shadow: 0 0 0 0.1rem var(--bg-surface);
 }
 
 .reading-progress-form__scale,
@@ -178,35 +174,52 @@ form.reading-progress-form(@submit.prevent="submitForm")
   grid-template-columns: minmax(7rem, 0.35fr) minmax(0, 1fr);
   align-items: center;
   gap: var(--space-md);
-  padding: 0.45rem;
+  padding: var(--space-sm) var(--space-md);
   border: var(--border-width) solid var(--border-strong);
   border-radius: var(--radius-inner);
 }
 
 .reading-progress-form__number {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 2.5rem;
+  display: flex;
+  align-items: center;
   overflow: hidden;
   border: var(--border-width) solid var(--border);
-  border-radius: calc(var(--radius-inner) - 4px);
+  border-radius: calc(var(--radius-inner) - 2px);
+  background: var(--bg-surface);
 }
 
 .reading-progress-form__number .field-control {
-  min-height: 2.7rem;
+  flex: 1;
+  min-height: 2.5rem;
+  padding: 0 var(--space-sm);
   border: 0;
   border-radius: 0;
+  background: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+.reading-progress-form__number .field-control::-webkit-inner-spin-button,
+.reading-progress-form__number .field-control::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.reading-progress-form__number .field-control[type='number'] {
+  -moz-appearance: textfield;
 }
 
 .reading-progress-form__number span {
   display: grid;
   place-items: center;
+  padding: 0 var(--space-sm);
+  height: 2.5rem;
   border-left: var(--border-width) solid var(--border);
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .reading-progress-form__hint {
   margin: calc(var(--space-sm) * -1) 0 0;
-  color: var(--text-soft);
+  color: var(--text-subtle);
 }
 
 .reading-progress-form__error {
@@ -216,6 +229,10 @@ form.reading-progress-form(@submit.prevent="submitForm")
 
 .reading-progress-form__actions .button {
   flex: 1;
+}
+
+.reading-progress-form__actions .button--secondary {
+  border-color: var(--border-strong);
 }
 
 @media (max-width: 640px) {
