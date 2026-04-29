@@ -25,6 +25,7 @@ export type TurnOrderMember = {
 export type MeetingSummary = {
   id: string
   dateLabel: string
+  dayTimeLabel?: string
   place: string
   participantInitials: string[]
   extraParticipantsCount: number

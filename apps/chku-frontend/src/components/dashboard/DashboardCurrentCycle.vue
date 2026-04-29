@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 import type { BookProgressMember, CurrentBook } from '@/types/dashboard'
 
 const props = defineProps<{
@@ -37,14 +38,14 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
           span.label-text {{ book.progressLabel }}
         .progress(:aria-label="`Мой прогресс чтения ${book.progress}%`")
           .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
-        button.button.button--ghost.label-text(type="button") Обновить прогресс
+        button.button.button--secondary.label-text(type="button") Обновить прогресс
 
   .section-header.dashboard__section-spaced
     h3 Прогресс клуба
     span.label-text 4 из 6 участников активны
 
-  ul.data-list(role="list")
-    li.data-list__item(v-for="member in members" :key="member.name")
+  ul.data-list.club-progress(role="list")
+    li.data-list__item.club-progress__item(v-for="member in members" :key="member.name")
       .member-status
         span.avatar {{ member.initials }}
         span.member-status__name {{ member.name }}
@@ -54,9 +55,20 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
           .progress__bar(:style="{ '--progress-value': `${member.progress}%` }")
         span.label-text {{ member.progress }}%
       span.badge.badge--reading.label-text(v-else) {{ member.badge }}
+  RouterLink.button.button--ghost.label-text.club-progress__link(to="/members") Все участники клуба
 </template>
 
 <style scoped>
+.dashboard__main {
+  padding: var(--space-xl);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-panel);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
+    var(--bg-surface);
+  box-shadow: var(--shadow-panel);
+}
+
 .dashboard__main {
   min-width: 0;
 }
@@ -67,9 +79,13 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 
 .current-book {
   display: grid;
-  grid-template-columns: minmax(10rem, 11.25rem) minmax(0, 1fr);
-  gap: var(--space-lg);
+  grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
+  gap: clamp(var(--space-lg), 4vw, var(--space-xl));
   margin-bottom: var(--space-xl);
+}
+
+.current-book__cover {
+  width: 100%;
 }
 
 .current-book__cover-label {
@@ -85,6 +101,11 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   justify-content: center;
 }
 
+.current-book__meta h1 {
+  font-size: clamp(2.4rem, 5vw, 4.25rem);
+  line-height: 1;
+}
+
 .current-book__meta {
   margin-bottom: var(--space-md);
 }
@@ -92,16 +113,40 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 .current-book__description {
   max-width: 36rem;
   margin-bottom: var(--space-lg);
+  color: var(--text-muted);
+  font-size: 1rem;
 }
 
 .current-book__progress {
   padding: var(--space-md);
+  border-radius: var(--radius-inner);
 }
 
 .current-book__progress-header {
   display: flex;
   justify-content: space-between;
   gap: var(--space-md);
+}
+
+.current-book__progress .button {
+  width: 100%;
+  margin-top: var(--space-sm);
+}
+
+.club-progress {
+  overflow: hidden;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+}
+
+.club-progress__item {
+  min-height: 3.4rem;
+  padding: 0.7rem var(--space-md);
+}
+
+.club-progress__link {
+  width: 100%;
+  margin-top: var(--space-md);
 }
 
 .member-status {
@@ -128,6 +173,10 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 }
 
 @media (max-width: 760px) {
+  .dashboard__main {
+    padding: var(--space-lg);
+  }
+
   .current-book {
     grid-template-columns: 1fr;
   }
