@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { BookOpen, CalendarDays, Link as LinkIcon, MapPin, Send, Users } from '@lucide/vue'
 import { useMeetingQuery } from '@/queries/meetingQueries'
 
 const route = useRoute()
@@ -54,24 +55,28 @@ main.meeting-detail.container
     .meeting-detail__grid
       .meeting-detail__main
         .panel.meeting-detail__hero
-          .meeting-detail__hero-section
-            span.label-text Дата и время
-            h2.meeting-detail__hero-heading {{ meeting.dateLabel }}
-            p.subtitle-italic {{ meeting.timeLabel }}
+          .meeting-detail__hero-section.meeting-detail__hero-section--primary
+            CalendarDays.meeting-detail__hero-icon
+            div
+              span.label-text Дата и время
+              h2.meeting-detail__hero-heading {{ meeting.dateLabel }}
+              p.subtitle-italic {{ meeting.timeLabel }}
 
           .meeting-detail__hero-section
-            span.label-text Место
-            h3 {{ meeting.place }}
-            p.body-text(v-if="meeting.placeAddress") {{ meeting.placeAddress }}
-            p.body-text(v-if="meeting.placeReservation") {{ meeting.placeReservation }}
+            MapPin.meeting-detail__hero-icon
+            div
+              span.label-text Место
+              h3 {{ meeting.place }}
+              p.body-text(v-if="meeting.placeAddress") {{ meeting.placeAddress }}
+              p.body-text(v-if="meeting.placeReservation") {{ meeting.placeReservation }}
 
           .meeting-detail__hero-section(v-if="meeting.meetingLink")
-            span.label-text Ссылка на встречу
-            .meeting-detail__link-box
-              svg(width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2")
-                path(d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71")
-                path(d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71")
-              span.body-text {{ meeting.meetingLink }}
+            LinkIcon.meeting-detail__hero-icon
+            div
+              span.label-text Ссылка на встречу
+              .meeting-detail__link-box
+                LinkIcon
+                span.body-text {{ meeting.meetingLink }}
 
         .section-header.meeting-detail__topics-header
           h2 Темы для обсуждения
@@ -83,12 +88,15 @@ main.meeting-detail.container
           span.label-text Добавить тему
           .meeting-detail__add-topic-row
             input.meeting-detail__input(
+              class="field-control"
               v-model="newTopic"
               type="text"
               placeholder="Предложить вопрос..."
               @keydown.enter.prevent="submitTopic"
             )
-            button.button.button--secondary.label-text(type="button" @click="submitTopic") Отправить
+            button.button.button--secondary.label-text(type="button" @click="submitTopic")
+              Send.meeting-detail__button-icon
+              | Отправить
 
       aside.meeting-detail__sidebar(aria-label="Сводка встречи")
         .panel
@@ -109,6 +117,7 @@ main.meeting-detail.container
         .panel
           .section-header.section-header--compact
             span.label-text Участники ({{ meeting.attendees.length }})
+            Users.meeting-detail__button-icon
           ul.data-list
             li.data-list__item(v-for="attendee in meeting.attendees" :key="attendee.initials")
               .meeting-detail__attendee
@@ -118,6 +127,7 @@ main.meeting-detail.container
         .panel
           .section-header.section-header--compact
             span.label-text Книга в фокусе
+            BookOpen.meeting-detail__button-icon
           h3.meeting-detail__book-title {{ meeting.book.title }}
           p.subtitle-italic {{ meeting.book.author }}
           RouterLink.button.button--ghost.label-text(
@@ -161,18 +171,41 @@ main.meeting-detail.container
 .meeting-detail__hero {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-md);
 }
 
 .meeting-detail__hero-section {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-panel);
+}
+
+.meeting-detail__hero-section--primary {
+  border-color: var(--accent-border);
+  background:
+    linear-gradient(180deg, rgba(67, 224, 125, 0.07), rgba(67, 224, 125, 0.018)),
+    var(--bg-panel);
+}
+
+.meeting-detail__hero-icon,
+.meeting-detail__button-icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-subtle);
+}
+
+.meeting-detail__hero-section--primary .meeting-detail__hero-icon {
+  color: var(--accent);
 }
 
 .meeting-detail__hero-heading {
   margin-bottom: 0;
-  font-size: 1.6rem;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
 }
 
 .meeting-detail__link-box {
@@ -181,12 +214,16 @@ main.meeting-detail.container
   gap: var(--space-sm);
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
   background: var(--bg-surface);
+  margin-top: var(--space-sm);
 }
 
-.meeting-detail__link-box svg {
+.meeting-detail__link-box > svg {
   flex-shrink: 0;
   color: var(--accent-dim);
+  width: 1rem;
+  height: 1rem;
 }
 
 .meeting-detail__topics-header {
@@ -194,15 +231,21 @@ main.meeting-detail.container
 }
 
 .meeting-detail__topics {
+  display: grid;
+  gap: var(--space-sm);
   margin-bottom: var(--space-lg);
-  padding-left: var(--space-lg);
+  padding-left: 0;
   color: var(--text-muted);
   font-size: 0.9rem;
-  line-height: 1.8;
+  line-height: 1.6;
+  list-style: none;
 }
 
 .meeting-detail__topic {
-  padding-left: var(--space-sm);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-surface);
 }
 
 .meeting-detail__add-topic {
@@ -218,17 +261,7 @@ main.meeting-detail.container
 
 .meeting-detail__input {
   flex: 1;
-  padding: 0.75rem;
-  border: var(--border-width) solid var(--border);
-  border-radius: 0;
-  background: var(--bg-surface);
-  color: var(--text-main);
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-.meeting-detail__input:focus {
-  border-color: var(--text-main);
+  padding: 0.75rem 0.9rem;
 }
 
 .meeting-detail__sidebar {

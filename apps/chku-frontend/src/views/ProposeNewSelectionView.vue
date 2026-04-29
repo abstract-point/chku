@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { BookMarked, CheckCircle2, Send } from '@lucide/vue'
 import { useCreateCandidateMutation } from '@/queries/candidateQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
 import type { BookProposalForm } from '@/types/club'
@@ -61,10 +62,13 @@ main.proposal.container
 
   .proposal__grid
     .panel.proposal__form-panel
+      .proposal__form-note
+        BookMarked.proposal__note-icon
+        p.body-text Кандидат попадёт на проверку активным участникам клуба. Утвердить его можно только после ответов всех участников.
       form(@submit.prevent="submitProposal" novalidate)
         .proposal__field
           label.label-text(for="book-title") Название книги
-          input#book-title.proposal__input(
+          input#book-title.field-control.proposal__input(
             v-model="proposal.title"
             type="text"
             placeholder="Например, Мастер и Маргарита"
@@ -74,7 +78,7 @@ main.proposal.container
 
         .proposal__field
           label.label-text(for="book-author") Автор
-          input#book-author.proposal__input(
+          input#book-author.field-control.proposal__input(
             v-model="proposal.author"
             type="text"
             placeholder="Например, Михаил Булгаков"
@@ -84,7 +88,7 @@ main.proposal.container
 
         .proposal__field
           label.label-text(for="book-description") Краткое описание
-          textarea#book-description.proposal__input.proposal__textarea(
+          textarea#book-description.field-control.proposal__input.proposal__textarea(
             v-model="proposal.description"
             placeholder="Коротко опиши, о чём книга."
             :aria-invalid="submitAttempted && !isFilled(proposal.description)"
@@ -93,7 +97,7 @@ main.proposal.container
 
         .proposal__field
           label.label-text(for="book-reason") Почему эта книга?
-          textarea#book-reason.proposal__input.proposal__textarea(
+          textarea#book-reason.field-control.proposal__input.proposal__textarea(
             v-model="proposal.reason"
             placeholder="Какие темы и разговоры она может открыть для клуба?"
             :aria-invalid="submitAttempted && !isFilled(proposal.reason)"
@@ -103,6 +107,7 @@ main.proposal.container
         .proposal__actions
           button.button.button--secondary.label-text(type="button" @click="router.push({ name: 'profile' })") Отмена
           button.button.button--primary.label-text(type="submit" :disabled="createCandidateMutation.isPending.value")
+            Send.proposal__button-icon(v-if="!createCandidateMutation.isPending.value")
             | {{ createCandidateMutation.isPending.value ? 'Отправляем...' : 'Отправить на проверку' }}
           p.proposal__error(v-if="createCandidateMutation.error.value") Не удалось отправить предложение.
 
@@ -110,18 +115,22 @@ main.proposal.container
       .section-header.section-header--compact
         span.label-text Правила выбора
       .proposal__guideline
+        CheckCircle2.proposal__guideline-icon
         h3 Доступность
         p.body-text
           | Лучше выбрать книгу, которую легко найти в бумажном, электронном или аудиоформате.
       .proposal__guideline
+        CheckCircle2.proposal__guideline-icon
         h3 Объём
         p.body-text
           | Ориентир для стандартного цикла чтения — книга, которую реально прочитать примерно за четыре недели.
       .proposal__guideline
+        CheckCircle2.proposal__guideline-icon
         h3 Потенциал обсуждения
         p.body-text
           | Подойдут сложные темы, неоднозначные герои и вопросы, о которых интересно спорить на встрече.
       .proposal__guideline
+        CheckCircle2.proposal__guideline-icon
         h3 Главное правило
         p.body-text
           | Книгу можно утвердить только если никто из активных участников клуба раньше её не читал.
@@ -149,6 +158,26 @@ main.proposal.container
   margin-top: var(--space-xl);
 }
 
+.proposal__form-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--accent-border);
+  border-radius: var(--radius-inner);
+  background: var(--accent-bg);
+}
+
+.proposal__note-icon,
+.proposal__button-icon,
+.proposal__guideline-icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  color: var(--accent);
+}
+
 .proposal__field {
   display: flex;
   flex-direction: column;
@@ -158,21 +187,7 @@ main.proposal.container
 
 .proposal__input {
   width: 100%;
-  padding: 0.75rem;
-  border: var(--border-width) solid var(--border);
-  border-radius: 0;
-  background: var(--bg-surface);
-  color: var(--text-main);
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-.proposal__input:focus {
-  border-color: var(--text-main);
-}
-
-.proposal__input[aria-invalid='true'] {
-  border-color: var(--warn);
+  padding: 0.75rem 0.9rem;
 }
 
 .proposal__textarea {
@@ -180,7 +195,7 @@ main.proposal.container
 }
 
 .proposal__error {
-  color: var(--warn);
+  color: var(--danger);
   font-size: 0.8rem;
   line-height: 1.4;
 }
@@ -199,8 +214,17 @@ main.proposal.container
 }
 
 .proposal__guideline {
+  position: relative;
   padding-bottom: var(--space-md);
+  padding-left: 1.75rem;
   border-bottom: var(--border-width) solid var(--border);
+}
+
+.proposal__guideline-icon {
+  position: absolute;
+  top: 0.2rem;
+  left: 0;
+  color: var(--text-subtle);
 }
 
 .proposal__guideline:last-child {
