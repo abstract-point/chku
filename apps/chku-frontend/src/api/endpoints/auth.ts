@@ -2,7 +2,7 @@ import { fetchCsrfCookie, http } from '@/api/http'
 import type { ApiAuthUser, ApiMember } from '@/api/types'
 
 export const authApi = {
-  async login(email: string, password: string) {
+  async login(email: string, password: string, remember = false) {
     await fetchCsrfCookie()
     return http.post<
       unknown,
@@ -10,6 +10,7 @@ export const authApi = {
     >('/login', {
       email,
       password,
+      remember,
     })
   },
 

@@ -15,10 +15,10 @@ export const useAuthStore = defineStore('auth', () => {
   const isDeveloper = computed(() => roles.value.includes('developer'))
   const twoFactorEnabled = computed(() => authData.value?.twoFactorEnabled ?? false)
 
-  async function login(email: string, password: string): Promise<{ twoFactorRequired: boolean }> {
+  async function login(email: string, password: string, remember = false): Promise<{ twoFactorRequired: boolean }> {
     isLoading.value = true
     try {
-      const response = await authApi.login(email, password)
+      const response = await authApi.login(email, password, remember)
       if (response.two_factor_required) {
         return { twoFactorRequired: true }
       }
