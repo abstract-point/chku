@@ -16,6 +16,7 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "@lucide/vue": "^1.14.0",
     "@tanstack/vue-query": "^5.91.2",
     "axios": "^1.13.2",
     "pinia": "^3.0.4",

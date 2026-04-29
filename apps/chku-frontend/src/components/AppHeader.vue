@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { ChevronDown, LogOut, Moon, Settings, Sun, User } from '@lucide/vue'
 import AppLogo from '@/components/AppLogo.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useClubStore } from '@/stores/club'
@@ -16,6 +17,13 @@ const roleLabel = computed(() => {
   if (auth.isDeveloper) return 'Разработчик'
   if (auth.roles.includes('admin')) return 'Администратор'
   return 'Участник'
+})
+
+const userInitials = computed(() => {
+  if (auth.user?.initials) return auth.user.initials
+  const parts = auth.user?.name.trim().split(/\s+/) ?? []
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+  return parts[0]?.slice(0, 2).toUpperCase() ?? ''
 })
 
 function getPreferredTheme() {
@@ -36,10 +44,6 @@ function applyTheme(nextTheme: 'light' | 'dark') {
   theme.value = nextTheme
   document.documentElement.setAttribute('data-theme', nextTheme)
   localStorage.setItem('chku-theme', nextTheme)
-}
-
-function toggleTheme() {
-  applyTheme(theme.value === 'dark' ? 'light' : 'dark')
 }
 
 async function handleLogout() {
@@ -91,17 +95,48 @@ header.app-header
           aria-haspopup="menu"
           @click.stop="isUserMenuOpen = !isUserMenuOpen"
         )
+          .app-header__avatar {{ userInitials }}
           span.app-header__user-name {{ auth.user.name }}
-          span.app-header__chevron(aria-hidden="true") {{ isUserMenuOpen ? '↑' : '↓' }}
+          ChevronDown.app-header__chevron(:size="14" :class="{ 'app-header__chevron--open': isUserMenuOpen }")
         .app-header__dropdown(v-if="isUserMenuOpen" role="menu")
-          .app-header__role
-            span.label-text Роль
-            strong {{ roleLabel }}
-          RouterLink.app-header__dropdown-item(to="/profile" role="menuitem" @click="closeUserMenu") Профиль
-          RouterLink.app-header__dropdown-item(to="/profile/settings" role="menuitem" @click="closeUserMenu") Настройки
-          button.app-header__dropdown-item(type="button" role="menuitem" @click="toggleTheme")
-            | {{ theme === 'dark' ? 'Светлая тема' : 'Тёмная тема' }}
-          button.app-header__dropdown-item(type="button" role="menuitem" @click="handleLogout") Выйти
+          .app-header__dropdown-header
+            .app-header__dropdown-avatar {{ userInitials }}
+            .app-header__dropdown-info
+              .app-header__dropdown-name {{ auth.user.name }}
+              .app-header__dropdown-role {{ roleLabel }}
+          .app-header__dropdown-divider
+          RouterLink.app-header__dropdown-item(to="/profile" role="menuitem" @click="closeUserMenu")
+            User.app-header__dropdown-item-icon(:size="16")
+            span Профиль
+          RouterLink.app-header__dropdown-item(to="/profile/settings" role="menuitem" @click="closeUserMenu")
+            Settings.app-header__dropdown-item-icon(:size="16")
+            span Настройки
+          .app-header__dropdown-divider
+          .app-header__dropdown-item.app-header__dropdown-item--theme
+            .app-header__dropdown-item-left
+              Sun.app-header__dropdown-item-icon(:size="16")
+              span Тема
+            .app-header__theme-toggle
+              button.app-header__theme-btn(
+                type="button"
+                :class="{ 'app-header__theme-btn--active': theme === 'light' }"
+                @click.stop="applyTheme('light')"
+              )
+                Sun(:size="14")
+              button.app-header__theme-btn(
+                type="button"
+                :class="{ 'app-header__theme-btn--active': theme === 'dark' }"
+                @click.stop="applyTheme('dark')"
+              )
+                Moon(:size="14")
+          .app-header__dropdown-divider
+          button.app-header__dropdown-item.app-header__dropdown-item--danger(
+            type="button"
+            role="menuitem"
+            @click="handleLogout"
+          )
+            LogOut.app-header__dropdown-item-icon(:size="16")
+            span Выйти
     template(v-else)
       RouterLink(to="/login") Вход
 </template>
@@ -164,19 +199,44 @@ header.app-header
 .app-header__user {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xs);
-  padding: 0;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border: var(--border-width) solid var(--border);
   color: var(--text-main);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
 }
 
-.app-header__user-name,
-.app-header__chevron {
-  font-size: 0.75rem;
+.app-header__user:hover {
+  border-color: var(--border-strong);
+}
+
+.app-header__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1.5px solid var(--warn);
+  border-radius: 50%;
+  color: var(--warn);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.app-header__user-name {
+  font-size: 0.8rem;
   font-weight: 500;
 }
 
 .app-header__chevron {
   color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+.app-header__chevron--open {
+  transform: rotate(180deg);
 }
 
 .app-header__dropdown {
@@ -184,51 +244,152 @@ header.app-header
   z-index: 20;
   top: calc(100% + var(--space-sm));
   right: 0;
-  display: grid;
-  width: min(15rem, calc(100vw - 2rem));
+  display: flex;
+  flex-direction: column;
+  width: min(18rem, calc(100vw - 2rem));
   border: var(--border-width) solid var(--border);
   background: var(--bg-surface);
   box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.08);
 }
 
-.app-header__role {
-  display: grid;
-  gap: var(--space-xs);
+.app-header__dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
   padding: var(--space-md);
-  border-bottom: var(--border-width) solid var(--border);
 }
 
-.app-header__role strong {
+.app-header__dropdown-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1.5px solid var(--warn);
+  border-radius: 50%;
+  color: var(--warn);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.app-header__dropdown-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.app-header__dropdown-name {
   color: var(--text-main);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.app-header__dropdown-role {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.app-header__dropdown-divider {
+  height: var(--border-width);
+  background: var(--border);
 }
 
 .app-header__dropdown-item {
   display: flex;
+  align-items: center;
+  gap: var(--space-sm);
   width: 100%;
-  padding: 0.75rem var(--space-md);
-  border-bottom: var(--border-width) solid var(--border);
+  padding: 0.7rem var(--space-md);
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  letter-spacing: 0;
   text-align: left;
-  text-transform: none;
   cursor: pointer;
   transition:
     color 0.15s ease,
     background-color 0.15s ease;
 }
 
-.app-header__dropdown-item:last-child {
-  border-bottom: 0;
-}
-
 .app-header__dropdown-item:hover,
 .app-header__dropdown-item.router-link-exact-active {
   background: var(--bg-hover);
   color: var(--text-main);
+}
+
+.app-header__dropdown-item-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.app-header__dropdown-item:hover .app-header__dropdown-item-icon,
+.app-header__dropdown-item.router-link-exact-active .app-header__dropdown-item-icon {
+  color: var(--text-main);
+}
+
+.app-header__dropdown-item--theme {
+  justify-content: space-between;
+  padding-right: var(--space-sm);
+  cursor: default;
+}
+
+.app-header__dropdown-item--theme:hover {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.app-header__dropdown-item--theme:hover .app-header__dropdown-item-icon {
+  color: var(--text-muted);
+}
+
+.app-header__dropdown-item-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.app-header__theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  border: var(--border-width) solid var(--border);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.app-header__theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.app-header__theme-btn--active {
+  border: 1.5px solid var(--warn);
+  color: var(--warn);
+}
+
+.app-header__dropdown-item--danger {
+  color: var(--warn);
+}
+
+.app-header__dropdown-item--danger:hover {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.app-header__dropdown-item--danger .app-header__dropdown-item-icon {
+  color: var(--warn);
 }
 
 @media (max-width: 760px) {
