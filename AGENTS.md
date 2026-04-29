@@ -95,6 +95,7 @@ Frontend:
 - Templates use Pug via `<template lang="pug">`.
 - Component names are PascalCase, for example `DashboardMeetingCard.vue`.
 - TypeScript variables, functions, and data files use camelCase.
+- Use icons from the connected `@lucide/vue` library instead of custom inline SVG icons when a suitable icon exists.
 - Use scoped styles, BEM-like classes such as `current-book__details`, and shared tokens from `src/assets/base.css`.
 
 Backend:
@@ -124,6 +125,22 @@ The dashboard should quickly answer:
 - when the next meeting is;
 - who chooses the next book;
 - whether the candidate passed the “nobody has read it” check.
+
+## Frontend Design Patterns
+
+The frontend uses a restrained monochrome, monospace, sharp-edged interface. Keep new UI aligned with the existing system instead of introducing a separate visual language.
+
+- Build Vue 3 SFCs with `<script setup lang="ts">`, Pug templates, scoped styles, and BEM-like classes.
+- Use shared tokens from `src/assets/base.css`: `--bg-*`, `--text-*`, `--border*`, `--space-*`, `--accent`, and `--warn`. Avoid hard-coded colors unless a component already owns a specific book-cover color.
+- Reuse global primitives from `src/assets/main.css`: `.container`, `.section-header`, `.label-text`, `.body-text`, `.button`, `.panel`, `.badge`, `.avatar`, `.progress`, `.data-list`, and `.book-cover`.
+- Keep panels, cards, buttons, inputs, selects, textareas, and avatars rectangular with `border-radius: 0`. Use circles only for icon-only controls or explicitly round elements already established in a component.
+- Prefer quiet, dense layouts: CSS grid/flex, clear borders, modest spacing via `var(--space-*)`, and information-first sections. Do not add marketing-style heroes, decorative gradients, parchment textures, playful illustrations, or card-heavy landing-page composition.
+- Page views usually start with `.container`, then `.section-header`, then a grid or panel-based content area. Dashboard-style screens should answer the current club state quickly.
+- For loading, empty, and error states, use `section.panel` with concise `.body-text` copy and `aria-live` when the content changes asynchronously.
+- For forms, pair `label.label-text` with full-width rectangular controls, use `border-color: var(--text-main)` on focus, and `--warn` for validation errors.
+- Use `.button` modifiers for actions: primary for the main commit action, secondary for neutral actions, ghost for low-emphasis links, inverted for positive confirmation. Keep button text short and uppercase through `.label-text`.
+- Use `@lucide/vue` icons for recognizable actions when helpful, but do not replace clear text labels with ambiguous icon-only controls unless the control has an accessible label.
+- Responsive behavior should collapse two-column grids to one column around `960px`; stack form actions and banner actions vertically around `640-760px`.
 
 ## Commit & Pull Request Guidelines
 
