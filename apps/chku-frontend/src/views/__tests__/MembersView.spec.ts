@@ -47,4 +47,13 @@ describe('MembersView', () => {
     expect(links.some((link) => link.props('to') === '/members/1')).toBe(true)
     expect(links.some((link) => link.props('to') === '/members/2')).toBe(true)
   })
+
+  it('marks inactive member cards as muted', () => {
+    const wrapper = mountMembers()
+    const links = wrapper.findAllComponents(RouterLinkStub)
+    const inactiveCard = links.find((link) => link.text().includes('Ольга Петрова'))
+
+    expect(inactiveCard?.classes()).toContain('member-card--inactive')
+    expect(inactiveCard?.find('.badge--muted').exists()).toBe(true)
+  })
 })

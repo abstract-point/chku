@@ -28,7 +28,10 @@ final class ClubMemberController extends Controller
         $this->authorize('viewAny', ClubMember::class);
 
         return MemberResource::collection(
-            ClubMember::with('user', 'favoriteGenre')->get()
+            ClubMember::with('user', 'favoriteGenre')
+                ->orderByDesc('is_active')
+                ->orderBy(User::select('name')->whereColumn('users.id', 'club_members.user_id'))
+                ->get()
         );
     }
 

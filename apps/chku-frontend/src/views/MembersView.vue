@@ -36,12 +36,17 @@ main.members.container
   section.panel(v-else-if="membersQuery.error.value" aria-live="polite")
     p.body-text Не удалось загрузить список участников.
   .members__grid(v-else)
-    RouterLink.member-card(v-for="member in membersQuery.data.value" :key="member.id" :to="`/members/${member.id}`")
+    RouterLink.member-card(
+      v-for="member in membersQuery.data.value"
+      :key="member.id"
+      :class="{ 'member-card--inactive': !member.isActive }"
+      :to="`/members/${member.id}`"
+    )
       .member-card__hero
         span.avatar.member-card__avatar {{ member.initials }}
         .member-card__info
           h2.member-card__name {{ member.name }}
-          span.badge.label-text(:class="member.isActive ? 'badge--reading' : 'badge--done'") {{ member.isActive ? 'Активен' : 'Неактивен' }}
+          span.badge.label-text(:class="member.isActive ? 'badge--reading' : 'badge--muted'") {{ member.isActive ? 'Активен' : 'Неактивен' }}
       .member-card__stats
         .member-card__stat
           span.member-card__stat-value {{ member.stats.read }}
@@ -96,6 +101,28 @@ main.members.container
   border-color: var(--border-strong);
   background: var(--bg-panel);
   transform: translateY(-0.15rem);
+}
+
+.member-card--inactive {
+  border-color: var(--border);
+  background: var(--bg-panel);
+  color: var(--text-muted);
+  opacity: 0.58;
+}
+
+.member-card--inactive:hover {
+  border-color: var(--border);
+  background: var(--bg-panel);
+}
+
+.member-card--inactive .member-card__stat-value {
+  color: var(--text-muted);
+}
+
+.badge--muted {
+  border-color: var(--border);
+  background: transparent;
+  color: var(--text-muted);
 }
 
 .member-card__hero {

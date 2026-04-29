@@ -44,6 +44,22 @@ class ClubMemberAdminApiTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'member_created']);
     }
 
+    public function test_members_list_places_inactive_members_last(): void
+    {
+        $this->actingAsAdmin();
+
+        $response = $this->getJson('/api/members');
+
+        $response->assertOk();
+        $members = collect($response->json('data'));
+
+        $this->assertTrue($members->take(4)->every(fn (array $member) => $member['isActive'] === true));
+        $this->assertSame(
+            ['Дмитрий Смирнов', 'Ольга Петрова'],
+            $members->slice(4)->pluck('name')->all(),
+        );
+    }
+
     public function test_member_cannot_create_member(): void
     {
         $this->seed(DatabaseSeeder::class);
