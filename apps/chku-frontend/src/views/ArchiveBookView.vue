@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { ArrowLeft, CalendarDays, MessageSquare, Star, UserRound } from '@lucide/vue'
 import { useArchiveBookQuery } from '@/queries/archiveQueries'
 
 const route = useRoute()
@@ -38,14 +39,19 @@ main.archive-book.container
           .archive-book__meta-item
             span.label-text.archive-book__muted Выбрал(а)
             .archive-book__member
+              UserRound.archive-book__icon
               span.avatar.archive-book__avatar {{ book.proposerInitials }}
               span.label-text {{ book.proposedBy }}
           .archive-book__meta-item
             span.label-text.archive-book__muted Средняя оценка
-            span.archive-book__rating.label-text {{ book.rating.toFixed(1) }}/10
+            span.archive-book__rating.label-text
+              Star.archive-book__icon
+              | {{ book.rating.toFixed(1) }}/10
           .archive-book__meta-item
             span.label-text.archive-book__muted Цикл
-            span.label-text {{ book.cycleLabel }} · {{ book.completedLabel }}
+            span.archive-book__cycle.label-text
+              CalendarDays.archive-book__icon
+              | {{ book.cycleLabel }} · {{ book.completedLabel }}
 
         .section-header.section-header--compact
           h2 Синопсис
@@ -57,7 +63,7 @@ main.archive-book.container
           h2#archive-book-reviews Отзывы клуба
           span.label-text {{ book.reviews.length }} отзыва
 
-        article.archive-book__review(v-for="review in book.reviews" :key="`${review.memberName}-${review.rating}`")
+        article.panel.archive-book__review(v-for="review in book.reviews" :key="`${review.memberName}-${review.rating}`")
           .archive-book__review-header
             .archive-book__member
               span.avatar {{ review.memberInitials }}
@@ -77,6 +83,7 @@ main.archive-book.container
           article.archive-book__message(v-for="message in book.discussion" :key="`${message.memberName}-${message.dateLabel}`")
             .archive-book__message-header
               .archive-book__member
+                MessageSquare.archive-book__icon
                 span.avatar {{ message.memberInitials }}
                 span.label-text {{ message.memberName }}
               span.label-text.archive-book__muted {{ message.dateLabel }}
@@ -104,7 +111,9 @@ main.archive-book.container
               span.label-text.archive-book__muted Отзывов
               span.label-text {{ book.reviews.length }}
 
-        RouterLink.button.button--secondary.label-text.archive-book__back(to="/archive") Вернуться в архив
+        RouterLink.button.button--secondary.label-text.archive-book__back(to="/archive")
+          ArrowLeft.archive-book__icon
+          | Вернуться в архив
 
   section.panel.archive-book__missing(v-else)
     .section-header.section-header--compact
@@ -133,6 +142,13 @@ main.archive-book.container
   grid-template-columns: 20rem minmax(0, 1fr);
   gap: var(--space-xl);
   margin-bottom: var(--space-xl);
+  padding: var(--space-lg);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-panel);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)),
+    var(--bg-surface);
+  box-shadow: var(--shadow-panel);
 }
 
 .archive-book__cover {
@@ -176,6 +192,13 @@ main.archive-book.container
   gap: var(--space-sm);
 }
 
+.archive-book__icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-subtle);
+}
+
 .archive-book__avatar {
   width: 1.5rem;
   height: 1.5rem;
@@ -187,7 +210,20 @@ main.archive-book.container
 }
 
 .archive-book__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
   color: var(--accent-dim);
+}
+
+.archive-book__rating .archive-book__icon {
+  color: var(--accent);
+}
+
+.archive-book__cycle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
 }
 
 .archive-book__synopsis {
@@ -201,12 +237,12 @@ main.archive-book.container
 }
 
 .archive-book__review {
-  padding: var(--space-md) 0;
-  border-bottom: var(--border-width) solid var(--border);
+  margin-bottom: var(--space-md);
+  padding: var(--space-lg);
 }
 
 .archive-book__review:last-of-type {
-  border-bottom: 0;
+  margin-bottom: 0;
 }
 
 .archive-book__review-header,
@@ -243,6 +279,7 @@ main.archive-book.container
 .archive-book__message {
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
   background: var(--bg-surface);
 }
 
