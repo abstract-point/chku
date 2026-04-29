@@ -85,7 +85,7 @@ main.login
         label.login__remember
           input.login__checkbox(type="checkbox" v-model="remember")
           span Запомнить меня
-        a.login__forgot(href="#") Забыли пароль?
+        button.login__forgot(type="button" disabled) Забыли пароль?
 
       p.login__error(v-if="error") {{ error }}
 
@@ -110,16 +110,36 @@ main.login
 
 <style scoped>
 .login {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: var(--space-xl);
   gap: var(--space-xl);
+  overflow: hidden;
+}
+
+.login::before {
+  position: absolute;
+  inset: 8% auto auto 50%;
+  width: min(42rem, 80vw);
+  height: min(42rem, 80vw);
+  content: '';
+  transform: translateX(-50%);
+  border: var(--border-width) solid var(--border);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(67, 224, 125, 0.075), transparent 58%),
+    radial-gradient(circle at 70% 30%, rgba(216, 137, 43, 0.055), transparent 46%);
+  opacity: 0.9;
+  pointer-events: none;
 }
 
 .login__branding {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -138,24 +158,29 @@ main.login
 
 .login__club-fullname {
   font-size: 0.85rem;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
   margin: 0;
 }
 
 .login__panel {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 28rem;
   padding: var(--space-xl);
   border: var(--border-width) solid var(--border);
-  background: var(--bg-surface);
-  box-shadow: 0 0 3rem rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-panel);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
+    var(--bg-surface);
+  box-shadow: var(--shadow-soft);
 }
 
 .login__title {
   margin: 0 0 var(--space-xl) 0;
-  font-size: 1.25rem;
-  font-weight: 500;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 600;
   text-align: center;
 }
 
@@ -185,11 +210,15 @@ main.login
   width: 100%;
   padding: 0.75rem 0.75rem 0.75rem 2.5rem;
   border: var(--border-width) solid var(--border);
-  border-radius: 0;
-  background: var(--bg-base);
+  border-radius: var(--radius-inner);
+  background: var(--bg-panel);
   color: var(--text-main);
   outline: none;
   font-size: 0.9rem;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .login__input::placeholder {
@@ -197,7 +226,8 @@ main.login
 }
 
 .login__input:focus {
-  border-color: var(--text-main);
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
 .login__toggle-password {
@@ -206,9 +236,10 @@ main.login
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: none;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: var(--border-width) solid transparent;
+  border-radius: 0.65rem;
   background: transparent;
   color: var(--text-subtle);
   cursor: pointer;
@@ -216,6 +247,8 @@ main.login
 }
 
 .login__toggle-password:hover {
+  border-color: var(--border);
+  background: var(--bg-hover);
   color: var(--text-main);
 }
 
@@ -250,14 +283,20 @@ main.login
 .login__forgot {
   color: var(--accent);
   font-size: 0.85rem;
+  text-align: right;
 }
 
-.login__forgot:hover {
-  text-decoration: underline;
+.login__forgot:disabled {
+  color: var(--text-subtle);
+  cursor: not-allowed;
 }
 
 .login__error {
   margin-bottom: var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
+  border: var(--border-width) solid rgba(224, 95, 95, 0.28);
+  border-radius: var(--radius-inner);
+  background: var(--danger-bg);
   color: var(--warn);
   font-size: 0.85rem;
 }
@@ -271,6 +310,7 @@ main.login
   font-size: 0.85rem;
   letter-spacing: 0.05em;
   min-height: 2.75rem;
+  border-radius: var(--radius-inner);
 }
 
 .login__submit:hover {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
+import { ShieldCheck, UserPlus } from '@lucide/vue'
 import { http } from '@/api/http'
 import { useAuthStore } from '@/stores/auth'
 
@@ -38,36 +39,47 @@ async function submit() {
 <template lang="pug">
 main.add-member.container
   .section-header
-    h1.add-member__title Добавить участника
+    div
+      span.label-text Управление клубом
+      h1.add-member__title Добавить участника
+    RouterLink.button.button--secondary.label-text(to="/members") К списку
 
-  form.panel(@submit.prevent="submit")
+  form.panel.add-member__panel(@submit.prevent="submit")
     template(v-if="!canManageMembers")
-      p.body-text Для добавления участников Админу и Разработчику нужно включить 2FA.
+      .inline-alert
+        ShieldCheck.add-member__notice-icon
+        div
+          h2.add-member__notice-title Требуется двухфакторная защита
+          p.body-text Для добавления участников Админу и Разработчику нужно включить 2FA.
       .add-member__actions
         button.button.button--secondary.label-text(type="button" @click="router.back()") Назад
         RouterLink.button.button--primary.label-text(to="/profile/settings") Настроить 2FA
     template(v-else)
-      .add-member__group
-        label.label-text(for="am-name") Имя
-        input#am-name.add-member__input(type="text" v-model="form.name" required)
-      .add-member__group
-        label.label-text(for="am-email") Email
-        input#am-email.add-member__input(type="email" v-model="form.email" required)
-      .add-member__group
-        label.label-text(for="am-password") Пароль
-        input#am-password.add-member__input(type="password" v-model="form.password" required minlength="8")
-      .add-member__group
-        label.label-text(for="am-initials") Инициалы
-        input#am-initials.add-member__input(type="text" v-model="form.initials" required maxlength="10")
-      .add-member__group
-        label.label-text(for="am-joined") Дата вступления
-        input#am-joined.add-member__input(type="date" v-model="form.joined_at" required)
-      .add-member__group
-        label.label-text(for="am-role") Роль
-        select#am-role.add-member__input(v-model="form.role" required)
-          option(value="member") Участник
-          option(value="admin") Администратор
-          option(value="developer") Разработчик
+      .add-member__intro
+        UserPlus.add-member__intro-icon
+        p.body-text Новый участник получит доступ к клубному дашборду, архиву и прогрессу текущего цикла.
+      .add-member__fields
+        .add-member__group
+          label.label-text(for="am-name") Имя
+          input#am-name.field-control.add-member__input(type="text" v-model="form.name" required autocomplete="name")
+        .add-member__group
+          label.label-text(for="am-email") Email
+          input#am-email.field-control.add-member__input(type="email" v-model="form.email" required autocomplete="email")
+        .add-member__group
+          label.label-text(for="am-password") Пароль
+          input#am-password.field-control.add-member__input(type="password" v-model="form.password" required minlength="8" autocomplete="new-password")
+        .add-member__group
+          label.label-text(for="am-initials") Инициалы
+          input#am-initials.field-control.add-member__input(type="text" v-model="form.initials" required maxlength="10")
+        .add-member__group
+          label.label-text(for="am-joined") Дата вступления
+          input#am-joined.field-control.add-member__input(type="date" v-model="form.joined_at" required)
+        .add-member__group
+          label.label-text(for="am-role") Роль
+          select#am-role.field-control.add-member__input(v-model="form.role" required)
+            option(value="member") Участник
+            option(value="admin") Администратор
+            option(value="developer") Разработчик
       p.add-member__error(v-if="error") {{ error }}
       .add-member__actions
         button.button.button--secondary.label-text(type="button" @click="router.back()") Отмена
@@ -80,30 +92,62 @@ main.add-member.container
   font-size: clamp(1.8rem, 4vw, 2.2rem);
 }
 
+.add-member__panel {
+  max-width: 52rem;
+}
+
+.add-member__notice-icon,
+.add-member__intro-icon {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--warn);
+}
+
+.add-member__notice-title {
+  margin-bottom: var(--space-xs);
+  font-size: 1rem;
+}
+
+.add-member__intro {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-panel);
+}
+
+.add-member__intro-icon {
+  color: var(--accent);
+}
+
+.add-member__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
 .add-member__group {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  margin-bottom: var(--space-md);
 }
 
 .add-member__input {
   width: 100%;
-  padding: 0.75rem;
-  border: var(--border-width) solid var(--border);
-  border-radius: 0;
-  background: var(--bg-surface);
-  color: var(--text-main);
-  outline: none;
-}
-
-.add-member__input:focus {
-  border-color: var(--text-main);
+  padding: 0.75rem 0.9rem;
 }
 
 .add-member__error {
-  margin-bottom: var(--space-md);
-  color: var(--warn);
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border: var(--border-width) solid rgba(224, 95, 95, 0.28);
+  border-radius: var(--radius-inner);
+  background: var(--danger-bg);
+  color: var(--danger);
   font-size: 0.85rem;
 }
 
@@ -111,5 +155,18 @@ main.add-member.container
   display: flex;
   gap: var(--space-md);
   justify-content: flex-end;
+  margin-top: var(--space-xl);
+}
+
+@media (max-width: 760px) {
+  .add-member__fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .add-member__actions {
+    flex-direction: column-reverse;
+  }
 }
 </style>

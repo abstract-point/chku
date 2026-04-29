@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
+import { Copy, Info, RotateCcw, ShieldCheck } from '@lucide/vue'
 import { authApi } from '@/api/endpoints/auth'
 import { queryKeys } from '@/queries/keys'
 import { useAuthStore } from '@/stores/auth'
@@ -233,6 +234,7 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
   .section-header.section-header--compact
     h2#two-factor-title Двухфакторная защита
     span.badge.label-text(:class="isTwoFactorEnabled ? 'badge--reading' : 'badge--action'")
+      ShieldCheck.two-factor-setup__badge-icon
       | {{ isTwoFactorEnabled ? '2FA включена' : '2FA выключена' }}
 
   .two-factor-setup__body
@@ -261,12 +263,10 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
                 .two-factor-setup__secret-box
                   code.two-factor-setup__secret-key {{ secretKey }}
                   button.two-factor-setup__copy-icon(type="button" @click="copySecret" :title="copiedSecret ? 'Скопировано' : 'Скопировать'")
-                    svg(two-factor-setup__copy-icon-svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
-                      rect(x="9" y="9" width="13" height="13" rx="2" ry="2")
-                      path(d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1")
+                    Copy
 
             button.button.button--secondary.label-text.two-factor-setup__refresh(type="button" :disabled="isBusy" @click="refreshQr")
-              span(aria-hidden="true") ↻
+              RotateCcw.two-factor-setup__button-icon
               | Обновить QR-код
 
           .two-factor-setup__divider
@@ -328,7 +328,7 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 
 
         .two-factor-setup__footer(v-if="message" )
-          span.two-factor-setup__info-icon(aria-hidden="true") i
+          Info.two-factor-setup__info-icon(aria-hidden="true")
           p.two-factor-setup__message(aria-live="polite") {{ message }}
 
     template(v-else)
@@ -375,8 +375,7 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 }
 
 .two-factor-setup__card {
-  padding: var(--space-xl);
-  background: var(--bg-surface);
+  margin-top: var(--space-lg);
 }
 
 .two-factor-setup__grid {
@@ -401,8 +400,10 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 .two-factor-setup__qr-card {
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
   background: #ffffff;
   width: fit-content;
+  box-shadow: inset 0 0 0 1px rgba(5, 6, 7, 0.05);
 }
 
 .two-factor-setup__qr {
@@ -434,7 +435,8 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
   border: var(--border-width) solid var(--border);
-  background: var(--bg-panel);
+  border-radius: var(--radius-inner);
+  background: var(--bg-surface);
 }
 
 .two-factor-setup__secret-key {
@@ -449,10 +451,11 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1rem;
-  height: 1rem;
+  width: 2rem;
+  height: 2rem;
   padding: 0;
-  border: 0;
+  border: var(--border-width) solid var(--border);
+  border-radius: 0.6rem;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
@@ -461,12 +464,19 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 }
 
 .two-factor-setup__copy-icon:hover {
+  background: var(--bg-hover);
   color: var(--text-main);
 }
 
 .two-factor-setup__copy-icon svg {
   width: 1rem;
   height: 1rem;
+}
+
+.two-factor-setup__badge-icon,
+.two-factor-setup__button-icon {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .two-factor-setup__refresh {
@@ -519,7 +529,8 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
   height: 3.5rem;
   padding: 0;
   border: var(--border-width) solid var(--border);
-  background: var(--bg-base);
+  border-radius: var(--radius-inner);
+  background: var(--bg-surface);
   color: var(--text-main);
   font-family: var(--font-mono);
   font-size: 1.25rem;
@@ -528,7 +539,8 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 }
 
 .two-factor-setup__digit:focus {
-  border-color: var(--text-main);
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
 .two-factor-setup__code-sep {
@@ -547,13 +559,15 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 .two-factor-setup__cta {
   width: 100%;
   margin-top: auto;
-  border-color: var(--warn);
-  color: var(--warn);
-  background: transparent;
+  border-color: var(--accent);
+  color: var(--text-inverse);
+  background: var(--accent);
+  box-shadow: 0 0.75rem 1.8rem rgba(67, 224, 125, 0.16);
 }
 
 .two-factor-setup__cta:hover:not(:disabled) {
-  background: var(--warn-bg);
+  border-color: var(--accent-dim);
+  background: var(--accent-dim);
 }
 
 .two-factor-setup__cta:disabled {
@@ -575,15 +589,9 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 }
 
 .two-factor-setup__info-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 1.25rem;
   height: 1.25rem;
-  border: var(--border-width) solid var(--text-muted);
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  font-style: italic;
+  color: var(--accent);
   flex-shrink: 0;
 }
 
@@ -617,6 +625,7 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 .two-factor-setup__codes li {
   padding: var(--space-sm) var(--space-md);
   border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
   background: var(--bg-panel);
 }
 
@@ -648,10 +657,6 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 
   .two-factor-setup__divider {
     display: none;
-  }
-
-  .two-factor-setup__card {
-    padding: var(--space-lg);
   }
 
   .two-factor-setup__qr-row {

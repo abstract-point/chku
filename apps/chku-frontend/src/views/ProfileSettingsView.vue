@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
+import { KeyRound, UserRound } from '@lucide/vue'
 import { authApi } from '@/api/endpoints/auth'
 import { useGenresQuery } from '@/queries/genreQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
@@ -112,15 +113,16 @@ main.profile-settings.container
     form.panel.profile-settings__section(@submit.prevent="saveProfile")
       .section-header.section-header--compact
         h2 Данные профиля
+        UserRound.profile-settings__icon
       .profile-settings__group
         label.label-text(for="settings-name") Имя
-        input#settings-name.profile-settings__input(type="text" v-model="profileForm.name" required autocomplete="name")
+        input#settings-name.field-control.profile-settings__input(type="text" v-model="profileForm.name" required autocomplete="name")
       .profile-settings__group
         label.label-text(for="settings-initials") Инициалы
-        input#settings-initials.profile-settings__input(type="text" v-model="profileForm.initials" required maxlength="10")
+        input#settings-initials.field-control.profile-settings__input(type="text" v-model="profileForm.initials" required maxlength="10")
       .profile-settings__group
         label.label-text(for="settings-genre") Любимый жанр
-        select#settings-genre.profile-settings__input(v-model="profileForm.favoriteGenreId" :disabled="genresQuery.isLoading.value")
+        select#settings-genre.field-control.profile-settings__input(v-model="profileForm.favoriteGenreId" :disabled="genresQuery.isLoading.value")
           option(:value="null") Не выбран
           option(v-for="genre in genresQuery.data.value ?? []" :key="genre.id" :value="genre.id") {{ genre.name }}
       p.profile-settings__message(v-if="profileMessage") {{ profileMessage }}
@@ -131,15 +133,16 @@ main.profile-settings.container
     form.panel.profile-settings__section(@submit.prevent="savePassword")
       .section-header.section-header--compact
         h2 Пароль
+        KeyRound.profile-settings__icon
       .profile-settings__group
         label.label-text(for="settings-current-password") Текущий пароль
-        input#settings-current-password.profile-settings__input(type="password" v-model="passwordForm.currentPassword" required autocomplete="current-password")
+        input#settings-current-password.field-control.profile-settings__input(type="password" v-model="passwordForm.currentPassword" required autocomplete="current-password")
       .profile-settings__group
         label.label-text(for="settings-password") Новый пароль
-        input#settings-password.profile-settings__input(type="password" v-model="passwordForm.password" required minlength="8" autocomplete="new-password")
+        input#settings-password.field-control.profile-settings__input(type="password" v-model="passwordForm.password" required minlength="8" autocomplete="new-password")
       .profile-settings__group
         label.label-text(for="settings-password-confirmation") Повтор нового пароля
-        input#settings-password-confirmation.profile-settings__input(type="password" v-model="passwordForm.passwordConfirmation" required minlength="8" autocomplete="new-password")
+        input#settings-password-confirmation.field-control.profile-settings__input(type="password" v-model="passwordForm.passwordConfirmation" required minlength="8" autocomplete="new-password")
       p.profile-settings__message(v-if="passwordMessage") {{ passwordMessage }}
       p.profile-settings__error(v-if="passwordError") {{ passwordError }}
       button.button.button--secondary.label-text.profile-settings__submit(type="submit" :disabled="isPasswordSaving")
@@ -164,6 +167,12 @@ main.profile-settings.container
   flex-direction: column;
 }
 
+.profile-settings__icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-subtle);
+}
+
 .profile-settings__section--wide {
   grid-column: 1 / -1;
 }
@@ -177,16 +186,7 @@ main.profile-settings.container
 
 .profile-settings__input {
   width: 100%;
-  padding: 0.75rem;
-  border: var(--border-width) solid var(--border);
-  border-radius: 0;
-  background: var(--bg-base);
-  color: var(--text-main);
-  outline: none;
-}
-
-.profile-settings__input:focus {
-  border-color: var(--text-main);
+  padding: 0.75rem 0.9rem;
 }
 
 .profile-settings__submit {
@@ -196,16 +196,22 @@ main.profile-settings.container
 
 .profile-settings__message,
 .profile-settings__error {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-inner);
   margin-bottom: var(--space-md);
   font-size: 0.85rem;
 }
 
 .profile-settings__message {
-  color: var(--accent-dim);
+  border: var(--border-width) solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent);
 }
 
 .profile-settings__error {
-  color: var(--warn);
+  border: var(--border-width) solid rgba(224, 95, 95, 0.28);
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 @media (max-width: 760px) {

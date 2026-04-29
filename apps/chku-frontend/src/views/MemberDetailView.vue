@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { ArrowLeft, Mail, Star } from '@lucide/vue'
 import { useMemberQuery } from '@/queries/memberQueries'
 
 const route = useRoute()
@@ -19,11 +20,13 @@ section.panel.container(v-else-if="memberQuery.error.value" aria-live="polite")
   RouterLink.button.button--secondary.label-text(to="/members") Вернуться к списку участников
 main.member-detail.container(v-else-if="member")
   .section-header
-    RouterLink.button.button--ghost.label-text(to="/members") ← Назад к списку
+    RouterLink.button.button--ghost.label-text(to="/members")
+      ArrowLeft.member-detail__icon
+      | Назад к списку
 
   .member-detail__grid
     aside.member-detail__sidebar(aria-label="Профиль участника")
-      .member-detail__hero
+      .panel.member-detail__hero
         .avatar.avatar--large {{ member.initials }}
         div
           h1.member-detail__name {{ member.name }}
@@ -45,23 +48,29 @@ main.member-detail.container(v-else-if="member")
           span#member-info-title.label-text О участнике
         .member-detail__info-row
           span.label-text Статус
-          span.badge.label-text(:class="member.isActive ? 'badge--reading' : 'badge--done'") {{ member.isActive ? 'Активен' : 'Неактивен' }}
+          span.member-detail__status
+            span.status-dot(:class="{ 'status-dot--active': member.isActive }")
+            span.label-text {{ member.isActive ? 'Активен' : 'Неактивен' }}
         .member-detail__info-row
           span.label-text Любимый жанр
-          span.body-text {{ member.favoriteGenre }}
+          span.member-detail__info-value
+            Star.member-detail__icon
+            span.body-text {{ member.favoriteGenre }}
         .member-detail__info-row
           span.label-text Email
-          span.body-text {{ member.email }}
+          span.member-detail__info-value
+            Mail.member-detail__icon
+            span.body-text {{ member.email }}
 
     section.member-detail__history(aria-labelledby="reading-history-title")
       .section-header
         h2#reading-history-title История чтения
         span.label-text {{ member.readingHistory.length }} книг
 
-      .member-detail__book-list
+      .panel.member-detail__book-list
         article.member-detail__book(v-for="book in member.readingHistory" :key="book.title")
-          .member-detail__book-cover(:class="`member-detail__book-cover--${book.coverVariant ?? 'default'}`")
-            span {{ book.coverTitle }}
+          .book-cover.member-detail__book-cover(:class="`member-detail__book-cover--${book.coverVariant ?? 'default'}`")
+            span.book-cover__content {{ book.coverTitle }}
           .member-detail__book-details
             h3.member-detail__book-title {{ book.title }}
             p.body-text.member-detail__book-author {{ book.author }}
@@ -110,7 +119,8 @@ section.panel.container(v-else aria-live="polite")
   gap: var(--space-xs);
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
-  background: var(--bg-surface);
+  border-radius: var(--radius-inner);
+  background: var(--bg-panel);
   text-align: center;
 }
 
@@ -126,7 +136,7 @@ section.panel.container(v-else aria-live="polite")
   justify-content: space-between;
   align-items: center;
   gap: var(--space-md);
-  padding: var(--space-sm) 0;
+  padding: var(--space-md) 0;
   border-bottom: var(--border-width) solid var(--border);
 }
 
@@ -134,10 +144,30 @@ section.panel.container(v-else aria-live="polite")
   border-bottom: 0;
 }
 
+.member-detail__status,
+.member-detail__info-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  text-align: right;
+}
+
+.member-detail__icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-subtle);
+}
+
+.member-detail__book-list {
+  padding-top: var(--space-sm);
+  padding-bottom: var(--space-sm);
+}
+
 .member-detail__book {
   display: flex;
   gap: var(--space-md);
-  padding: var(--space-md) 0;
+  padding: var(--space-lg) 0;
   border-bottom: var(--border-width) solid var(--border);
 }
 
@@ -146,42 +176,24 @@ section.panel.container(v-else aria-live="polite")
 }
 
 .member-detail__book-cover {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex: 0 0 3.75rem;
   width: 3.75rem;
   height: 5.625rem;
-  padding: var(--space-xs);
-  overflow: hidden;
-  background: var(--text-main);
-  color: var(--bg-base);
   font-size: 0.65rem;
-  font-weight: 600;
-  line-height: 1.2;
-  text-align: center;
-  white-space: pre-line;
-}
-
-.member-detail__book-cover::after {
-  position: absolute;
-  inset: 0 0 0 10%;
-  content: '';
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0) 5%,
-    rgba(0, 0, 0, 0.1) 100%
-  );
 }
 
 .member-detail__book-cover--accent {
-  background: var(--accent);
+  border-color: var(--accent-border);
+  background:
+    linear-gradient(135deg, rgba(67, 224, 125, 0.16), rgba(255, 255, 255, 0.02)),
+    var(--bg-panel);
 }
 
 .member-detail__book-cover--blue {
-  background: var(--warn);
+  border-color: var(--warn-border);
+  background:
+    linear-gradient(135deg, rgba(216, 137, 43, 0.18), rgba(255, 255, 255, 0.02)),
+    var(--bg-panel);
 }
 
 .member-detail__book-details {

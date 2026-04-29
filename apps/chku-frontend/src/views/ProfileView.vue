@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { BookOpen, Settings, Sparkles } from '@lucide/vue'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
 
@@ -26,7 +27,7 @@ main.profile.container
     p.body-text Не удалось загрузить профиль.
   .profile__grid(v-else)
     aside.profile__sidebar(aria-label="Профиль участника")
-      .profile__hero
+      .panel.profile__hero
         .avatar.avatar--large {{ currentMember.initials }}
         div
           h1.profile__name {{ currentMember.name }}
@@ -46,6 +47,7 @@ main.profile.container
       section.panel.profile__turn(v-if="canProposeNextBook" aria-labelledby="profile-turn-title")
         .section-header.section-header--compact
           span#profile-turn-title.label-text Сейчас твоя очередь
+          Sparkles.profile__section-icon
         p.body-text
           | Предложи следующую книгу для клуба. После отправки участники подтвердят, что ещё не читали её.
         RouterLink.button.button--primary.label-text.profile__turn-action(to="/propose-selection")
@@ -54,6 +56,7 @@ main.profile.container
       section.panel(aria-labelledby="profile-settings-title")
         .section-header.section-header--compact
           span#profile-settings-title.label-text Настройки профиля
+          Settings.profile__section-icon
         p.body-text
           | Имя, инициалы, любимый жанр, пароль и двухфакторная защита настраиваются на отдельной странице.
         RouterLink.button.button--secondary.label-text.profile__save(to="/profile/settings") Открыть настройки
@@ -63,10 +66,10 @@ main.profile.container
         h2#reading-history-title История чтения
         span.label-text Цикл #28 - сейчас
 
-      .profile__book-list
+      .panel.profile__book-list
         article.profile__book(v-for="book in currentMember.readingHistory" :key="book.title")
-          .profile__book-cover(:class="`profile__book-cover--${book.coverVariant ?? 'default'}`")
-            span {{ book.coverTitle }}
+          .book-cover.profile__book-cover(:class="`profile__book-cover--${book.coverVariant ?? 'default'}`")
+            span.book-cover__content {{ book.coverTitle }}
           .profile__book-details
             h3.profile__book-title {{ book.title }}
             p.body-text.profile__book-author {{ book.author }}
@@ -74,7 +77,9 @@ main.profile.container
               span.label-text Завершено: {{ book.completedLabel }}
               span.label-text Предложил(а): {{ book.proposedBy }}
 
-      RouterLink.button.button--ghost.label-text.profile__archive-link(to="/archive") Смотреть весь архив
+      RouterLink.button.button--ghost.label-text.profile__archive-link(to="/archive")
+        BookOpen.profile__archive-icon
+        | Смотреть весь архив
 </template>
 
 <style scoped>
@@ -111,7 +116,8 @@ main.profile.container
   gap: var(--space-xs);
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
-  background: var(--bg-surface);
+  border-radius: var(--radius-inner);
+  background: var(--bg-panel);
   text-align: center;
 }
 
@@ -123,7 +129,10 @@ main.profile.container
 }
 
 .profile__turn {
-  border-color: rgba(173, 110, 83, 0.45);
+  border-color: var(--warn-border);
+  background:
+    linear-gradient(180deg, rgba(216, 137, 43, 0.06), rgba(216, 137, 43, 0.018)),
+    var(--bg-surface);
 }
 
 .profile__turn-action {
@@ -131,25 +140,11 @@ main.profile.container
   margin-top: var(--space-md);
 }
 
-.profile__input-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  margin-bottom: var(--space-md);
-}
-
-.profile__input {
-  width: 100%;
-  padding: 0.75rem;
-  border: var(--border-width) solid var(--border);
-  border-radius: 0;
-  background: var(--bg-surface);
-  color: var(--text-main);
-  outline: none;
-}
-
-.profile__input:focus {
-  border-color: var(--text-main);
+.profile__section-icon,
+.profile__archive-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-subtle);
 }
 
 .profile__save {
@@ -157,10 +152,15 @@ main.profile.container
   margin-top: var(--space-sm);
 }
 
+.profile__book-list {
+  padding-top: var(--space-sm);
+  padding-bottom: var(--space-sm);
+}
+
 .profile__book {
   display: flex;
   gap: var(--space-md);
-  padding: var(--space-md) 0;
+  padding: var(--space-lg) 0;
   border-bottom: var(--border-width) solid var(--border);
 }
 
@@ -169,42 +169,24 @@ main.profile.container
 }
 
 .profile__book-cover {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex: 0 0 3.75rem;
   width: 3.75rem;
   height: 5.625rem;
-  padding: var(--space-xs);
-  overflow: hidden;
-  background: var(--text-main);
-  color: var(--bg-base);
   font-size: 0.65rem;
-  font-weight: 600;
-  line-height: 1.2;
-  text-align: center;
-  white-space: pre-line;
-}
-
-.profile__book-cover::after {
-  position: absolute;
-  inset: 0 0 0 10%;
-  content: '';
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0) 5%,
-    rgba(0, 0, 0, 0.1) 100%
-  );
 }
 
 .profile__book-cover--accent {
-  background: var(--accent);
+  background:
+    linear-gradient(135deg, rgba(67, 224, 125, 0.16), rgba(255, 255, 255, 0.02)),
+    var(--bg-panel);
+  border-color: var(--accent-border);
 }
 
 .profile__book-cover--blue {
-  background: var(--warn);
+  background:
+    linear-gradient(135deg, rgba(216, 137, 43, 0.18), rgba(255, 255, 255, 0.02)),
+    var(--bg-panel);
+  border-color: var(--warn-border);
 }
 
 .profile__book-details {
