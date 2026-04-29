@@ -1,28 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-sans: var(--font-mono);
-  --font-serif: var(--font-mono);
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    monospace;
+  --font-serif: var(--font-sans);
 
-  --bg-base: #fafafa;
+  --bg-base: #f4f5f2;
   --bg-surface: #ffffff;
-  --bg-panel: #f3f4f6;
-  --bg-hover: #e5e7eb;
+  --bg-panel: #eaede7;
+  --bg-hover: #dde2da;
+  --bg-elevated: #ffffff;
 
-  --text-main: #171717;
-  --text-muted: #525252;
-  --text-subtle: #737373;
-  --text-inverse: #ffffff;
+  --text-main: #161a18;
+  --text-muted: #5d6661;
+  --text-subtle: #858d89;
+  --text-inverse: #050607;
 
-  --accent: #16a34a;
-  --accent-dim: #15803d;
-  --accent-bg: rgba(22, 163, 74, 0.08);
-  --warn: #ea580c;
-  --warn-bg: rgba(234, 88, 12, 0.08);
+  --accent: #20834a;
+  --accent-dim: #166936;
+  --accent-bg: rgba(32, 131, 74, 0.1);
+  --accent-border: rgba(32, 131, 74, 0.36);
+  --warn: #a8661e;
+  --warn-bg: rgba(168, 102, 30, 0.12);
+  --warn-border: rgba(168, 102, 30, 0.38);
+  --danger: #b94c4c;
+  --danger-bg: rgba(185, 76, 76, 0.12);
 
-  --border: #e5e5e5;
-  --border-strong: #a3a3a3;
+  --border: rgba(8, 14, 11, 0.1);
+  --border-strong: rgba(8, 14, 11, 0.22);
+  --shadow-soft: 0 1.5rem 4rem rgba(17, 24, 20, 0.12);
+  --shadow-panel: 0 1rem 3rem rgba(17, 24, 20, 0.1);
+  --radius-panel: 18px;
+  --radius-inner: 12px;
 
   --color-background: var(--bg-base);
   --color-surface: var(--bg-panel);
@@ -42,34 +52,44 @@
   --space-md: 1rem;
   --space-lg: 1.5rem;
   --space-xl: 2.5rem;
-  --container-width: 75rem;
+  --container-width: 90rem;
   --border-width: 1px;
 }
 
 [data-theme='dark'] {
-  --bg-base: #0a0a0a;
-  --bg-surface: #111111;
-  --bg-panel: #171717;
-  --bg-hover: #1f1f1f;
+  --bg-base: #050607;
+  --bg-surface: #0b0d0f;
+  --bg-panel: #101316;
+  --bg-hover: #15191d;
+  --bg-elevated: #12161a;
 
-  --text-main: #e5e5e5;
-  --text-muted: #a3a3a3;
-  --text-subtle: #737373;
-  --text-inverse: #0a0a0a;
+  --text-main: #f1f3f4;
+  --text-muted: #a1a7ae;
+  --text-subtle: #6f767e;
+  --text-inverse: #050607;
 
-  --accent: #4ade80;
-  --accent-dim: #22c55e;
-  --accent-bg: rgba(74, 222, 128, 0.08);
-  --warn: #fb923c;
-  --warn-bg: rgba(251, 146, 60, 0.08);
+  --accent: #43e07d;
+  --accent-dim: #36c76b;
+  --accent-bg: rgba(67, 224, 125, 0.12);
+  --accent-border: rgba(67, 224, 125, 0.45);
+  --warn: #d8892b;
+  --warn-bg: rgba(216, 137, 43, 0.12);
+  --warn-border: rgba(216, 137, 43, 0.45);
+  --danger: #e05f5f;
+  --danger-bg: rgba(224, 95, 95, 0.12);
 
-  --border: #262626;
-  --border-strong: #525252;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --shadow-soft: 0 1.5rem 4rem rgba(0, 0, 0, 0.34);
+  --shadow-panel: 0 1rem 3rem rgba(0, 0, 0, 0.26);
 }
 
 html {
   min-width: 320px;
-  background: var(--bg-base);
+  background:
+    radial-gradient(circle at top left, rgba(67, 224, 125, 0.06), transparent 34rem),
+    radial-gradient(circle at top right, rgba(216, 137, 43, 0.045), transparent 30rem),
+    var(--bg-base);
   scroll-behavior: smooth;
 }
 
@@ -86,10 +106,13 @@ html {
 
 body {
   min-height: 100vh;
-  background: var(--bg-base);
+  background:
+    radial-gradient(circle at 4rem 4rem, rgba(67, 224, 125, 0.055), transparent 30rem),
+    radial-gradient(circle at calc(100% - 6rem) 8rem, rgba(216, 137, 43, 0.04), transparent 27rem),
+    var(--bg-base);
   color: var(--text-main);
-  font-family: var(--font-mono);
-  font-size: 15px;
+  font-family: var(--font-sans);
+  font-size: 16px;
   line-height: 1.6;
   text-rendering: optimizeLegibility;
   transition:
@@ -132,7 +155,7 @@ button,
 input,
 textarea,
 select {
-  font: inherit;
+  font-family: var(--font-sans);
 }
 
 button {
@@ -173,19 +196,19 @@ h1,
 h2,
 h3 {
   color: var(--text-main);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-weight: 600;
   letter-spacing: 0;
   text-wrap: balance;
 }
 
 h1 {
-  font-size: clamp(1.8rem, 4vw, 2.4rem);
-  line-height: 1.2;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.08;
 }
 
 h2 {
-  font-size: clamp(1.2rem, 2.6vw, 1.45rem);
+  font-size: clamp(1.25rem, 2.6vw, 1.6rem);
   line-height: 1.25;
 }
 

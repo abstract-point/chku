@@ -22,8 +22,8 @@ footer.app-footer
 <style scoped>
 .app-footer {
   margin-top: var(--space-xl);
-  padding-top: var(--space-lg);
-  padding-bottom: var(--space-lg);
+  padding-top: 1.2rem;
+  padding-bottom: 1.2rem;
   border-top: var(--border-width) solid var(--border);
 }
 
@@ -43,7 +43,8 @@ footer.app-footer
 
 .app-footer__brand-name {
   color: var(--text-muted);
-  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -51,6 +52,7 @@ footer.app-footer
 
 .app-footer__copy {
   color: var(--text-subtle);
+  font-family: var(--font-mono);
   font-size: 0.7rem;
 }
 
@@ -63,10 +65,9 @@ footer.app-footer
 
 .app-footer__nav a {
   color: var(--text-muted);
-  font-size: 0.7rem;
+  font-size: 0.82rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
   transition: color 0.2s ease;
   white-space: nowrap;
 }

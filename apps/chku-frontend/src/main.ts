@@ -7,6 +7,12 @@ import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import App from './App.vue'
 import router from './router'
 
+const storedTheme = localStorage.getItem('chku-theme')
+document.documentElement.setAttribute(
+  'data-theme',
+  storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : 'dark',
+)
+
 const app = createApp(App)
 const queryClient = new QueryClient({
   defaultOptions: {

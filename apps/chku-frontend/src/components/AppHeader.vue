@@ -9,7 +9,7 @@ import { useClubStore } from '@/stores/club'
 const club = useClubStore()
 const auth = useAuthStore()
 const router = useRouter()
-const theme = ref<'light' | 'dark'>('light')
+const theme = ref<'light' | 'dark'>('dark')
 const isUserMenuOpen = ref(false)
 const menuRoot = ref<HTMLElement | null>(null)
 
@@ -34,10 +34,10 @@ function getPreferredTheme() {
   }
 
   if (!window.matchMedia) {
-    return 'light'
+    return 'dark'
   }
 
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return 'dark'
 }
 
 function applyTheme(nextTheme: 'light' | 'dark') {
@@ -147,27 +147,27 @@ header.app-header
   align-items: center;
   justify-content: space-between;
   gap: var(--space-lg);
-  padding-top: var(--space-lg);
-  padding-bottom: var(--space-lg);
-  margin-bottom: var(--space-xl);
+  padding-top: 1.1rem;
+  padding-bottom: 1.1rem;
+  margin-bottom: var(--space-lg);
   border-bottom: var(--border-width) solid var(--border);
 }
 
 .app-header__brand {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-md);
   color: var(--text-main);
   text-decoration: none;
 }
 
 .app-header__brand-name {
   display: block;
-  margin-top: 2px;
   color: var(--text-muted);
-  font-size: 0.6rem;
-  font-weight: 400;
-  letter-spacing: 0.15em;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0;
   line-height: 1.3;
-  text-transform: uppercase;
 }
 
 .app-header__nav {
@@ -177,19 +177,31 @@ header.app-header
   flex-wrap: wrap;
 }
 
-.app-header__nav a {
+.app-header__nav > a {
+  position: relative;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.92rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0;
   transition: color 0.2s ease;
   white-space: nowrap;
 }
 
-.app-header__nav a:hover,
-.app-header__nav a.router-link-exact-active {
+.app-header__nav > a:hover,
+.app-header__nav > a.router-link-exact-active {
   color: var(--text-main);
+}
+
+.app-header__nav > a.router-link-exact-active::after {
+  position: absolute;
+  right: 50%;
+  bottom: -0.85rem;
+  width: 0.28rem;
+  height: 0.28rem;
+  border-radius: 50%;
+  background: var(--accent);
+  content: '';
+  transform: translateX(50%);
 }
 
 .app-header__menu {
@@ -200,8 +212,11 @@ header.app-header
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-xs) var(--space-sm);
+  min-height: 2.9rem;
+  padding: 0.35rem 0.7rem;
   border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: rgba(255, 255, 255, 0.015);
   color: var(--text-main);
   cursor: pointer;
   transition: border-color 0.15s ease;
@@ -220,13 +235,14 @@ header.app-header
   border: 1.5px solid var(--warn);
   border-radius: 50%;
   color: var(--warn);
+  font-family: var(--font-mono);
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .app-header__user-name {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
@@ -248,8 +264,10 @@ header.app-header
   flex-direction: column;
   width: min(18rem, calc(100vw - 2rem));
   border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-panel);
   background: var(--bg-surface);
-  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
 }
 
 .app-header__dropdown-header {
@@ -268,6 +286,7 @@ header.app-header
   border: 1.5px solid var(--warn);
   border-radius: 50%;
   color: var(--warn);
+  font-family: var(--font-mono);
   font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -411,7 +430,7 @@ header.app-header
   }
 
   .app-header__brand-name {
-    font-size: 0.55rem;
+    font-size: 0.82rem;
   }
 }
 </style>

@@ -39,10 +39,11 @@ const isPublicPage = computed(() => route.meta.public === true)
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--bg-base);
+  background: transparent;
 }
 
 .app-main {
   flex: 1;
+  padding-top: var(--space-md);
 }
 </style>
