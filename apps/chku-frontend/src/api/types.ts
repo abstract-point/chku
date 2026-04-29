@@ -116,6 +116,15 @@ export type ApiDashboard = {
   }[]
 }
 
+export type ApiReadingProgress = {
+  id: number
+  member: ApiMember
+  status: 'not_started' | 'reading' | 'finished' | 'abandoned'
+  progressPercent: number | null
+  currentPage: number | null
+  notes: string | null
+}
+
 export type ApiAuthUser = {
   user: ApiMember | null
   roles: string[]

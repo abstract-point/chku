@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import DashboardReadingProgressForm from '@/components/dashboard/DashboardReadingProgressForm.vue'
+import { useUpdateReadingProgressMutation } from '@/queries/dashboardQueries'
 import type { BookProgressMember, CurrentBook } from '@/types/dashboard'
 
 const props = defineProps<{
@@ -9,6 +11,33 @@ const props = defineProps<{
 }>()
 
 const coverTitleLines = computed(() => props.book.coverTitle.split('\n'))
+const isProgressFormOpen = ref(false)
+const updateProgressMutation = useUpdateReadingProgressMutation()
+
+const progressErrorMessage = computed(() =>
+  updateProgressMutation.error.value ? 'Не удалось сохранить прогресс. Попробуй ещё раз.' : '',
+)
+
+function openProgressForm() {
+  updateProgressMutation.reset()
+  isProgressFormOpen.value = true
+}
+
+function closeProgressForm() {
+  updateProgressMutation.reset()
+  isProgressFormOpen.value = false
+}
+
+function saveProgress(progressPercent: number) {
+  updateProgressMutation.mutate(
+    { progressPercent },
+    {
+      onSuccess: () => {
+        isProgressFormOpen.value = false
+      },
+    },
+  )
+}
 </script>
 
 <template lang="pug">
@@ -38,7 +67,19 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
           span.label-text {{ book.progressLabel }}
         .progress(:aria-label="`Мой прогресс чтения ${book.progress}%`")
           .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
-        button.button.button--secondary.label-text(type="button") Обновить прогресс
+        button.button.button--secondary.label-text(
+          v-if="!isProgressFormOpen"
+          type="button"
+          @click="openProgressForm"
+        ) Обновить прогресс
+        DashboardReadingProgressForm(
+          v-else
+          :model-value="book.progress"
+          :is-saving="updateProgressMutation.isPending.value"
+          :error-message="progressErrorMessage"
+          @cancel="closeProgressForm"
+          @save="saveProgress"
+        )
 
   .section-header.dashboard__section-spaced
     h3 Прогресс клуба
@@ -128,7 +169,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   gap: var(--space-md);
 }
 
-.current-book__progress .button {
+.current-book__progress > .button {
   width: 100%;
   margin-top: var(--space-sm);
 }

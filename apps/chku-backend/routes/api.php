@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReadingProgressController;
 use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +37,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('club', [ClubController::class, 'show']);
     Route::get('dashboard', [DashboardController::class, 'index']);
+    Route::patch('reading-progress/me', [ReadingProgressController::class, 'updateCurrent']);
     Route::get('genres', [GenreController::class, 'index']);
 
     Route::get('members', [ClubMemberController::class, 'index']);

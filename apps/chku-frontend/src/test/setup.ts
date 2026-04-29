@@ -60,6 +60,7 @@ function mutationResult() {
   return {
     isPending: ref(false),
     error: ref(null),
+    reset: vi.fn(),
     mutate: vi.fn((_payload, options?: { onSuccess?: () => void }) => {
       options?.onSuccess?.()
     }),
@@ -68,6 +69,7 @@ function mutationResult() {
 
 vi.mock('@/queries/dashboardQueries', () => ({
   useDashboardQuery: () => queryResult(dashboard),
+  useUpdateReadingProgressMutation: () => mutationResult(),
 }))
 
 vi.mock('@/queries/memberQueries', () => ({
