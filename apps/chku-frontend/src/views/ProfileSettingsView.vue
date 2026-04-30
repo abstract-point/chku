@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import { useQueryClient } from '@tanstack/vue-query'
 import { KeyRound, UserRound } from '@lucide/vue'
-import { authApi } from '@/api/endpoints/auth'
+import { useUpdatePasswordMutation, useUpdateProfileMutation } from '@/queries/authQueries'
 import { useGenresQuery } from '@/queries/genreQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
-import { queryKeys } from '@/queries/keys'
-import { useAuthStore } from '@/stores/auth'
 import TwoFactorSetup from '@/components/TwoFactorSetup.vue'
 
-const auth = useAuthStore()
-const queryClient = useQueryClient()
 const currentUserQuery = useCurrentUserQuery()
 const genresQuery = useGenresQuery()
+const updateProfileMutation = useUpdateProfileMutation()
+const updatePasswordMutation = useUpdatePasswordMutation()
 
 const currentMember = computed(() => currentUserQuery.data.value)
 
@@ -28,8 +25,6 @@ const passwordForm = reactive({
   passwordConfirmation: '',
 })
 
-const isProfileSaving = ref(false)
-const isPasswordSaving = ref(false)
 const profileMessage = ref('')
 const passwordMessage = ref('')
 const profileError = ref('')
@@ -51,38 +46,28 @@ function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback
 }
 
-async function refreshUser() {
-  await auth.fetchUser()
-  await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser })
-}
-
 async function saveProfile() {
   profileError.value = ''
   profileMessage.value = ''
-  isProfileSaving.value = true
 
   try {
-    await authApi.updateProfile({
+    await updateProfileMutation.mutateAsync({
       name: profileForm.name,
       initials: profileForm.initials,
       favorite_genre_id: profileForm.favoriteGenreId,
     })
-    await refreshUser()
     profileMessage.value = 'Профиль обновлён.'
   } catch (error) {
     profileError.value = errorMessage(error, 'Не удалось сохранить профиль.')
-  } finally {
-    isProfileSaving.value = false
   }
 }
 
 async function savePassword() {
   passwordError.value = ''
   passwordMessage.value = ''
-  isPasswordSaving.value = true
 
   try {
-    await authApi.updatePassword({
+    await updatePasswordMutation.mutateAsync({
       current_password: passwordForm.currentPassword,
       password: passwordForm.password,
       password_confirmation: passwordForm.passwordConfirmation,
@@ -93,8 +78,6 @@ async function savePassword() {
     passwordMessage.value = 'Пароль обновлён.'
   } catch (error) {
     passwordError.value = errorMessage(error, 'Не удалось обновить пароль.')
-  } finally {
-    isPasswordSaving.value = false
   }
 }
 </script>
@@ -127,8 +110,8 @@ main.profile-settings.container
           option(v-for="genre in genresQuery.data.value ?? []" :key="genre.id" :value="genre.id") {{ genre.name }}
       p.profile-settings__message(v-if="profileMessage") {{ profileMessage }}
       p.profile-settings__error(v-if="profileError") {{ profileError }}
-      button.button.button--primary.label-text.profile-settings__submit(type="submit" :disabled="isProfileSaving")
-        | {{ isProfileSaving ? 'Сохранение...' : 'Сохранить профиль' }}
+      button.button.button--primary.label-text.profile-settings__submit(type="submit" :disabled="updateProfileMutation.isPending.value")
+        | {{ updateProfileMutation.isPending.value ? 'Сохранение...' : 'Сохранить профиль' }}
 
     form.panel.profile-settings__section(@submit.prevent="savePassword")
       .section-header.section-header--compact
@@ -145,8 +128,8 @@ main.profile-settings.container
         input#settings-password-confirmation.field-control.profile-settings__input(type="password" v-model="passwordForm.passwordConfirmation" required minlength="8" autocomplete="new-password")
       p.profile-settings__message(v-if="passwordMessage") {{ passwordMessage }}
       p.profile-settings__error(v-if="passwordError") {{ passwordError }}
-      button.button.button--secondary.label-text.profile-settings__submit(type="submit" :disabled="isPasswordSaving")
-        | {{ isPasswordSaving ? 'Обновление...' : 'Обновить пароль' }}
+      button.button.button--secondary.label-text.profile-settings__submit(type="submit" :disabled="updatePasswordMutation.isPending.value")
+        | {{ updatePasswordMutation.isPending.value ? 'Обновление...' : 'Обновить пароль' }}
 
     TwoFactorSetup.profile-settings__section--wide
 </template>

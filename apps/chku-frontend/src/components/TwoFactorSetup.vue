@@ -1,26 +1,49 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useQueryClient } from '@tanstack/vue-query'
 import { Copy, Info, RotateCcw, ShieldCheck } from '@lucide/vue'
-import { authApi } from '@/api/endpoints/auth'
-import { queryKeys } from '@/queries/keys'
-import { useAuthStore } from '@/stores/auth'
+import {
+  useAuthSession,
+  useConfirmTwoFactorSetupMutation,
+  useDisableTwoFactorMutation,
+  useEnableTwoFactorMutation,
+  useRegenerateTwoFactorRecoveryCodesMutation,
+  useTwoFactorQrCodeQuery,
+  useTwoFactorRecoveryCodesQuery,
+  useTwoFactorSecretKeyQuery,
+} from '@/queries/authQueries'
 import type { ComponentPublicInstance } from 'vue'
 
-const auth = useAuthStore()
-const queryClient = useQueryClient()
+const { twoFactorEnabled } = useAuthSession()
 
-const isTwoFactorEnabled = computed(() => auth.twoFactorEnabled)
+const isTwoFactorEnabled = computed(() => twoFactorEnabled.value)
+const shouldLoadSetupSecrets = ref(false)
+const shouldLoadRecoveryCodes = ref(false)
+const qrCodeQuery = useTwoFactorQrCodeQuery(computed(() => shouldLoadSetupSecrets.value))
+const secretKeyQuery = useTwoFactorSecretKeyQuery(computed(() => shouldLoadSetupSecrets.value))
+const recoveryCodesQuery = useTwoFactorRecoveryCodesQuery(
+  computed(() => shouldLoadRecoveryCodes.value),
+)
+const enableTwoFactorMutation = useEnableTwoFactorMutation()
+const confirmTwoFactorSetupMutation = useConfirmTwoFactorSetupMutation()
+const disableTwoFactorMutation = useDisableTwoFactorMutation()
+const regenerateRecoveryCodesMutation = useRegenerateTwoFactorRecoveryCodesMutation()
 
-const qrCodeSvg = ref('')
-const secretKey = ref('')
-const recoveryCodes = ref<string[]>([])
+const qrCodeSvg = computed(() => qrCodeQuery.data.value?.svg ?? '')
+const secretKey = computed(() => secretKeyQuery.data.value?.secretKey ?? '')
+const recoveryCodes = computed(() => recoveryCodesQuery.data.value ?? [])
 
 const codeDigits = ref(['', '', '', '', '', ''])
 const codeInputRefs = ref<HTMLInputElement[]>([])
 
-const isLoadingQr = ref(false)
-const isBusy = ref(false)
+const isLoadingQr = computed(() => qrCodeQuery.isLoading.value || secretKeyQuery.isLoading.value)
+const isBusy = computed(
+  () =>
+    enableTwoFactorMutation.isPending.value ||
+    confirmTwoFactorSetupMutation.isPending.value ||
+    disableTwoFactorMutation.isPending.value ||
+    regenerateRecoveryCodesMutation.isPending.value ||
+    recoveryCodesQuery.isFetching.value,
+)
 const message = ref('')
 const error = ref('')
 const copiedSecret = ref(false)
@@ -35,7 +58,6 @@ function getErrorMessage(err: unknown, fallback: string) {
 
 function clearFeedback() {
   message.value = ''
-  message.value = ''
   error.value = ''
 }
 
@@ -45,39 +67,29 @@ function setCodeInputRef(el: Element | ComponentPublicInstance | null, index: nu
   }
 }
 
-async function refreshUser() {
-  await auth.fetchUser()
-  await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser })
-}
-
 async function loadQrAndSecret() {
-  isLoadingQr.value = true
   try {
-    const [qr, secret] = await Promise.all([
-      authApi.twoFactorQrCode(),
-      authApi.twoFactorSecretKey(),
+    shouldLoadSetupSecrets.value = true
+    const [qrResult, secretResult] = await Promise.all([
+      qrCodeQuery.refetch(),
+      secretKeyQuery.refetch(),
     ])
-    qrCodeSvg.value = qr.svg
-    secretKey.value = secret.secretKey
+    const queryError = qrResult.error ?? secretResult.error
+    if (queryError) throw queryError
   } catch (err) {
     error.value = getErrorMessage(err, 'Не удалось загрузить QR-код.')
-  } finally {
-    isLoadingQr.value = false
   }
 }
 
 async function startSetup() {
   clearFeedback()
-  isBusy.value = true
   try {
-    await authApi.enableTwoFactor()
+    await enableTwoFactorMutation.mutateAsync()
     await loadQrAndSecret()
     codeDigits.value = ['', '', '', '', '', '']
     message.value = 'Отсканируй QR-код и введи код подтверждения.'
   } catch (err) {
     error.value = getErrorMessage(err, 'Не удалось начать настройку 2FA.')
-  } finally {
-    isBusy.value = false
   }
 }
 
@@ -90,65 +102,56 @@ async function refreshQr() {
   ) {
     return
   }
-  isBusy.value = true
   try {
-    await authApi.enableTwoFactor()
+    await enableTwoFactorMutation.mutateAsync()
     await loadQrAndSecret()
     codeDigits.value = ['', '', '', '', '', '']
     message.value = 'QR-код обновлён. Отсканируй новый код.'
   } catch (err) {
     error.value = getErrorMessage(err, 'Не удалось обновить QR-код.')
-  } finally {
-    isBusy.value = false
   }
 }
 
 async function confirmSetup() {
   clearFeedback()
-  isBusy.value = true
   try {
-    await authApi.confirmTwoFactorSetup(verificationCode.value)
+    await confirmTwoFactorSetupMutation.mutateAsync(verificationCode.value)
     try {
-      recoveryCodes.value = await authApi.twoFactorRecoveryCodes()
+      shouldLoadRecoveryCodes.value = true
+      const result = await recoveryCodesQuery.refetch()
+      if (result.error) throw result.error
     } catch {
       // TODO: backend may not support recovery codes yet
-      recoveryCodes.value = []
     }
-    qrCodeSvg.value = ''
-    secretKey.value = ''
+    shouldLoadSetupSecrets.value = false
     codeDigits.value = ['', '', '', '', '', '']
-    await refreshUser()
     message.value = '2FA включена. Сохрани резервные коды.'
   } catch (err) {
     error.value = getErrorMessage(err, 'Код подтверждения не подошёл.')
-  } finally {
-    isBusy.value = false
   }
 }
 
 async function showRecoveryCodes() {
   clearFeedback()
-  isBusy.value = true
   try {
-    recoveryCodes.value = await authApi.twoFactorRecoveryCodes()
+    shouldLoadRecoveryCodes.value = true
+    const result = await recoveryCodesQuery.refetch()
+    if (result.error) throw result.error
   } catch (err) {
     error.value = getErrorMessage(err, 'Не удалось загрузить резервные коды.')
-  } finally {
-    isBusy.value = false
   }
 }
 
 async function regenerateRecoveryCodes() {
   clearFeedback()
-  isBusy.value = true
   try {
-    await authApi.regenerateTwoFactorRecoveryCodes()
-    recoveryCodes.value = await authApi.twoFactorRecoveryCodes()
+    await regenerateRecoveryCodesMutation.mutateAsync()
+    shouldLoadRecoveryCodes.value = true
+    const result = await recoveryCodesQuery.refetch()
+    if (result.error) throw result.error
     message.value = 'Резервные коды обновлены.'
   } catch (err) {
     error.value = getErrorMessage(err, 'Не удалось обновить резервные коды.')
-  } finally {
-    isBusy.value = false
   }
 }
 
@@ -157,19 +160,14 @@ async function disable() {
   if (!window.confirm('Выключить двухфакторную защиту? Это снизит безопасность аккаунта.')) {
     return
   }
-  isBusy.value = true
   try {
-    await authApi.disableTwoFactor()
-    recoveryCodes.value = []
-    qrCodeSvg.value = ''
-    secretKey.value = ''
+    await disableTwoFactorMutation.mutateAsync()
+    shouldLoadRecoveryCodes.value = false
+    shouldLoadSetupSecrets.value = false
     codeDigits.value = ['', '', '', '', '', '']
-    await refreshUser()
     message.value = '2FA выключена.'
   } catch (err) {
     error.value = getErrorMessage(err, 'Не удалось выключить 2FA.')
-  } finally {
-    isBusy.value = false
   }
 }
 
