@@ -2,10 +2,11 @@ import './assets/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
+import { VueQueryPlugin } from '@tanstack/vue-query'
 
 import App from './App.vue'
 import router from './router'
+import { queryClient } from './queries/client'
 
 const storedTheme = localStorage.getItem('chku-theme')
 document.documentElement.setAttribute(
@@ -14,14 +15,6 @@ document.documentElement.setAttribute(
 )
 
 const app = createApp(App)
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: true,
-    },
-  },
-})
 
 app.use(createPinia())
 app.use(VueQueryPlugin, { queryClient })
