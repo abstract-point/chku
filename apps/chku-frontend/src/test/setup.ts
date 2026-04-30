@@ -64,8 +64,54 @@ function mutationResult() {
     mutate: vi.fn((_payload, options?: { onSuccess?: () => void }) => {
       options?.onSuccess?.()
     }),
+    mutateAsync: vi.fn(async () => undefined),
   }
 }
+
+const authSession = ref({
+  user: members[0]!,
+  roles: ['member'],
+  permissions: [],
+  twoFactorEnabled: false,
+})
+
+vi.mock('@/queries/authQueries', () => ({
+  authSessionQueryOptions: () => ({
+    queryKey: ['session', 'me'],
+    queryFn: async () => authSession.value,
+    staleTime: 60_000,
+  }),
+  fetchAuthSession: vi.fn(async () => authSession.value),
+  getCachedAuthSession: vi.fn(() => authSession.value),
+  useAuthSessionQuery: () => queryResult(authSession.value),
+  useAuthSession: () => ({
+    sessionQuery: queryResult(authSession.value),
+    session: authSession,
+    user: computed(() => authSession.value.user),
+    roles: computed(() => authSession.value.roles),
+    permissions: computed(() => authSession.value.permissions),
+    isAuthenticated: computed(() => authSession.value !== null),
+    isAdmin: computed(
+      () =>
+        authSession.value.roles.includes('admin') ||
+        authSession.value.roles.includes('developer'),
+    ),
+    isDeveloper: computed(() => authSession.value.roles.includes('developer')),
+    twoFactorEnabled: computed(() => authSession.value.twoFactorEnabled ?? false),
+  }),
+  useLoginMutation: () => mutationResult(),
+  useTwoFactorChallengeMutation: () => mutationResult(),
+  useLogoutMutation: () => mutationResult(),
+  useUpdateProfileMutation: () => mutationResult(),
+  useUpdatePasswordMutation: () => mutationResult(),
+  useEnableTwoFactorMutation: () => mutationResult(),
+  useConfirmTwoFactorSetupMutation: () => mutationResult(),
+  useDisableTwoFactorMutation: () => mutationResult(),
+  useRegenerateTwoFactorRecoveryCodesMutation: () => mutationResult(),
+  useTwoFactorQrCodeQuery: () => queryResult({ svg: '', url: '' }),
+  useTwoFactorSecretKeyQuery: () => queryResult({ secretKey: '' }),
+  useTwoFactorRecoveryCodesQuery: () => queryResult([]),
+}))
 
 vi.mock('@/queries/dashboardQueries', () => ({
   useDashboardQuery: () => queryResult(dashboard),
@@ -75,6 +121,8 @@ vi.mock('@/queries/dashboardQueries', () => ({
 vi.mock('@/queries/memberQueries', () => ({
   useCurrentUserQuery: () => queryResult(members[0]),
   useMembersQuery: () => queryResult(members),
+  useCreateMemberMutation: () => mutationResult(),
+  useDeactivateMemberMutation: () => mutationResult(),
   useMemberQuery: (id: unknown) => {
     const data = computed(() => members.find((member) => member.id === Number(toValue(id))))
     const error = computed(() => (data.value ? null : new Error('Not found')))

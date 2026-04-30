@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
-import { members } from '@/data/members'
-import { useAuthStore } from '@/stores/auth'
 
 import App from '@/App.vue'
 
@@ -16,13 +14,6 @@ describe('App', () => {
   it('renders book choice verification above page content', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    const auth = useAuthStore()
-    auth.authData = {
-      user: members[0]!,
-      roles: ['member'],
-      permissions: [],
-      twoFactorEnabled: false,
-    }
 
     await router.push('/')
 
