@@ -2,16 +2,16 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { MoreHorizontal, Plus, Search, SlidersHorizontal, UserRoundCheck, UserRoundMinus } from '@lucide/vue'
-import { useAuthStore } from '@/stores/auth'
-import { useMembersQuery } from '@/queries/memberQueries'
-import { http } from '@/api/http'
+import { useAuthSession } from '@/queries/authQueries'
+import { useDeactivateMemberMutation, useMembersQuery } from '@/queries/memberQueries'
 
-const auth = useAuthStore()
+const { isAdmin, twoFactorEnabled, user } = useAuthSession()
 const membersQuery = useMembersQuery()
+const deactivateMemberMutation = useDeactivateMemberMutation()
 const searchQuery = ref('')
 const statusFilter = ref<'all' | 'active' | 'inactive'>('all')
 const actionError = ref('')
-const canManageMembers = computed(() => auth.isAdmin && auth.twoFactorEnabled)
+const canManageMembers = computed(() => isAdmin.value && twoFactorEnabled.value)
 const members = computed(() => membersQuery.data.value ?? [])
 const filteredMembers = computed(() => {
   const normalizedQuery = searchQuery.value.trim().toLocaleLowerCase('ru')
@@ -35,8 +35,7 @@ async function deactivateMember(id: number) {
   if (!confirm('Деактивировать участника?')) return
   actionError.value = ''
   try {
-    await http.post(`/members/${id}/deactivate`)
-    membersQuery.refetch()
+    await deactivateMemberMutation.mutateAsync(id)
   } catch (e: unknown) {
     actionError.value = (e as Error).message || 'Не удалось деактивировать участника.'
   }
@@ -68,7 +67,7 @@ main.members.container
         Plus(:size="16" aria-hidden="true")
         span Добавить участника
 
-  section.panel.members__notice(v-if="auth.isAdmin && !auth.twoFactorEnabled")
+  section.panel.members__notice(v-if="isAdmin && !twoFactorEnabled")
     p.body-text Управление участниками станет доступно после включения 2FA.
     RouterLink.button.button--secondary.label-text(to="/profile/settings") Настроить 2FA
   section.panel.members__notice.members__notice--error(v-if="actionError" aria-live="polite")
@@ -90,7 +89,7 @@ main.members.container
         .member-card__info
           .member-card__name-row
             h2.member-card__name {{ member.name }}
-            span.badge.badge--reading.label-text(v-if="member.id === auth.user?.id") Вы
+            span.badge.badge--reading.label-text(v-if="member.id === user?.id") Вы
           span.member-card__status(:class="{ 'member-card__status--inactive badge--muted': !member.isActive }")
             span.member-card__status-dot(aria-hidden="true")
             span {{ member.isActive ? 'Активен' : 'Неактивен' }}
@@ -107,7 +106,7 @@ main.members.container
           span.member-card__stat-value {{ member.stats.meetings }}
           span.label-text Встреч
       button.member-card__deactivate(
-        v-if="canManageMembers && member.isActive && member.id !== auth.user?.id"
+        v-if="canManageMembers && member.isActive && member.id !== user?.id"
         type="button"
         @click.prevent="deactivateMember(member.id)"
       )

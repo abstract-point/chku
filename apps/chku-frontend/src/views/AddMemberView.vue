@@ -2,12 +2,13 @@
 import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { ShieldCheck, UserPlus } from '@lucide/vue'
-import { http } from '@/api/http'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthSession } from '@/queries/authQueries'
+import { useCreateMemberMutation } from '@/queries/memberQueries'
 
 const router = useRouter()
-const auth = useAuthStore()
-const canManageMembers = computed(() => auth.isAdmin && auth.twoFactorEnabled)
+const { isAdmin, twoFactorEnabled } = useAuthSession()
+const createMemberMutation = useCreateMemberMutation()
+const canManageMembers = computed(() => isAdmin.value && twoFactorEnabled.value)
 
 const form = ref({
   name: '',
@@ -20,18 +21,14 @@ const form = ref({
 })
 
 const error = ref('')
-const isSubmitting = ref(false)
 
 async function submit() {
   error.value = ''
-  isSubmitting.value = true
   try {
-    await http.post('/members', form.value)
+    await createMemberMutation.mutateAsync(form.value)
     router.push('/members')
   } catch (e: unknown) {
     error.value = (e as Error).message || 'Ошибка создания участника'
-  } finally {
-    isSubmitting.value = false
   }
 }
 </script>
@@ -83,8 +80,8 @@ main.add-member.container
       p.add-member__error(v-if="error") {{ error }}
       .add-member__actions
         button.button.button--secondary.label-text(type="button" @click="router.back()") Отмена
-        button.button.button--primary.label-text(type="submit" :disabled="isSubmitting")
-          | {{ isSubmitting ? 'Создание...' : 'Создать участника' }}
+        button.button.button--primary.label-text(type="submit" :disabled="createMemberMutation.isPending.value")
+          | {{ createMemberMutation.isPending.value ? 'Создание...' : 'Создать участника' }}
 </template>
 
 <style scoped>
