@@ -6,17 +6,19 @@ import AppHeader from '@/components/AppHeader.vue'
 import BookCandidateVerificationBanner from '@/components/dashboard/BookCandidateVerificationBanner.vue'
 import TwoFactorRequiredBanner from '@/components/TwoFactorRequiredBanner.vue'
 import { mapCandidateToChoice } from '@/mappers/candidateMapper'
+import { useAuthSession } from '@/queries/authQueries'
 import { useActiveCandidateQuery } from '@/queries/candidateQueries'
-import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
-const auth = useAuthStore()
+const isPublicPage = computed(() => route.meta.public === true)
+const { isAdmin, twoFactorEnabled } = useAuthSession({
+  enabled: computed(() => !isPublicPage.value),
+})
 const activeCandidateQuery = useActiveCandidateQuery()
 const activeBookChoice = computed(() =>
   activeCandidateQuery.data.value ? mapCandidateToChoice(activeCandidateQuery.data.value) : null,
 )
-const shouldShowTwoFactorBanner = computed(() => auth.isAdmin && !auth.twoFactorEnabled)
-const isPublicPage = computed(() => route.meta.public === true)
+const shouldShowTwoFactorBanner = computed(() => isAdmin.value && !twoFactorEnabled.value)
 </script>
 
 <template lang="pug">

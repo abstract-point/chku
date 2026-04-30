@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { fetchAuthSession, getCachedAuthSession } from '@/queries/authQueries'
 import ArchiveBookView from '../views/ArchiveBookView.vue'
 import ArchiveView from '../views/ArchiveView.vue'
 import HomeView from '../views/HomeView.vue'
@@ -84,27 +84,26 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach(async (to, from, next) => {
-  const auth = useAuthStore()
+router.beforeEach(async (to) => {
+  const authSession = getCachedAuthSession()
 
   if (to.meta.public) {
-    if (auth.isAuthenticated) {
-      next('/')
-      return
+    if (authSession) {
+      return '/'
     }
-    next()
-    return
+
+    return true
   }
 
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    const ok = await auth.fetchUser()
-    if (!ok) {
-      next({ name: 'login', query: { redirect: to.fullPath } })
-      return
+  if (to.meta.requiresAuth && !authSession) {
+    try {
+      await fetchAuthSession()
+    } catch {
+      return { name: 'login', query: { redirect: to.fullPath } }
     }
   }
 
-  next()
+  return true
 })
 
 router.afterEach((to) => {

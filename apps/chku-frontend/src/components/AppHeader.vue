@@ -3,25 +3,26 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { ChevronDown, LogOut, Moon, Settings, Sun, User } from '@lucide/vue'
 import AppLogo from '@/components/AppLogo.vue'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthSession, useLogoutMutation } from '@/queries/authQueries'
 import { useClubStore } from '@/stores/club'
 
 const club = useClubStore()
-const auth = useAuthStore()
+const { isAuthenticated, isDeveloper, roles, user } = useAuthSession()
+const logoutMutation = useLogoutMutation()
 const router = useRouter()
 const theme = ref<'light' | 'dark'>('dark')
 const isUserMenuOpen = ref(false)
 const menuRoot = ref<HTMLElement | null>(null)
 
 const roleLabel = computed(() => {
-  if (auth.isDeveloper) return 'Разработчик'
-  if (auth.roles.includes('admin')) return 'Администратор'
+  if (isDeveloper.value) return 'Разработчик'
+  if (roles.value.includes('admin')) return 'Администратор'
   return 'Участник'
 })
 
 const userInitials = computed(() => {
-  if (auth.user?.initials) return auth.user.initials
-  const parts = auth.user?.name.trim().split(/\s+/) ?? []
+  if (user.value?.initials) return user.value.initials
+  const parts = user.value?.name.trim().split(/\s+/) ?? []
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
   return parts[0]?.slice(0, 2).toUpperCase() ?? ''
 })
@@ -48,7 +49,7 @@ function applyTheme(nextTheme: 'light' | 'dark') {
 
 async function handleLogout() {
   isUserMenuOpen.value = false
-  await auth.logout()
+  await logoutMutation.mutateAsync()
   router.push('/login')
 }
 
@@ -84,11 +85,11 @@ header.app-header
     span.app-header__brand-name {{ club.name }}
 
   nav.app-header__nav(aria-label="Основная навигация")
-    template(v-if="auth.isAuthenticated")
+    template(v-if="isAuthenticated")
       RouterLink(to="/") Дашборд
       RouterLink(to="/members") Участники
       RouterLink(to="/archive") Архив
-      .app-header__menu(ref="menuRoot" v-if="auth.user")
+      .app-header__menu(ref="menuRoot" v-if="user")
         button.app-header__user(
           type="button"
           :aria-expanded="isUserMenuOpen"
@@ -96,13 +97,13 @@ header.app-header
           @click.stop="isUserMenuOpen = !isUserMenuOpen"
         )
           .app-header__avatar {{ userInitials }}
-          span.app-header__user-name {{ auth.user.name }}
+          span.app-header__user-name {{ user.name }}
           ChevronDown.app-header__chevron(:size="14" :class="{ 'app-header__chevron--open': isUserMenuOpen }")
         .app-header__dropdown(v-if="isUserMenuOpen" role="menu")
           .app-header__dropdown-header
             .app-header__dropdown-avatar {{ userInitials }}
             .app-header__dropdown-info
-              .app-header__dropdown-name {{ auth.user.name }}
+              .app-header__dropdown-name {{ user.name }}
               .app-header__dropdown-role {{ roleLabel }}
           .app-header__dropdown-divider
           RouterLink.app-header__dropdown-item(to="/profile" role="menuitem" @click="closeUserMenu")

@@ -3,10 +3,11 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Eye, EyeOff, Lock, Mail } from '@lucide/vue'
 import owlLogo from '@/assets/owl-logo.svg'
-import { useAuthStore } from '@/stores/auth'
+import { useLoginMutation, useTwoFactorChallengeMutation } from '@/queries/authQueries'
 
 const router = useRouter()
-const auth = useAuthStore()
+const loginMutation = useLoginMutation()
+const twoFactorChallengeMutation = useTwoFactorChallengeMutation()
 
 const email = ref('')
 const password = ref('')
@@ -19,7 +20,11 @@ const remember = ref(false)
 async function submitCredentials() {
   error.value = ''
   try {
-    const result = await auth.login(email.value, password.value, remember.value)
+    const result = await loginMutation.mutateAsync({
+      email: email.value,
+      password: password.value,
+      remember: remember.value,
+    })
     if (result.twoFactorRequired) {
       step.value = 'twoFactor'
       return
@@ -33,7 +38,7 @@ async function submitCredentials() {
 async function submitTwoFactor() {
   error.value = ''
   try {
-    await auth.confirmTwoFactor(twoFactorCode.value)
+    await twoFactorChallengeMutation.mutateAsync(twoFactorCode.value)
     router.push('/')
   } catch (e: unknown) {
     error.value = (e as Error).message || 'Неверный код'
@@ -89,8 +94,8 @@ main.login
 
       p.login__error(v-if="error") {{ error }}
 
-      button.button.login__submit(type="submit" :disabled="auth.isLoading")
-        | {{ auth.isLoading ? 'Вход...' : 'Войти' }}
+      button.button.login__submit(type="submit" :disabled="loginMutation.isPending.value")
+        | {{ loginMutation.isPending.value ? 'Вход...' : 'Войти' }}
 
     form(v-else @submit.prevent="submitTwoFactor")
       .login__field
@@ -104,8 +109,8 @@ main.login
           pattern="[0-9]*"
         )
       p.login__error(v-if="error") {{ error }}
-      button.button.login__submit(type="submit" :disabled="auth.isLoading")
-        | {{ auth.isLoading ? 'Проверка...' : 'Подтвердить' }}
+      button.button.login__submit(type="submit" :disabled="twoFactorChallengeMutation.isPending.value")
+        | {{ twoFactorChallengeMutation.isPending.value ? 'Проверка...' : 'Подтвердить' }}
 </template>
 
 <style scoped>
