@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { BookOpen, Calendar, ListPlus, Star, Users } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
+import DashboardBookSelectionCycle from '@/components/dashboard/DashboardBookSelectionCycle.vue'
 import DashboardCurrentCycle from '@/components/dashboard/DashboardCurrentCycle.vue'
 import DashboardMeetingCard from '@/components/dashboard/DashboardMeetingCard.vue'
 import DashboardTurnOrderCard from '@/components/dashboard/DashboardTurnOrderCard.vue'
@@ -29,8 +30,12 @@ main.dashboard.container
         p.body-text Твоя очередь подошла, но в личной очереди нет книг для проверки.
       RouterLink.button.button--primary.label-text(to="/propose-selection") Управлять очередью
     .dashboard__grid
+      DashboardBookSelectionCycle(
+        v-if="dashboardQuery.data.value.activeCandidate"
+        :candidate="dashboardQuery.data.value.activeCandidate"
+      )
       DashboardCurrentCycle(
-        v-if="dashboardQuery.data.value.currentBook"
+        v-else-if="dashboardQuery.data.value.currentBook"
         :book="dashboardQuery.data.value.currentBook"
         :members="dashboardQuery.data.value.memberProgress"
       )
