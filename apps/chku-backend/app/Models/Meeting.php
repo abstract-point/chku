@@ -27,4 +27,9 @@ class Meeting extends Model
     {
         return $this->hasMany(MeetingRsvp::class);
     }
+
+    public function reschedules(): HasMany
+    {
+        return $this->hasMany(MeetingReschedule::class);
+    }
 }
