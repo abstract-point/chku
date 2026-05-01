@@ -2,32 +2,60 @@
 import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { BookOpen, CalendarDays, Link as LinkIcon, MapPin, Send, Users } from '@lucide/vue'
-import { useMeetingQuery } from '@/queries/meetingQueries'
+import {
+  useAddMeetingTopicMutation,
+  useMeetingQuery,
+  useUpdateMeetingRsvpMutation,
+} from '@/queries/meetingQueries'
+import { useSaveRatingReviewMutation } from '@/queries/readingCycleQueries'
 
 const route = useRoute()
 const meetingId = computed(() => String(route.params.id ?? ''))
 const meetingQuery = useMeetingQuery(meetingId)
+const updateRsvpMutation = useUpdateMeetingRsvpMutation(meetingId)
+const addTopicMutation = useAddMeetingTopicMutation(meetingId)
+const saveRatingReviewMutation = useSaveRatingReviewMutation()
 const meeting = computed(() => meetingQuery.data.value)
 const newTopic = ref('')
 const rsvpStatus = ref<'attending' | 'not_attending' | 'pending'>('pending')
+const localTopics = ref<string[]>([])
+const rating = ref<number | null>(null)
+const review = ref('')
+const ratingSubmitted = ref(false)
 
 watchEffect(() => {
   rsvpStatus.value = meeting.value?.rsvpStatus ?? 'pending'
+  localTopics.value = meeting.value?.topics ?? []
 })
 
 function setRsvp(status: 'attending' | 'not_attending') {
-  rsvpStatus.value = status
-  // TODO: отправить запрос на бэкенд для сохранения RSVP
+  updateRsvpMutation.mutate(status, {
+    onSuccess: () => {
+      rsvpStatus.value = status
+    },
+  })
 }
 
 function submitTopic() {
   const topic = newTopic.value.trim()
   if (!topic || !meeting.value) return
 
-  meeting.value.topics.push(topic)
-  newTopic.value = ''
+  addTopicMutation.mutate(topic, {
+    onSuccess: () => {
+      localTopics.value = [...localTopics.value, topic]
+      newTopic.value = ''
+    },
+  })
+}
 
-  // TODO: отправить запрос на бэкенд для сохранения темы
+function submitRatingReview() {
+  ratingSubmitted.value = true
+  if (!rating.value) return
+
+  saveRatingReviewMutation.mutate({
+    rating: rating.value,
+    review: review.value.trim(),
+  })
 }
 </script>
 
@@ -81,8 +109,8 @@ main.meeting-detail.container
         .section-header.meeting-detail__topics-header
           h2 Темы для обсуждения
 
-        ol.meeting-detail__topics(v-if="meeting.topics.length")
-          li.meeting-detail__topic(v-for="(topic, index) in meeting.topics" :key="`${topic}-${index}`") {{ topic }}
+        ol.meeting-detail__topics(v-if="localTopics.length")
+          li.meeting-detail__topic(v-for="(topic, index) in localTopics" :key="`${topic}-${index}`") {{ topic }}
 
         .meeting-detail__add-topic
           span.label-text Добавить тему
@@ -98,6 +126,32 @@ main.meeting-detail.container
               Send.meeting-detail__button-icon
               | Отправить
 
+        .section-header.meeting-detail__topics-header
+          h2 Оценка после встречи
+
+        form.panel.meeting-detail__rating(@submit.prevent="submitRatingReview" novalidate)
+          .meeting-detail__rating-row
+            label.label-text(for="meeting-rating") Оценка
+            input#meeting-rating.field-control.meeting-detail__input(
+              v-model.number="rating"
+              type="number"
+              min="1"
+              max="10"
+              placeholder="1-10"
+              :aria-invalid="ratingSubmitted && !rating"
+            )
+          p.proposal__error(v-if="ratingSubmitted && !rating") Укажи оценку от 1 до 10.
+          .meeting-detail__rating-row
+            label.label-text(for="meeting-review") Отзыв
+            textarea#meeting-review.field-control.meeting-detail__input.meeting-detail__review(
+              v-model="review"
+              placeholder="Короткий отзыв, если хочется зафиксировать впечатление."
+            )
+          button.button.button--primary.label-text(type="submit" :disabled="saveRatingReviewMutation.isPending.value")
+            | {{ saveRatingReviewMutation.isPending.value ? 'Сохраняем...' : 'Сохранить оценку' }}
+          p.body-text(v-if="saveRatingReviewMutation.isSuccess.value") Оценка сохранена.
+          p.proposal__error(v-if="saveRatingReviewMutation.error.value") Не удалось сохранить оценку.
+
       aside.meeting-detail__sidebar(aria-label="Сводка встречи")
         .panel
           .section-header.section-header--compact
@@ -106,11 +160,13 @@ main.meeting-detail.container
             button.button.label-text(
               type="button"
               :class="rsvpStatus === 'attending' ? 'button--primary' : 'button--secondary'"
+              :disabled="updateRsvpMutation.isPending.value"
               @click="setRsvp('attending')"
             ) Буду
             button.button.label-text(
               type="button"
               :class="rsvpStatus === 'not_attending' ? 'button--primary' : 'button--secondary'"
+              :disabled="updateRsvpMutation.isPending.value"
               @click="setRsvp('not_attending')"
             ) Не смогу
 
@@ -252,6 +308,26 @@ main.meeting-detail.container
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+}
+
+.meeting-detail__rating {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.meeting-detail__rating-row {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.meeting-detail__review {
+  min-height: 6rem;
+}
+
+.proposal__error {
+  color: var(--danger);
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
 
 .meeting-detail__add-topic-row {
