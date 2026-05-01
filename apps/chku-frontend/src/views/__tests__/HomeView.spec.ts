@@ -1,10 +1,19 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { mount, RouterLinkStub } from '@vue/test-utils'
+import { activeCandidate, patchDashboardMock, resetDashboardMock } from '@/test/setup'
 
 import HomeView from '../HomeView.vue'
 
 describe('HomeView', () => {
+  afterEach(() => {
+    resetDashboardMock()
+  })
+
   it('renders the dashboard content', () => {
+    patchDashboardMock({
+      activeCandidate: null,
+    })
+
     const wrapper = mount(HomeView, {
       global: {
         stubs: {
@@ -20,5 +29,30 @@ describe('HomeView', () => {
     expect(wrapper.text()).toContain('Клубная сводка')
     expect(wrapper.text()).not.toContain('Проверка книги ожидает ответа')
     expect(wrapper.text()).not.toContain('Базовое Vue-приложение')
+  })
+
+  it('renders book selection state first when there is an active candidate', () => {
+    patchDashboardMock({
+      activeCandidate,
+    })
+
+    const wrapper = mount(HomeView, {
+      global: {
+        stubs: {
+          RouterLink: RouterLinkStub,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('Выбор книги')
+    expect(wrapper.text()).toContain('Тайную историю')
+    expect(wrapper.text()).toContain('Донна Тартт')
+    expect(wrapper.text()).toContain('Ответы клуба')
+    expect(wrapper.text()).toContain('Ждём ответ')
+    expect(wrapper.text()).toContain('Не читал(а)')
+    expect(wrapper.text()).toContain('Я читал(а)')
+    expect(wrapper.text()).not.toContain('Текущий цикл')
+    expect(wrapper.text()).not.toContain('Тень ветра')
+    expect(wrapper.text()).not.toContain('Текущий цикл ещё не начат')
   })
 })

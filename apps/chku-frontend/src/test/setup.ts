@@ -5,7 +5,7 @@ import { currentBook, memberProgress, nextMeeting, turnOrder } from '@/data/dash
 import { meetingDetail } from '@/data/meetings/meetingDetail'
 import { members } from '@/data/members'
 
-const activeCandidate = {
+export const activeCandidate = {
   id: 1,
   book: {
     id: 1,
@@ -23,11 +23,28 @@ const activeCandidate = {
     'Подойдёт для обсуждения ответственности, дружбы и того, как интеллектуальная среда меняет людей.',
   description: 'Роман о закрытом круге студентов, античной культуре и последствиях одного решения.',
   status: 'pending' as const,
-  responses: [],
+  responses: [
+    {
+      id: 1,
+      member: members[0]!,
+      response: 'pending' as const,
+    },
+    {
+      id: 2,
+      member: members[1]!,
+      response: 'not_read' as const,
+    },
+    {
+      id: 3,
+      member: members[2]!,
+      response: 'pending' as const,
+    },
+  ],
+  canConfirm: false,
   createdAt: '2023-10-01T00:00:00.000000Z',
 }
 
-const dashboard = {
+const baseDashboard = {
   club: {
     id: 1,
     name: 'Читальный клуб умничек',
@@ -44,6 +61,23 @@ const dashboard = {
     { value: '6', label: 'Участников' },
     { value: '12', label: 'Встреч в год' },
   ],
+}
+
+const dashboard = ref(baseDashboard)
+
+export function setDashboardMock(nextDashboard: typeof baseDashboard) {
+  dashboard.value = nextDashboard
+}
+
+export function patchDashboardMock(partialDashboard: Record<string, unknown>) {
+  dashboard.value = {
+    ...dashboard.value,
+    ...partialDashboard,
+  } as typeof baseDashboard
+}
+
+export function resetDashboardMock() {
+  dashboard.value = baseDashboard
 }
 
 function queryResult<T>(data: T) {
@@ -114,7 +148,7 @@ vi.mock('@/queries/authQueries', () => ({
 }))
 
 vi.mock('@/queries/dashboardQueries', () => ({
-  useDashboardQuery: () => queryResult(dashboard),
+  useDashboardQuery: () => queryResult(dashboard.value),
   useUpdateReadingProgressMutation: () => mutationResult(),
 }))
 
