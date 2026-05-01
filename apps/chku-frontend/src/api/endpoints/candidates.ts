@@ -1,14 +1,9 @@
 import { http } from '@/api/http'
 import type { ApiBookCandidate, ApiCandidateResponseValue } from '@/api/types'
-import type { BookProposalForm } from '@/types/club'
 
 export const candidatesApi = {
   async active() {
     return http.get<unknown, ApiBookCandidate | null>('/candidates/active')
-  },
-
-  async create(form: BookProposalForm) {
-    return http.post<unknown, ApiBookCandidate>('/candidates', form)
   },
 
   async respond(candidateId: number, response: ApiCandidateResponseValue) {
@@ -17,7 +12,7 @@ export const candidatesApi = {
     })
   },
 
-  async approve(candidateId: number) {
-    return http.post<unknown, ApiBookCandidate>(`/candidates/${candidateId}/approve`)
+  async confirm(candidateId: number) {
+    return http.post<unknown, ApiBookCandidate>(`/candidates/${candidateId}/confirm`)
   },
 }

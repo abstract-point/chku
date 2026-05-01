@@ -1,6 +1,7 @@
 export const queryKeys = {
   dashboard: ['dashboard'] as const,
   activeCandidate: ['candidate', 'active'] as const,
+  bookQueue: ['me', 'book-queue'] as const,
   authSession: ['session', 'me'] as const,
   currentUser: ['session', 'me'] as const,
   twoFactorQrCode: ['session', 'two-factor', 'qr-code'] as const,

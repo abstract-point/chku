@@ -13,8 +13,10 @@ export type BookChoiceEvent = {
       name: string
       initials: string
     }
-    response: 'not_read' | 'read' | 'not_sure' | 'pending'
+    response: 'not_read' | 'read' | 'pending'
   }[]
+  status?: 'pending' | 'awaiting_owner_confirmation' | 'approved' | 'rejected'
+  canConfirm?: boolean
 }
 
 export type BookProposalForm = {
@@ -22,6 +24,16 @@ export type BookProposalForm = {
   author: string
   description: string
   reason: string
+}
+
+export type BookQueueItem = {
+  id: number
+  position: number
+  status: 'queued' | 'in_verification' | 'approved' | 'rejected' | 'removed'
+  title: string
+  author: string
+  description?: string | null
+  reason?: string | null
 }
 
 export type MemberProfile = {

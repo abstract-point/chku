@@ -11,5 +11,7 @@ export function mapCandidateToChoice(candidate: ApiBookCandidate): BookChoiceEve
     description: candidate.description,
     reason: candidate.reason,
     responses: candidate.responses,
+    status: candidate.status,
+    canConfirm: candidate.canConfirm,
   }
 }

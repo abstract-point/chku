@@ -44,7 +44,7 @@ export type ApiBook = {
   }
 }
 
-export type ApiCandidateResponseValue = 'not_read' | 'read' | 'not_sure' | 'pending'
+export type ApiCandidateResponseValue = 'not_read' | 'read' | 'pending'
 
 export type ApiBookCandidate = {
   id: number
@@ -52,8 +52,9 @@ export type ApiBookCandidate = {
   proposer: ApiMember
   reason: string
   description: string
-  status: 'pending' | 'approved' | 'rejected'
+  status: 'pending' | 'awaiting_owner_confirmation' | 'approved' | 'rejected'
   responses: ApiBookCandidateResponse[]
+  canConfirm?: boolean
   createdAt: string
 }
 
@@ -76,6 +77,7 @@ export type ApiMeeting = {
   topics?: string[]
   notes?: string
   rsvps?: ApiMeetingRsvp[]
+  reschedules?: ApiMeetingReschedule[]
   book?: ApiBook
 }
 
@@ -83,6 +85,26 @@ export type ApiMeetingRsvp = {
   id: number
   member: ApiMember
   status: 'attending' | 'not_attending' | 'pending'
+}
+
+export type ApiMeetingReschedule = {
+  id: number
+  oldDate?: string
+  oldTime?: string
+  newDate?: string
+  newTime?: string
+  reason?: string
+  actorName?: string
+  createdAt: string
+}
+
+export type ApiMemberBookQueueItem = {
+  id: number
+  position: number
+  status: 'queued' | 'in_verification' | 'approved' | 'rejected' | 'removed'
+  reason?: string | null
+  description?: string | null
+  book: ApiBook
 }
 
 export type ApiDashboard = {
@@ -110,6 +132,15 @@ export type ApiDashboard = {
     active?: boolean
   }[]
   activeCandidate: ApiBookCandidate | null
+  lifecycle?: {
+    state: string
+    currentCycleStatus?: string | null
+    nextSelector?: ApiMember | null
+    nextSelectorQueueEmpty: boolean
+    shouldShowChooseBookBanner: boolean
+    canCompleteCycle: boolean
+    missingRatings: ApiMember[]
+  }
   clubStats: {
     value: string
     label: string
