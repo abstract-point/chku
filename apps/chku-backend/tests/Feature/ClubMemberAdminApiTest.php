@@ -53,10 +53,10 @@ class ClubMemberAdminApiTest extends TestCase
         $response->assertOk();
         $members = collect($response->json('data'));
 
-        $this->assertTrue($members->take(4)->every(fn (array $member) => $member['isActive'] === true));
+        $this->assertTrue($members->take(6)->every(fn (array $member) => $member['isActive'] === true));
         $this->assertSame(
-            ['Дмитрий Смирнов', 'Ольга Петрова'],
-            $members->slice(4)->pluck('name')->all(),
+            ['Игорь Фомин', 'Мария Лебедева'],
+            $members->slice(6)->pluck('name')->all(),
         );
     }
 

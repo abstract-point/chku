@@ -4,9 +4,12 @@ namespace Tests\Feature;
 
 use App\Enums\BookCandidateResponseEnum;
 use App\Enums\BookCandidateStatusEnum;
+use App\Enums\MemberBookQueueItemStatusEnum;
+use App\Enums\ReadingCycleStatusEnum;
 use App\Models\BookCandidate;
 use App\Models\BookCandidateResponse;
 use App\Models\ClubMember;
+use App\Models\MemberBookQueueItem;
 use App\Models\ReadingCycle;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -23,30 +26,6 @@ class BookCandidateApiTest extends TestCase
         return $this->actingAs($user);
     }
 
-    public function test_candidate_can_be_created_for_current_member(): void
-    {
-        $this->seed(DatabaseSeeder::class);
-        $this->actingAsFirstMember();
-
-        $response = $this->postJson('/api/candidates', [
-            'title' => 'Пикник на обочине',
-            'author' => 'Аркадий и Борис Стругацкие',
-            'description' => 'Фантастическая повесть о Зоне и людях вокруг нее.',
-            'reason' => 'Подойдет для разговора о желании, цене риска и границах знания.',
-        ]);
-
-        $response->assertCreated();
-        $this->assertDatabaseHas('book_candidates', [
-            'status' => BookCandidateStatusEnum::Pending->value,
-        ]);
-
-        $candidateId = $response->json('data.id');
-        $this->assertSame(
-            ClubMember::where('is_active', true)->count(),
-            BookCandidateResponse::where('book_candidate_id', $candidateId)->count(),
-        );
-    }
-
     public function test_current_member_can_answer_candidate_verification(): void
     {
         $this->seed(DatabaseSeeder::class);
@@ -55,33 +34,39 @@ class BookCandidateApiTest extends TestCase
         $candidate = BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
 
         $response = $this->patchJson("/api/candidates/{$candidate->id}/responses/me", [
-            'response' => BookCandidateResponseEnum::NotSure->value,
+            'response' => BookCandidateResponseEnum::NotRead->value,
         ]);
 
         $response->assertOk();
         $this->assertDatabaseHas('book_candidate_responses', [
             'book_candidate_id' => $candidate->id,
-            'response' => BookCandidateResponseEnum::NotSure->value,
+            'response' => BookCandidateResponseEnum::NotRead->value,
         ]);
     }
 
-    public function test_candidate_cannot_be_approved_until_all_active_members_have_not_read_it(): void
+    public function test_read_response_rejects_candidate_and_queue_item(): void
     {
         $this->seed(DatabaseSeeder::class);
         $this->actingAsFirstMember();
 
         $candidate = BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
 
-        $response = $this->postJson("/api/candidates/{$candidate->id}/approve");
+        $response = $this->patchJson("/api/candidates/{$candidate->id}/responses/me", [
+            'response' => BookCandidateResponseEnum::Read->value,
+        ]);
 
-        $response->assertUnprocessable();
+        $response->assertOk();
         $this->assertDatabaseHas('book_candidates', [
             'id' => $candidate->id,
-            'status' => BookCandidateStatusEnum::Pending->value,
+            'status' => BookCandidateStatusEnum::Rejected->value,
+        ]);
+        $this->assertDatabaseHas('member_book_queue_items', [
+            'id' => $candidate->member_book_queue_item_id,
+            'status' => MemberBookQueueItemStatusEnum::Rejected->value,
         ]);
     }
 
-    public function test_candidate_can_be_approved_when_all_active_members_have_not_read_it(): void
+    public function test_candidate_waits_for_owner_confirmation_when_all_active_members_have_not_read_it(): void
     {
         $this->seed(DatabaseSeeder::class);
         $this->actingAsFirstMember();
@@ -91,7 +76,34 @@ class BookCandidateApiTest extends TestCase
             'response' => BookCandidateResponseEnum::NotRead->value,
         ]);
 
-        $response = $this->postJson("/api/candidates/{$candidate->id}/approve");
+        $response = $this->patchJson("/api/candidates/{$candidate->id}/responses/me", [
+            'response' => BookCandidateResponseEnum::NotRead->value,
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('book_candidates', [
+            'id' => $candidate->id,
+            'status' => BookCandidateStatusEnum::AwaitingOwnerConfirmation->value,
+        ]);
+    }
+
+    public function test_owner_can_confirm_candidate_after_current_cycle_is_completed(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $this->actingAsFirstMember();
+
+        ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->update([
+            'status' => ReadingCycleStatusEnum::Completed,
+            'completed_at' => now(),
+        ]);
+
+        $candidate = BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
+        BookCandidateResponse::where('book_candidate_id', $candidate->id)->update([
+            'response' => BookCandidateResponseEnum::NotRead->value,
+        ]);
+        $candidate->update(['status' => BookCandidateStatusEnum::AwaitingOwnerConfirmation]);
+
+        $response = $this->postJson("/api/candidates/{$candidate->id}/confirm");
 
         $response->assertOk();
         $this->assertDatabaseHas('book_candidates', [
@@ -100,7 +112,7 @@ class BookCandidateApiTest extends TestCase
         ]);
         $this->assertDatabaseHas('reading_cycles', [
             'book_id' => $candidate->book_id,
-            'status' => 'proposed',
+            'status' => ReadingCycleStatusEnum::Active->value,
         ]);
         $this->assertSame(43, ReadingCycle::max('cycle_number'));
     }
