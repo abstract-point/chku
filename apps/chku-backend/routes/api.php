@@ -9,7 +9,9 @@ use App\Http\Controllers\ClubMemberController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\MemberBookQueueController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReadingCycleController;
 use App\Http\Controllers\ReadingProgressController;
 use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Route;
@@ -38,7 +40,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('club', [ClubController::class, 'show']);
     Route::get('dashboard', [DashboardController::class, 'index']);
     Route::patch('reading-progress/me', [ReadingProgressController::class, 'updateCurrent']);
+    Route::put('reading-cycles/current/rating-review', [ReadingCycleController::class, 'updateCurrentRatingReview']);
+    Route::post('reading-cycles/current/complete', [ReadingCycleController::class, 'completeCurrent']);
     Route::get('genres', [GenreController::class, 'index']);
+
+    Route::get('me/book-queue', [MemberBookQueueController::class, 'index']);
+    Route::post('me/book-queue', [MemberBookQueueController::class, 'store']);
+    Route::patch('me/book-queue/{item}', [MemberBookQueueController::class, 'update']);
+    Route::delete('me/book-queue/{item}', [MemberBookQueueController::class, 'destroy']);
+    Route::post('me/book-queue/reorder', [MemberBookQueueController::class, 'reorder']);
 
     Route::get('members', [ClubMemberController::class, 'index']);
     Route::get('members/{member}', [ClubMemberController::class, 'show']);
@@ -51,11 +61,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('meetings/{meeting}', [MeetingController::class, 'show']);
     Route::post('meetings', [MeetingController::class, 'store']);
     Route::patch('meetings/{meeting}', [MeetingController::class, 'update']);
+    Route::patch('meetings/{meeting}/rsvps/me', [MeetingController::class, 'updateMyRsvp']);
+    Route::post('meetings/{meeting}/topics', [MeetingController::class, 'storeTopic']);
 
     Route::get('candidates/active', [BookCandidateController::class, 'active']);
-    Route::post('candidates', [BookCandidateController::class, 'store']);
     Route::patch('candidates/{candidate}/responses/me', [BookCandidateController::class, 'respond']);
-    Route::post('candidates/{candidate}/approve', [BookCandidateController::class, 'approve']);
+    Route::post('candidates/{candidate}/confirm', [BookCandidateController::class, 'confirm']);
 
     Route::get('audit-logs', [AuditLogController::class, 'index']);
 });
