@@ -12,11 +12,14 @@ use App\Models\Meeting;
 use App\Models\Rating;
 use App\Models\ReadingCycle;
 use App\Models\TurnOrder;
+use App\Services\BookSelectionStateMachine;
 
 final class DashboardService
 {
-    public function __construct(private readonly CurrentMemberService $currentMember)
-    {
+    public function __construct(
+        private readonly CurrentMemberService $currentMember,
+        private readonly BookSelectionStateMachine $stateMachine,
+    ) {
     }
 
     public function getData(): DashboardData
@@ -40,6 +43,7 @@ final class DashboardService
             'rsvps.clubMember.user',
         ])
             ->whereHas('readingCycle', fn ($q) => $q->where('status', 'active'))
+            ->orderBy('date')
             ->first();
 
         $turnOrder = TurnOrder::with('clubMember.user')
@@ -52,21 +56,41 @@ final class DashboardService
             'proposer.user',
             'responses.clubMember.user',
         ])
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending', 'awaiting_owner_confirmation'])
             ->latest()
             ->first();
+
+        $currentMember = $this->currentMember->get();
+        $nextSelector = $this->stateMachine->nextSelector($club->id);
+        $nextSelectorQueueEmpty = $nextSelector
+            ? ! $this->stateMachine->nextSelectorHasQueuedBooks($club->id)
+            : false;
+
+        $missingRatings = collect();
+        if ($currentCycle) {
+            $ratedMemberIds = $currentCycle->ratings()->pluck('club_member_id');
+            $missingRatings = ClubMember::with('user')
+                ->where('club_id', $club->id)
+                ->where('is_active', true)
+                ->whereNotIn('id', $ratedMemberIds)
+                ->get();
+        }
 
         return new DashboardData(
             club: $club,
             currentCycle: $currentCycle,
             currentUserProgress: $currentCycle?->readingProgress->firstWhere(
                 'club_member_id',
-                $this->currentMember->get()->id,
+                $currentMember->id,
             ),
             memberProgress: $currentCycle?->readingProgress,
             nextMeeting: $nextMeeting,
             turnOrder: $turnOrder,
             activeCandidate: $activeCandidate,
+            currentMember: $currentMember,
+            nextSelector: $nextSelector,
+            nextSelectorQueueEmpty: $nextSelectorQueueEmpty,
+            missingRatings: $missingRatings,
             completedCyclesCount: ReadingCycle::where('status', 'completed')->count(),
             averageRating: (float) (Rating::avg('rating') ?? 0),
             activeMembersCount: ClubMember::where('is_active', true)->count(),

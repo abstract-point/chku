@@ -6,6 +6,7 @@ namespace App\DTOs;
 
 use App\Models\BookCandidate;
 use App\Models\Club;
+use App\Models\ClubMember;
 use App\Models\Meeting;
 use App\Models\ReadingCycle;
 use App\Models\ReadingProgress;
@@ -21,6 +22,10 @@ final readonly class DashboardData
         public ?Meeting $nextMeeting,
         public ?Collection $turnOrder,
         public ?BookCandidate $activeCandidate,
+        public ClubMember $currentMember,
+        public ?ClubMember $nextSelector,
+        public bool $nextSelectorQueueEmpty,
+        public Collection $missingRatings,
         public int $completedCyclesCount,
         public float $averageRating,
         public int $activeMembersCount,

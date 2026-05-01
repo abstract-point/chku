@@ -16,6 +16,8 @@ class DashboardResource extends JsonResource
         $currentCycle = $this->resource->currentCycle;
         $book = $currentCycle?->book;
         $progress = $this->resource->currentUserProgress;
+        $nextSelector = $this->resource->nextSelector;
+        $isNextSelector = $nextSelector?->id === $this->resource->currentMember->id;
 
         return [
             'club' => new ClubResource($this->resource->club),
@@ -44,6 +46,17 @@ class DashboardResource extends JsonResource
             'activeCandidate' => $this->resource->activeCandidate
                 ? new BookCandidateResource($this->resource->activeCandidate)
                 : null,
+            'lifecycle' => [
+                'state' => $this->resource->activeCandidate
+                    ? $this->resource->activeCandidate->status->value
+                    : ($currentCycle ? 'reading' : 'awaiting_next_book'),
+                'currentCycleStatus' => $currentCycle?->status->value,
+                'nextSelector' => $nextSelector ? new MemberResource($nextSelector) : null,
+                'nextSelectorQueueEmpty' => $this->resource->nextSelectorQueueEmpty,
+                'shouldShowChooseBookBanner' => $isNextSelector && $this->resource->nextSelectorQueueEmpty,
+                'canCompleteCycle' => $currentCycle !== null && $this->resource->missingRatings->isEmpty(),
+                'missingRatings' => MemberResource::collection($this->resource->missingRatings),
+            ],
             'clubStats' => [
                 ['value' => (string) $this->resource->completedCyclesCount, 'label' => 'Прочитано книг'],
                 ['value' => (string) round($this->resource->averageRating, 1), 'label' => 'Средний рейтинг'],
