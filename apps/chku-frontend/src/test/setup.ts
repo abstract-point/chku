@@ -162,11 +162,30 @@ vi.mock('@/queries/meetingQueries', () => ({
       error,
     }
   },
+  useUpdateMeetingRsvpMutation: () => mutationResult(),
+  useAddMeetingTopicMutation: () => mutationResult(),
 }))
 
 vi.mock('@/queries/candidateQueries', () => ({
   useActiveCandidateQuery: () => queryResult(activeCandidate),
-  useCreateCandidateMutation: () => mutationResult(),
   useCandidateResponseMutation: () => mutationResult(),
-  useApproveCandidateMutation: () => mutationResult(),
+  useConfirmCandidateMutation: () => mutationResult(),
+}))
+
+vi.mock('@/queries/bookQueueQueries', () => ({
+  useBookQueueQuery: () => ({
+    ...queryResult([]),
+    items: computed(() => []),
+  }),
+  useCreateBookQueueItemMutation: () => mutationResult(),
+  useRemoveBookQueueItemMutation: () => mutationResult(),
+  useReorderBookQueueMutation: () => mutationResult(),
+}))
+
+vi.mock('@/queries/readingCycleQueries', () => ({
+  useSaveRatingReviewMutation: () => ({
+    ...mutationResult(),
+    isSuccess: ref(false),
+  }),
+  useCompleteCurrentCycleMutation: () => mutationResult(),
 }))
