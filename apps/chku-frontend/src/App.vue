@@ -11,6 +11,7 @@ import { useActiveCandidateQuery } from '@/queries/candidateQueries'
 
 const route = useRoute()
 const isPublicPage = computed(() => route.meta.public === true)
+const isDashboardPage = computed(() => route.path === '/')
 const { isAdmin, isAuthenticated, twoFactorEnabled, user } = useAuthSession({
   enabled: computed(() => !isPublicPage.value),
 })
@@ -45,7 +46,7 @@ const shouldShowTwoFactorBanner = computed(() => isAdmin.value && !twoFactorEnab
       AppHeader
     .container(v-if="shouldShowTwoFactorBanner")
       TwoFactorRequiredBanner
-    .container(v-if="activeBookChoice")
+    .container(v-if="activeBookChoice && !isDashboardPage")
       BookCandidateVerificationBanner(:choice="activeBookChoice")
   main.app-main
     RouterView
