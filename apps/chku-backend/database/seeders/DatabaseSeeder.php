@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\BookCandidateResponseEnum;
 use App\Enums\BookCandidateStatusEnum;
 use App\Enums\MeetingRsvpStatusEnum;
+use App\Enums\MemberBookQueueItemStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
 use App\Enums\ReadingProgressStatusEnum;
 use App\Models\Book;
@@ -16,6 +17,7 @@ use App\Models\DiscussionMessage;
 use App\Models\Genre;
 use App\Models\Meeting;
 use App\Models\MeetingRsvp;
+use App\Models\MemberBookQueueItem;
 use App\Models\Rating;
 use App\Models\ReadingCycle;
 use App\Models\ReadingProgress;
@@ -46,12 +48,14 @@ class DatabaseSeeder extends Seeder
         }
 
         $membersData = [
-            ['name' => 'Елена Воронцова', 'initials' => 'ЕЛ', 'email' => 'elena@example.com', 'joined' => '2021-03-15', 'active' => true, 'genre' => 'fiction'],
-            ['name' => 'Михаил Корнев', 'initials' => 'МК', 'email' => 'mikhail@example.com', 'joined' => '2021-01-10', 'active' => true, 'genre' => 'scifi'],
-            ['name' => 'Анна Соколова', 'initials' => 'АС', 'email' => 'anna@example.com', 'joined' => '2022-06-20', 'active' => true, 'genre' => 'nonfiction'],
-            ['name' => 'Тимур Васильев', 'initials' => 'ТВ', 'email' => 'timur@example.com', 'joined' => '2022-09-01', 'active' => true, 'genre' => 'fiction'],
-            ['name' => 'Ольга Петрова', 'initials' => 'ОП', 'email' => 'olga@example.com', 'joined' => '2021-05-05', 'active' => false, 'genre' => 'fiction'],
-            ['name' => 'Дмитрий Смирнов', 'initials' => 'ДС', 'email' => 'dmitry@example.com', 'joined' => '2020-11-12', 'active' => false, 'genre' => 'nonfiction'],
+            ['name' => 'Елена Воронцова', 'initials' => 'ЕЛ', 'email' => 'elena@example.com', 'joined' => '2021-03-15', 'active' => true, 'genre' => 'fiction', 'role' => 'admin'],
+            ['name' => 'Михаил Корнев', 'initials' => 'МК', 'email' => 'mikhail@example.com', 'joined' => '2021-01-10', 'active' => true, 'genre' => 'scifi', 'role' => 'member'],
+            ['name' => 'Анна Соколова', 'initials' => 'АС', 'email' => 'anna@example.com', 'joined' => '2022-06-20', 'active' => true, 'genre' => 'nonfiction', 'role' => 'member'],
+            ['name' => 'Тимур Васильев', 'initials' => 'ТВ', 'email' => 'timur@example.com', 'joined' => '2022-09-01', 'active' => true, 'genre' => 'fiction', 'role' => 'member'],
+            ['name' => 'Ольга Петрова', 'initials' => 'ОП', 'email' => 'olga@example.com', 'joined' => '2021-05-05', 'active' => true, 'genre' => 'fiction', 'role' => 'member'],
+            ['name' => 'Дмитрий Смирнов', 'initials' => 'ДС', 'email' => 'dmitry@example.com', 'joined' => '2020-11-12', 'active' => true, 'genre' => 'nonfiction', 'role' => 'member'],
+            ['name' => 'Мария Лебедева', 'initials' => 'МЛ', 'email' => 'maria@example.com', 'joined' => '2020-08-18', 'active' => false, 'genre' => 'fiction', 'role' => 'member'],
+            ['name' => 'Игорь Фомин', 'initials' => 'ИФ', 'email' => 'igor@example.com', 'joined' => '2019-12-02', 'active' => false, 'genre' => 'scifi', 'role' => 'member'],
         ];
 
         $members = [];
@@ -71,7 +75,7 @@ class DatabaseSeeder extends Seeder
                 'favorite_genre_id' => Genre::where('slug', $data['genre'])->value('id'),
             ]);
 
-            $user->assignRole('member');
+            $user->assignRole($data['role']);
         }
 
         $booksData = [
@@ -156,6 +160,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         foreach ($members as $member) {
+            if (! $member->is_active) {
+                continue;
+            }
+
             ReadingProgress::create([
                 'reading_cycle_id' => $currentCycle->id,
                 'club_member_id' => $member->id,
@@ -173,6 +181,10 @@ class DatabaseSeeder extends Seeder
         }
 
         foreach ($members as $member) {
+            if (! $member->is_active) {
+                continue;
+            }
+
             MeetingRsvp::create([
                 'meeting_id' => Meeting::where('reading_cycle_id', $currentCycle->id)->value('id'),
                 'club_member_id' => $member->id,
@@ -180,9 +192,64 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
+        $queueItem = MemberBookQueueItem::create([
+            'club_member_id' => $members['ЕЛ']->id,
+            'book_id' => $books['taynaya-istoriya']->id,
+            'position' => 1,
+            'reason' => 'Подойдёт для обсуждения ответственности, дружбы и того, как интеллектуальная среда меняет людей.',
+            'description' => 'Роман о закрытом круге студентов, античной культуре и последствиях одного решения.',
+            'status' => MemberBookQueueItemStatusEnum::InVerification,
+        ]);
+
+        MemberBookQueueItem::create([
+            'club_member_id' => $members['ЕЛ']->id,
+            'book_id' => $books['lavr']->id,
+            'position' => 2,
+            'reason' => 'Тихая книга для разговора о времени и ответственности.',
+            'description' => $books['lavr']->description,
+            'status' => MemberBookQueueItemStatusEnum::Queued,
+        ]);
+
+        $queueData = [
+            'МК' => [
+                ['book' => 'duna', 'reason' => 'Большой разговор о власти, мифах и ответственности лидера.'],
+                ['book' => 'solyaris', 'reason' => 'Хочется вернуться к теме контакта и памяти.'],
+            ],
+            'АС' => [
+                ['book' => 'sapiens', 'reason' => 'Хорошая база для спора о больших исторических обобщениях.'],
+                ['book' => 'dumai-medlenno-reshai-bystro', 'reason' => 'Можно обсудить личные когнитивные ошибки.'],
+            ],
+            'ТВ' => [
+                ['book' => 'frankenshtein', 'reason' => 'Подойдёт для разговора об ответственности создателя.'],
+                ['book' => '1984', 'reason' => 'Хочется обсудить язык, страх и контроль.'],
+            ],
+            'ОП' => [
+                ['book' => 'lavr', 'reason' => 'Тихая и сильная книга для разговора о вине и времени.'],
+                ['book' => 'ten-vetra', 'reason' => 'Атмосферная книга о памяти, книгах и городе.'],
+            ],
+            'ДС' => [
+                ['book' => 'dumai-medlenno-reshai-bystro', 'reason' => 'Практичный нон-фикшн для разговора о решениях.'],
+                ['book' => 'sapiens', 'reason' => 'Можно поспорить о мифах, деньгах и институтах.'],
+            ],
+        ];
+
+        foreach ($queueData as $initials => $items) {
+            foreach ($items as $index => $itemData) {
+                MemberBookQueueItem::create([
+                    'club_member_id' => $members[$initials]->id,
+                    'book_id' => $books[$itemData['book']]->id,
+                    'position' => $index + 1,
+                    'reason' => $itemData['reason'],
+                    'description' => $books[$itemData['book']]->description,
+                    'status' => MemberBookQueueItemStatusEnum::Queued,
+                ]);
+            }
+        }
+
         $candidate = BookCandidate::create([
             'book_id' => $books['taynaya-istoriya']->id,
             'proposer_id' => $members['ЕЛ']->id,
+            'member_book_queue_item_id' => $queueItem->id,
             'reason' => 'Подойдёт для обсуждения ответственности, дружбы и того, как интеллектуальная среда меняет людей.',
             'description' => 'Роман о закрытом круге студентов, античной культуре и последствиях одного решения.',
             'status' => BookCandidateStatusEnum::Pending,
@@ -204,6 +271,8 @@ class DatabaseSeeder extends Seeder
         TurnOrder::create(['club_id' => $club->id, 'club_member_id' => $members['ЕЛ']->id, 'position' => 2, 'is_next' => true]);
         TurnOrder::create(['club_id' => $club->id, 'club_member_id' => $members['АС']->id, 'position' => 3]);
         TurnOrder::create(['club_id' => $club->id, 'club_member_id' => $members['ТВ']->id, 'position' => 4]);
+        TurnOrder::create(['club_id' => $club->id, 'club_member_id' => $members['ОП']->id, 'position' => 5]);
+        TurnOrder::create(['club_id' => $club->id, 'club_member_id' => $members['ДС']->id, 'position' => 6]);
 
         $ratingsData = [
             34 => [['ЕЛ', 9], ['ОП', 8]],
