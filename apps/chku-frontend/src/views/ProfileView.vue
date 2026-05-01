@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import { BookOpen, Settings, Sparkles } from '@lucide/vue'
+import { BookOpen, ListOrdered, Settings, Sparkles } from '@lucide/vue'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
 
@@ -44,14 +44,23 @@ main.profile.container
           span.profile__stat-value {{ currentMember.stats.meetings }}
           span.label-text Встреч
 
+      section.panel.profile__queue(v-if="!canProposeNextBook" aria-labelledby="profile-queue-title")
+        .section-header.section-header--compact
+          span#profile-queue-title.label-text Моя очередь книг
+          ListOrdered.profile__section-icon
+        p.body-text
+          | Веди личный список книг для предложки. Первая книга автоматически уйдёт на проверку, когда подойдёт твоя очередь.
+        RouterLink.button.button--primary.label-text.profile__turn-action(to="/propose-selection")
+          | Открыть очередь
+
       section.panel.profile__turn(v-if="canProposeNextBook" aria-labelledby="profile-turn-title")
         .section-header.section-header--compact
           span#profile-turn-title.label-text Сейчас твоя очередь
           Sparkles.profile__section-icon
         p.body-text
-          | Предложи следующую книгу для клуба. После отправки участники подтвердят, что ещё не читали её.
+          | Проверь личную очередь книг. Первая книга из списка автоматически уйдёт на проверку клуба.
         RouterLink.button.button--primary.label-text.profile__turn-action(to="/propose-selection")
-          | Предложить книгу
+          | Управлять очередью
 
       section.panel(aria-labelledby="profile-settings-title")
         .section-header.section-header--compact
@@ -133,6 +142,10 @@ main.profile.container
   background:
     linear-gradient(180deg, rgba(216, 137, 43, 0.06), rgba(216, 137, 43, 0.018)),
     var(--bg-surface);
+}
+
+.profile__queue {
+  border-color: var(--accent-border);
 }
 
 .profile__turn-action {
