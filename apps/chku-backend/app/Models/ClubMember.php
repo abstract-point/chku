@@ -74,6 +74,11 @@ class ClubMember extends Model
         return $this->hasMany(BookCandidate::class, 'proposer_id');
     }
 
+    public function bookQueueItems(): HasMany
+    {
+        return $this->hasMany(MemberBookQueueItem::class);
+    }
+
     public function turnOrder(): HasMany
     {
         return $this->hasMany(TurnOrder::class);

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['book_id', 'proposer_id', 'reading_cycle_id', 'reason', 'description', 'status'])]
+#[Fillable(['book_id', 'proposer_id', 'reading_cycle_id', 'member_book_queue_item_id', 'reason', 'description', 'status'])]
 class BookCandidate extends Model
 {
     use HasFactory;
@@ -31,6 +31,11 @@ class BookCandidate extends Model
     public function readingCycle(): BelongsTo
     {
         return $this->belongsTo(ReadingCycle::class);
+    }
+
+    public function queueItem(): BelongsTo
+    {
+        return $this->belongsTo(MemberBookQueueItem::class, 'member_book_queue_item_id');
     }
 
     public function responses(): HasMany

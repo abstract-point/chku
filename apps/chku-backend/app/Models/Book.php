@@ -38,4 +38,9 @@ class Book extends Model
     {
         return $this->hasMany(BookCandidate::class);
     }
+
+    public function memberQueueItems(): HasMany
+    {
+        return $this->hasMany(MemberBookQueueItem::class);
+    }
 }
