@@ -1,139 +1,167 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { BookMarked, CheckCircle2, Send } from '@lucide/vue'
-import { useCreateCandidateMutation } from '@/queries/candidateQueries'
-import { useDashboardQuery } from '@/queries/dashboardQueries'
-import type { BookProposalForm } from '@/types/club'
+import { computed, reactive, ref } from 'vue'
+import { ArrowDown, ArrowUp, BookMarked, Plus, Trash2 } from '@lucide/vue'
+import {
+  useBookQueueQuery,
+  useCreateBookQueueItemMutation,
+  useRemoveBookQueueItemMutation,
+  useReorderBookQueueMutation,
+} from '@/queries/bookQueueQueries'
 
-const router = useRouter()
-const dashboardQuery = useDashboardQuery()
-const createCandidateMutation = useCreateCandidateMutation()
+const queueQuery = useBookQueueQuery()
+const createQueueItem = useCreateBookQueueItemMutation()
+const removeQueueItem = useRemoveBookQueueItemMutation()
+const reorderQueue = useReorderBookQueueMutation()
 
-const proposal = reactive<BookProposalForm>({
+const form = reactive({
   title: '',
   author: '',
   description: '',
   reason: '',
 })
 const submitAttempted = ref(false)
+const items = computed(() => queueQuery.items.value)
 
 function isFilled(value: string) {
   return value.trim().length > 0
 }
 
-function submitProposal() {
+function resetForm() {
+  form.title = ''
+  form.author = ''
+  form.description = ''
+  form.reason = ''
+  submitAttempted.value = false
+}
+
+function submitBook() {
   submitAttempted.value = true
 
-  if (
-    !isFilled(proposal.title) ||
-    !isFilled(proposal.author) ||
-    !isFilled(proposal.description) ||
-    !isFilled(proposal.reason)
-  ) {
-    return
-  }
+  if (!isFilled(form.title) || !isFilled(form.author)) return
 
-  createCandidateMutation.mutate(
+  createQueueItem.mutate(
     {
-      title: proposal.title.trim(),
-      author: proposal.author.trim(),
-      description: proposal.description.trim(),
-      reason: proposal.reason.trim(),
+      title: form.title.trim(),
+      author: form.author.trim(),
+      description: form.description.trim(),
+      reason: form.reason.trim(),
     },
-    {
-      onSuccess: () => router.push({ name: 'home' }),
-    },
+    { onSuccess: resetForm },
   )
+}
+
+function statusLabel(status: string) {
+  return (
+    {
+      queued: 'В очереди',
+      in_verification: 'На проверке',
+      approved: 'Принята',
+      rejected: 'Отклонена',
+      removed: 'Удалена',
+    }[status] ?? status
+  )
+}
+
+function move(index: number, direction: -1 | 1) {
+  const nextIndex = index + direction
+  if (nextIndex < 0 || nextIndex >= items.value.length) return
+
+  const ordered = [...items.value]
+  const current = ordered[index]
+  ordered[index] = ordered[nextIndex]
+  ordered[nextIndex] = current
+  reorderQueue.mutate(ordered.map((item) => item.id))
 }
 </script>
 
 <template lang="pug">
 main.proposal.container
   .proposal__header
-    span.label-text.proposal__eyebrow {{ dashboardQuery.data?.currentBook ? 'Следующий цикл' : 'Новый цикл' }} • Твоя очередь
-    h1 Предложить следующую книгу
+    span.label-text.proposal__eyebrow Личный кабинет
+    h1 Моя очередь книг
     p.body-text.proposal__intro
-      | Сейчас твоя очередь направить чтение клуба. Отправь книгу-кандидата на проверку: участники подтвердят, что ещё не читали её.
-
-  .section-header
-    h2 Форма предложения
-    span.label-text Черновик
+      | Первая книга из списка автоматически уйдёт на проверку, когда подойдёт твоя очередь выбирать.
 
   .proposal__grid
-    .panel.proposal__form-panel
-      .proposal__form-note
-        BookMarked.proposal__note-icon
-        p.body-text Кандидат попадёт на проверку активным участникам клуба. Утвердить его можно только после ответов всех участников.
-      form(@submit.prevent="submitProposal" novalidate)
+    section.panel.proposal__form-panel(aria-labelledby="queue-form-title")
+      .section-header.section-header--compact
+        h2#queue-form-title Добавить книгу
+        Plus.proposal__button-icon
+      form(@submit.prevent="submitBook" novalidate)
         .proposal__field
           label.label-text(for="book-title") Название книги
           input#book-title.field-control.proposal__input(
-            v-model="proposal.title"
+            v-model="form.title"
             type="text"
             placeholder="Например, Мастер и Маргарита"
-            :aria-invalid="submitAttempted && !isFilled(proposal.title)"
+            :aria-invalid="submitAttempted && !isFilled(form.title)"
           )
-          p.proposal__error(v-if="submitAttempted && !isFilled(proposal.title)") Укажи название книги.
+          p.proposal__error(v-if="submitAttempted && !isFilled(form.title)") Укажи название книги.
 
         .proposal__field
           label.label-text(for="book-author") Автор
           input#book-author.field-control.proposal__input(
-            v-model="proposal.author"
+            v-model="form.author"
             type="text"
             placeholder="Например, Михаил Булгаков"
-            :aria-invalid="submitAttempted && !isFilled(proposal.author)"
+            :aria-invalid="submitAttempted && !isFilled(form.author)"
           )
-          p.proposal__error(v-if="submitAttempted && !isFilled(proposal.author)") Укажи автора.
+          p.proposal__error(v-if="submitAttempted && !isFilled(form.author)") Укажи автора.
 
         .proposal__field
           label.label-text(for="book-description") Краткое описание
           textarea#book-description.field-control.proposal__input.proposal__textarea(
-            v-model="proposal.description"
+            v-model="form.description"
             placeholder="Коротко опиши, о чём книга."
-            :aria-invalid="submitAttempted && !isFilled(proposal.description)"
           )
-          p.proposal__error(v-if="submitAttempted && !isFilled(proposal.description)") Добавь краткое описание.
 
         .proposal__field
           label.label-text(for="book-reason") Почему эта книга?
           textarea#book-reason.field-control.proposal__input.proposal__textarea(
-            v-model="proposal.reason"
-            placeholder="Какие темы и разговоры она может открыть для клуба?"
-            :aria-invalid="submitAttempted && !isFilled(proposal.reason)"
+            v-model="form.reason"
+            placeholder="Какие темы она может открыть для клуба?"
           )
-          p.proposal__error(v-if="submitAttempted && !isFilled(proposal.reason)") Объясни выбор книги.
 
         .proposal__actions
-          button.button.button--secondary.label-text(type="button" @click="router.push({ name: 'profile' })") Отмена
-          button.button.button--primary.label-text(type="submit" :disabled="createCandidateMutation.isPending.value")
-            Send.proposal__button-icon(v-if="!createCandidateMutation.isPending.value")
-            | {{ createCandidateMutation.isPending.value ? 'Отправляем...' : 'Отправить на проверку' }}
-          p.proposal__error(v-if="createCandidateMutation.error.value") Не удалось отправить предложение.
+          button.button.button--primary.label-text(type="submit" :disabled="createQueueItem.isPending.value")
+            Plus.proposal__button-icon(v-if="!createQueueItem.isPending.value")
+            | {{ createQueueItem.isPending.value ? 'Добавляем...' : 'Добавить в очередь' }}
+          p.proposal__error(v-if="createQueueItem.error.value") Не удалось добавить книгу.
 
-    aside.proposal__guidelines(aria-label="Правила выбора")
-      .section-header.section-header--compact
-        span.label-text Правила выбора
-      .proposal__guideline
-        CheckCircle2.proposal__guideline-icon
-        h3 Доступность
-        p.body-text
-          | Лучше выбрать книгу, которую легко найти в бумажном, электронном или аудиоформате.
-      .proposal__guideline
-        CheckCircle2.proposal__guideline-icon
-        h3 Объём
-        p.body-text
-          | Ориентир для стандартного цикла чтения — книга, которую реально прочитать примерно за четыре недели.
-      .proposal__guideline
-        CheckCircle2.proposal__guideline-icon
-        h3 Потенциал обсуждения
-        p.body-text
-          | Подойдут сложные темы, неоднозначные герои и вопросы, о которых интересно спорить на встрече.
-      .proposal__guideline
-        CheckCircle2.proposal__guideline-icon
-        h3 Главное правило
-        p.body-text
-          | Книгу можно утвердить только если никто из активных участников клуба раньше её не читал.
+    section.proposal__queue(aria-labelledby="queue-title")
+      .section-header
+        h2#queue-title Очередь
+        span.label-text {{ items.length }} книг
+
+      section.panel(v-if="queueQuery.isLoading.value")
+        p.body-text Загружаем очередь...
+      section.panel(v-else-if="queueQuery.error.value")
+        p.body-text Не удалось загрузить очередь.
+      section.panel.proposal__empty(v-else-if="items.length === 0")
+        BookMarked.proposal__empty-icon
+        h3 Выберите книгу
+        p.body-text Добавь хотя бы одну книгу, чтобы система смогла предложить её, когда подойдёт твоя очередь.
+      .panel.proposal__book-list(v-else)
+        article.proposal__book(v-for="(item, index) in items" :key="item.id")
+          .proposal__book-index {{ index + 1 }}
+          .proposal__book-main
+            .proposal__book-header
+              div
+                h3.proposal__book-title {{ item.title }}
+                p.body-text {{ item.author }}
+              .proposal__badges
+                span.badge.badge--action.label-text(v-if="index === 0 && item.status === 'queued'")
+                  | Автоматически уйдёт в предложку
+                span.badge.label-text(:class="{ 'badge--done': item.status === 'approved', 'badge--action': item.status === 'in_verification' }")
+                  | {{ statusLabel(item.status) }}
+            p.body-text(v-if="item.reason") {{ item.reason }}
+          .proposal__book-actions
+            button.button.button--secondary.label-text(type="button" :disabled="index === 0 || reorderQueue.isPending.value" @click="move(index, -1)" aria-label="Поднять книгу")
+              ArrowUp.proposal__button-icon
+            button.button.button--secondary.label-text(type="button" :disabled="index === items.length - 1 || reorderQueue.isPending.value" @click="move(index, 1)" aria-label="Опустить книгу")
+              ArrowDown.proposal__button-icon
+            button.button.button--secondary.label-text(type="button" :disabled="removeQueueItem.isPending.value || item.status === 'in_verification'" @click="removeQueueItem.mutate(item.id)" aria-label="Удалить книгу")
+              Trash2.proposal__button-icon
 </template>
 
 <style scoped>
@@ -153,29 +181,9 @@ main.proposal.container
 
 .proposal__grid {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.4fr);
   gap: var(--space-xl);
-  margin-top: var(--space-xl);
-}
-
-.proposal__form-note {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-md);
-  margin-bottom: var(--space-xl);
-  padding: var(--space-md);
-  border: var(--border-width) solid var(--accent-border);
-  border-radius: var(--radius-inner);
-  background: var(--accent-bg);
-}
-
-.proposal__note-icon,
-.proposal__button-icon,
-.proposal__guideline-icon {
-  flex: 0 0 auto;
-  width: 1rem;
-  height: 1rem;
-  color: var(--accent);
+  align-items: start;
 }
 
 .proposal__field {
@@ -191,7 +199,7 @@ main.proposal.container
 }
 
 .proposal__textarea {
-  min-height: 7.5rem;
+  min-height: 6.5rem;
 }
 
 .proposal__error {
@@ -203,37 +211,78 @@ main.proposal.container
 .proposal__actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-md);
   margin-top: var(--space-xl);
 }
 
-.proposal__guidelines {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
+.proposal__button-icon,
+.proposal__empty-icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
 }
 
-.proposal__guideline {
-  position: relative;
-  padding-bottom: var(--space-md);
-  padding-left: 1.75rem;
+.proposal__book-list {
+  padding-top: var(--space-sm);
+  padding-bottom: var(--space-sm);
+}
+
+.proposal__book {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  gap: var(--space-md);
+  padding: var(--space-lg) 0;
   border-bottom: var(--border-width) solid var(--border);
 }
 
-.proposal__guideline-icon {
-  position: absolute;
-  top: 0.2rem;
-  left: 0;
-  color: var(--text-subtle);
-}
-
-.proposal__guideline:last-child {
+.proposal__book:last-child {
   border-bottom: 0;
 }
 
-.proposal__guideline h3 {
+.proposal__book-index {
+  color: var(--text-subtle);
+  font-family: var(--font-mono);
+}
+
+.proposal__book-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.proposal__book-title {
   margin-bottom: var(--space-xs);
-  font-size: 1.25rem;
+  font-size: 1.15rem;
+}
+
+.proposal__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+}
+
+.proposal__book-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.proposal__book-actions .button {
+  width: 2.25rem;
+  min-width: 2.25rem;
+  padding: 0;
+}
+
+.proposal__empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-sm);
+}
+
+.proposal__empty-icon {
+  color: var(--warn);
 }
 
 @media (max-width: 960px) {
@@ -243,9 +292,16 @@ main.proposal.container
 }
 
 @media (max-width: 640px) {
-  .proposal__actions {
-    align-items: stretch;
-    flex-direction: column-reverse;
+  .proposal__book {
+    grid-template-columns: 1fr;
+  }
+
+  .proposal__book-actions {
+    justify-content: stretch;
+  }
+
+  .proposal__book-actions .button {
+    flex: 1;
   }
 }
 </style>
