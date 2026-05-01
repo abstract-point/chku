@@ -9,6 +9,8 @@ class BookCandidateResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $currentMemberId = $request->user()?->clubMember?->id;
+
         return [
             'id' => $this->id,
             'book' => new BookResource($this->whenLoaded('book')),
@@ -17,6 +19,8 @@ class BookCandidateResource extends JsonResource
             'description' => $this->description,
             'status' => $this->status->value,
             'responses' => BookCandidateResponseResource::collection($this->whenLoaded('responses')),
+            'canConfirm' => $this->status->value === 'awaiting_owner_confirmation'
+                && $currentMemberId === $this->proposer_id,
             'createdAt' => $this->created_at,
         ];
     }
