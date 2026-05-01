@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { ChevronDown, LogOut, Moon, Settings, Sun, User } from '@lucide/vue'
+import { BookMarked, ChevronDown, LogOut, Moon, Settings, Sun, User } from '@lucide/vue'
 import AppLogo from '@/components/AppLogo.vue'
 import { useAuthSession, useLogoutMutation } from '@/queries/authQueries'
 import { useClubStore } from '@/stores/club'
@@ -109,6 +109,9 @@ header.app-header
           RouterLink.app-header__dropdown-item(to="/profile" role="menuitem" @click="closeUserMenu")
             User.app-header__dropdown-item-icon(:size="16")
             span Профиль
+          RouterLink.app-header__dropdown-item(to="/propose-selection" role="menuitem" @click="closeUserMenu")
+            BookMarked.app-header__dropdown-item-icon(:size="16")
+            span Моя очередь книг
           RouterLink.app-header__dropdown-item(to="/profile/settings" role="menuitem" @click="closeUserMenu")
             Settings.app-header__dropdown-item-icon(:size="16")
             span Настройки

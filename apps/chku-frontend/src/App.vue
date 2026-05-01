@@ -11,13 +11,30 @@ import { useActiveCandidateQuery } from '@/queries/candidateQueries'
 
 const route = useRoute()
 const isPublicPage = computed(() => route.meta.public === true)
-const { isAdmin, twoFactorEnabled } = useAuthSession({
+const { isAdmin, isAuthenticated, twoFactorEnabled, user } = useAuthSession({
   enabled: computed(() => !isPublicPage.value),
 })
-const activeCandidateQuery = useActiveCandidateQuery()
-const activeBookChoice = computed(() =>
-  activeCandidateQuery.data.value ? mapCandidateToChoice(activeCandidateQuery.data.value) : null,
-)
+const activeCandidateQuery = useActiveCandidateQuery({
+  enabled: computed(() => !isPublicPage.value && isAuthenticated.value),
+})
+const activeBookChoice = computed(() => {
+  const candidate = activeCandidateQuery.data.value
+  if (!candidate || !user.value) return null
+
+  if (candidate.canConfirm) {
+    return mapCandidateToChoice(candidate)
+  }
+
+  const currentResponse = candidate.responses.find(
+    (response) => response.member.id === user.value?.id,
+  )
+
+  if (candidate.status === 'pending' && (!currentResponse || currentResponse.response === 'pending')) {
+    return mapCandidateToChoice(candidate)
+  }
+
+  return null
+})
 const shouldShowTwoFactorBanner = computed(() => isAdmin.value && !twoFactorEnabled.value)
 </script>
 

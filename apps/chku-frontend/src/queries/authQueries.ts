@@ -31,6 +31,11 @@ function clearTwoFactorSetupQueries(client: ReturnType<typeof useQueryClient>) {
   client.removeQueries({ queryKey: queryKeys.twoFactorRecoveryCodes })
 }
 
+function replaceSession(client: ReturnType<typeof useQueryClient>, session: ApiAuthUser) {
+  client.removeQueries()
+  client.setQueryData(queryKeys.authSession, session)
+}
+
 export function useAuthSessionQuery(options: { enabled?: Ref<boolean> } = {}) {
   return useQuery({
     ...authSessionQueryOptions(),
@@ -72,7 +77,7 @@ export function useLoginMutation() {
         return { twoFactorRequired: true as const }
       }
 
-      client.setQueryData(queryKeys.authSession, response)
+      replaceSession(client, response)
       return { twoFactorRequired: false as const }
     },
   })
@@ -87,7 +92,7 @@ export function useTwoFactorChallengeMutation() {
       return authApi.me()
     },
     onSuccess: (session) => {
-      client.setQueryData(queryKeys.authSession, session)
+      replaceSession(client, session)
     },
   })
 }

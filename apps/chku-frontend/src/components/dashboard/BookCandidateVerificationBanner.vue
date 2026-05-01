@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { CircleAlert } from '@lucide/vue'
-import { useCandidateResponseMutation } from '@/queries/candidateQueries'
+import { useCandidateResponseMutation, useConfirmCandidateMutation } from '@/queries/candidateQueries'
 import type { BookChoiceEvent } from '@/types/club'
 
 const props = defineProps<{
@@ -9,13 +9,24 @@ const props = defineProps<{
 }>()
 
 const responseMutation = useCandidateResponseMutation()
-const isPending = computed(() => responseMutation.isPending.value)
+const confirmMutation = useConfirmCandidateMutation()
+const isPending = computed(() => responseMutation.isPending.value || confirmMutation.isPending.value)
+const pendingCount = computed(
+  () => props.choice.responses?.filter((response) => response.response === 'pending').length ?? 0,
+)
+const readCount = computed(
+  () => props.choice.responses?.filter((response) => response.response === 'read').length ?? 0,
+)
 
-function respond(response: 'read' | 'not_read' | 'not_sure') {
+function respond(response: 'read' | 'not_read') {
   responseMutation.mutate({
     candidateId: props.choice.id,
     response,
   })
+}
+
+function confirm() {
+  confirmMutation.mutate(props.choice.id)
 }
 </script>
 
@@ -28,10 +39,22 @@ section.book-candidate-banner(aria-labelledby="verification-title")
     h2#verification-title.book-candidate-banner__title Ожидает проверки: «{{ choice.bookTitle }}»
     p.book-candidate-banner__text
       | {{ choice.proposerName }} предложила «{{ choice.bookTitle }}» — {{ choice.author }}. Ты уже читал(а) эту книгу?
+    p.book-candidate-banner__text(v-if="choice.status === 'awaiting_owner_confirmation'")
+      | Все ответили, что не читали книгу. Ожидаем финальное подтверждение владельца.
+    p.book-candidate-banner__text(v-else-if="readCount > 0")
+      | Есть ответ “читал(а)”, кандидат будет отклонён.
+    p.book-candidate-banner__text(v-else)
+      | Ожидаем ответов: {{ pendingCount }}.
   .book-candidate-banner__actions
-    button.button.button--secondary.label-text(type="button" :disabled="isPending" @click="respond('read')") Я читал(а)
-    button.button.button--secondary.label-text(type="button" :disabled="isPending" @click="respond('not_sure')") Не уверен(а)
-    button.button.button--inverted.label-text(type="button" :disabled="isPending" @click="respond('not_read')") Не читал(а)
+    button.button.button--primary.label-text(
+      v-if="choice.canConfirm"
+      type="button"
+      :disabled="isPending"
+      @click="confirm"
+    ) Подтвердить книгу
+    template(v-else-if="choice.status !== 'awaiting_owner_confirmation'")
+      button.button.button--secondary.label-text(type="button" :disabled="isPending" @click="respond('read')") Я читал(а)
+      button.button.button--inverted.label-text(type="button" :disabled="isPending" @click="respond('not_read')") Не читал(а)
 </template>
 
 <style scoped>
