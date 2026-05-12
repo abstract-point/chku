@@ -10,6 +10,7 @@ export function authSessionQueryOptions() {
     queryKey: queryKeys.authSession,
     queryFn: () => authApi.me(),
     staleTime: 60_000,
+    retry: false,
   }
 }
 
@@ -22,7 +23,7 @@ export function getCachedAuthSession(): ApiAuthUser | undefined {
 }
 
 function refreshAuthSession(client: ReturnType<typeof useQueryClient>) {
-  client.invalidateQueries({ queryKey: queryKeys.authSession })
+  void client.invalidateQueries({ queryKey: queryKeys.authSession })
 }
 
 function clearTwoFactorSetupQueries(client: ReturnType<typeof useQueryClient>) {
