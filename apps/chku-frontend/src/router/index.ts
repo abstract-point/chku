@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import MainLayout from '@/components/layouts/MainLayout.vue'
 import { fetchAuthSession, getCachedAuthSession } from '@/queries/authQueries'
 import ArchiveBookView from '../views/ArchiveBookView.vue'
 import ArchiveView from '../views/ArchiveView.vue'
@@ -23,63 +24,70 @@ const router = createRouter({
     },
     {
       path: '/',
-      name: 'home',
-      component: HomeView,
-      meta: { title: 'Дашборд', requiresAuth: true },
-    },
-    {
-      path: '/members',
-      name: 'members',
-      component: MembersView,
-      meta: { title: 'Участники', requiresAuth: true },
-    },
-    {
-      path: '/members/add',
-      name: 'add-member',
-      component: AddMemberView,
-      meta: { title: 'Добавить участника', requiresAuth: true },
-    },
-    {
-      path: '/members/:id',
-      name: 'member-detail',
-      component: MemberDetailView,
-      meta: { title: 'Участник', requiresAuth: true },
-    },
-    {
-      path: '/profile',
-      name: 'profile',
-      component: ProfileView,
-      meta: { title: 'Профиль', requiresAuth: true },
-    },
-    {
-      path: '/profile/settings',
-      name: 'profile-settings',
-      component: ProfileSettingsView,
-      meta: { title: 'Настройки профиля', requiresAuth: true },
-    },
-    {
-      path: '/archive',
-      name: 'archive',
-      component: ArchiveView,
-      meta: { title: 'Архив', requiresAuth: true },
-    },
-    {
-      path: '/archive/:slug',
-      name: 'archive-book',
-      component: ArchiveBookView,
-      meta: { title: 'Архив', requiresAuth: true },
-    },
-    {
-      path: '/meetings/:id',
-      name: 'meeting-detail',
-      component: MeetingDetailView,
-      meta: { title: 'Встреча', requiresAuth: true },
-    },
-    {
-      path: '/propose-selection',
-      name: 'propose-selection',
-      component: ProposeNewSelectionView,
-      meta: { title: 'Предложить книгу', requiresAuth: true },
+      component: MainLayout,
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: HomeView,
+          meta: { title: 'Дашборд' },
+        },
+        {
+          path: 'members',
+          name: 'members',
+          component: MembersView,
+          meta: { title: 'Участники' },
+        },
+        {
+          path: 'members/add',
+          name: 'add-member',
+          component: AddMemberView,
+          meta: { title: 'Добавить участника' },
+        },
+        {
+          path: 'members/:id',
+          name: 'member-detail',
+          component: MemberDetailView,
+          meta: { title: 'Участник' },
+        },
+        {
+          path: 'profile',
+          name: 'profile',
+          component: ProfileView,
+          meta: { title: 'Профиль' },
+        },
+        {
+          path: 'profile/settings',
+          name: 'profile-settings',
+          component: ProfileSettingsView,
+          meta: { title: 'Настройки профиля' },
+        },
+        {
+          path: 'archive',
+          name: 'archive',
+          component: ArchiveView,
+          meta: { title: 'Архив' },
+        },
+        {
+          path: 'archive/:slug',
+          name: 'archive-book',
+          component: ArchiveBookView,
+          meta: { title: 'Архив' },
+        },
+        {
+          path: 'meetings/:id',
+          name: 'meeting-detail',
+          component: MeetingDetailView,
+          meta: { title: 'Встреча' },
+        },
+        {
+          path: 'propose-selection',
+          name: 'propose-selection',
+          component: ProposeNewSelectionView,
+          meta: { title: 'Предложить книгу' },
+        },
+      ],
     },
   ],
 })

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mount, RouterLinkStub } from '@vue/test-utils'
-import { createPinia, setActivePinia } from 'pinia'
+import { mount } from '@vue/test-utils'
 import { createRouter, createWebHistory } from 'vue-router'
 
 import App from '@/App.vue'
@@ -16,57 +15,32 @@ function createTestRouter() {
 }
 
 describe('App', () => {
-  it('renders book choice verification above non-dashboard page content', async () => {
-    const pinia = createPinia()
-    setActivePinia(pinia)
+  it('renders the active route content', async () => {
+    const router = createTestRouter()
+    await router.push('/')
+
+    const wrapper = mount(App, {
+      global: {
+        plugins: [router],
+      },
+    })
+
+    expect(wrapper.text()).toContain('Содержимое страницы')
+  })
+
+  it('does not render app chrome around public route content', async () => {
     const router = createTestRouter()
 
     await router.push('/members')
 
     const wrapper = mount(App, {
       global: {
-        plugins: [pinia, router],
-        stubs: {
-          RouterLink: RouterLinkStub,
-          RouterView: { template: '<main>Содержимое страницы</main>' },
-        },
-      },
-    })
-
-    expect(wrapper.text()).toContain('Ожидает проверки: «Тайную историю»')
-    expect(wrapper.text()).toContain('Елена предложила «Тайную историю» — Донна Тартт')
-    expect(wrapper.text()).toContain('Содержимое страницы')
-    expect(wrapper.text()).toContain('Профиль')
-    expect(wrapper.text()).not.toContain('Предложить книгу')
-    expect(wrapper.findAllComponents(RouterLinkStub).map((link) => link.props('to'))).toEqual([
-      '/',
-      '/',
-      '/members',
-      '/archive',
-      '/',
-      '/archive',
-      '/profile',
-    ])
-  })
-
-  it('hides book choice verification on dashboard', async () => {
-    const pinia = createPinia()
-    setActivePinia(pinia)
-    const router = createTestRouter()
-
-    await router.push('/')
-
-    const wrapper = mount(App, {
-      global: {
-        plugins: [pinia, router],
-        stubs: {
-          RouterLink: RouterLinkStub,
-          RouterView: { template: '<main>Содержимое страницы</main>' },
-        },
+        plugins: [router],
       },
     })
 
     expect(wrapper.text()).not.toContain('Ожидает проверки: «Тайную историю»')
-    expect(wrapper.text()).toContain('Содержимое страницы')
+    expect(wrapper.text()).not.toContain('Профиль')
+    expect(wrapper.text()).toContain('Участники')
   })
 })
