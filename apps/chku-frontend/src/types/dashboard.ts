@@ -26,14 +26,19 @@ export type MeetingSummary = {
   id: string
   dateLabel: string
   dayTimeLabel?: string
-  place: string
-  participantInitials: string[]
-  extraParticipantsCount: number
+  place?: string
+  isOnline: boolean
+  link?: string
+  attendees: MeetingAttendee[]
 }
 
 export type MeetingAttendee = {
+  id: number
   name: string
   initials: string
+  status: 'attending' | 'not_attending' | 'pending'
+  favoriteGenre?: string
+  memberSince?: string
 }
 
 export type MeetingBook = {
@@ -46,9 +51,11 @@ export type MeetingDetail = {
   id: string
   title: string
   cycleLabel: string
+  cycleId: number
   dateLabel: string
   timeLabel: string
-  place: string
+  place?: string
+  isOnline: boolean
   placeAddress?: string
   placeReservation?: string
   meetingLink?: string
