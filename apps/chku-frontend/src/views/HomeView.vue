@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, Calendar, ListPlus, Star, Users } from '@lucide/vue'
+import { BookOpen, Calendar, CalendarPlus, ListPlus, Star, Users } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
 import DashboardBookSelectionCycle from '@/components/dashboard/DashboardBookSelectionCycle.vue'
 import DashboardCurrentCycle from '@/components/dashboard/DashboardCurrentCycle.vue'
@@ -45,6 +45,16 @@ main.dashboard.container
         p.body-text Когда книга будет утверждена, она появится здесь.
       aside.dashboard__sidebar(aria-label="Сводка клуба")
         DashboardMeetingCard(v-if="dashboardQuery.data.value.nextMeeting" :meeting="dashboardQuery.data.value.nextMeeting")
+        section.panel.dashboard-card(
+          v-else-if="isAdmin && dashboardQuery.data.value.lifecycle?.currentCycleStatus === 'active'"
+        )
+          .section-header.section-header--compact
+            span.label-text Следующая встреча
+          .dashboard-card__no-meeting
+            CalendarPlus.dashboard-card__no-meeting-icon(:size="22")
+            h3 Встреча ещё не назначена
+            p.body-text Начните новый цикл с планирования встречи.
+          RouterLink.button.button--primary.label-text.dashboard-card__button(to="/meetings/create") Назначить встречу
         section.panel.dashboard-card(v-if="isAdmin && dashboardQuery.data.value.lifecycle?.canCompleteCycle")
           .section-header.section-header--compact
             span.label-text Завершение цикла
@@ -149,6 +159,20 @@ main.dashboard.container
   font-size: 1.4rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.dashboard-card__no-meeting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-md);
+  text-align: center;
+}
+
+.dashboard-card__no-meeting-icon {
+  color: var(--warn);
+  margin-bottom: var(--space-sm);
 }
 
 @media (max-width: 960px) {
