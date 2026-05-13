@@ -68,12 +68,14 @@ export type ApiMeeting = {
   id: number
   title: string
   cycleLabel?: string
+  cycleId?: number
   date?: string
   time?: string
-  place: string
+  place?: string
   address?: string
   reservation?: string
   link?: string
+  isOnline?: boolean
   topics?: string[]
   notes?: string
   rsvps?: ApiMeetingRsvp[]
@@ -135,6 +137,7 @@ export type ApiDashboard = {
   lifecycle?: {
     state: string
     currentCycleStatus?: string | null
+    currentCycleId?: number | null
     nextSelector?: ApiMember | null
     nextSelectorQueueEmpty: boolean
     shouldShowChooseBookBanner: boolean

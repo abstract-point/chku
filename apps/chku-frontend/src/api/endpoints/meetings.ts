@@ -1,9 +1,35 @@
 import { http } from '@/api/http'
 import type { ApiMeeting } from '@/api/types'
 
+export type CreateMeetingPayload = {
+  reading_cycle_id: number
+  title: string
+  date: string
+  time: string
+  is_online: boolean
+  place?: string
+  address?: string
+  reservation?: string
+  link?: string
+  topics?: string[]
+  notes?: string
+}
+
+export type UpdateMeetingPayload = Partial<CreateMeetingPayload> & {
+  rescheduleReason?: string
+}
+
 export const meetingsApi = {
   async show(id: string | number) {
     return http.get<unknown, ApiMeeting>(`/meetings/${id}`)
+  },
+
+  async store(payload: CreateMeetingPayload) {
+    return http.post<unknown, ApiMeeting>('/meetings', payload)
+  },
+
+  async update(id: string | number, payload: UpdateMeetingPayload) {
+    return http.patch<unknown, ApiMeeting>(`/meetings/${id}`, payload)
   },
 
   async updateMyRsvp(id: string | number, status: 'attending' | 'not_attending' | 'pending') {
