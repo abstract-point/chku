@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { BookOpen, CalendarDays, Link as LinkIcon, MapPin, Send, Users } from '@lucide/vue'
+import { BookOpen, CalendarDays, Link as LinkIcon, MapPin, Monitor, Pencil, Send, Users } from '@lucide/vue'
 import {
   useAddMeetingTopicMutation,
   useMeetingQuery,
   useUpdateMeetingRsvpMutation,
 } from '@/queries/meetingQueries'
+import { useAuthSession } from '@/queries/authQueries'
 import { useSaveRatingReviewMutation } from '@/queries/readingCycleQueries'
 
 const route = useRoute()
+const { user, isAdmin } = useAuthSession()
 const meetingId = computed(() => String(route.params.id ?? ''))
-const meetingQuery = useMeetingQuery(meetingId)
+const meetingQuery = useMeetingQuery(meetingId, computed(() => user.value?.id))
 const updateRsvpMutation = useUpdateMeetingRsvpMutation(meetingId)
 const addTopicMutation = useAddMeetingTopicMutation(meetingId)
 const saveRatingReviewMutation = useSaveRatingReviewMutation()
@@ -77,7 +79,14 @@ main.meeting-detail.container
       span.meeting-detail__breadcrumb-current {{ meeting.title }}
 
     .section-header
-      h1.meeting-detail__title {{ meeting.title }}
+      .meeting-detail__header-row
+        h1.meeting-detail__title {{ meeting.title }}
+        RouterLink.button.button--ghost.label-text(
+          v-if="isAdmin"
+          :to="`/meetings/${meeting.id}/edit`"
+        )
+          Pencil.meeting-detail__button-icon
+          | Редактировать
       span.label-text {{ meeting.cycleLabel }}
 
     .meeting-detail__grid
@@ -91,10 +100,11 @@ main.meeting-detail.container
               p.subtitle-italic {{ meeting.timeLabel }}
 
           .meeting-detail__hero-section
-            MapPin.meeting-detail__hero-icon
+            MapPin.meeting-detail__hero-icon(v-if="!meeting.isOnline")
+            Monitor.meeting-detail__hero-icon(v-else)
             div
-              span.label-text Место
-              h3 {{ meeting.place }}
+              span.label-text {{ meeting.isOnline ? 'Онлайн' : 'Место' }}
+              h3(v-if="!meeting.isOnline") {{ meeting.place }}
               p.body-text(v-if="meeting.placeAddress") {{ meeting.placeAddress }}
               p.body-text(v-if="meeting.placeReservation") {{ meeting.placeReservation }}
 
@@ -175,8 +185,8 @@ main.meeting-detail.container
             span.label-text Участники ({{ meeting.attendees.length }})
             Users.meeting-detail__button-icon
           ul.data-list
-            li.data-list__item(v-for="attendee in meeting.attendees" :key="attendee.initials")
-              .meeting-detail__attendee
+            li.data-list__item(v-for="attendee in meeting.attendees" :key="attendee.id")
+              RouterLink.meeting-detail__attendee(:to="`/members/${attendee.id}`")
                 span.avatar {{ attendee.initials }}
                 span.body-text {{ attendee.name }}
 
@@ -215,6 +225,13 @@ main.meeting-detail.container
 
 .meeting-detail__title {
   margin-bottom: 0;
+}
+
+.meeting-detail__header-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
 }
 
 .meeting-detail__grid {
@@ -356,6 +373,16 @@ main.meeting-detail.container
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
+  text-decoration: none;
+  color: inherit;
+}
+
+.meeting-detail__attendee:hover {
+  color: var(--accent);
+}
+
+.meeting-detail__attendee:hover .avatar {
+  border-color: var(--accent-border);
 }
 
 .meeting-detail__book-title {
