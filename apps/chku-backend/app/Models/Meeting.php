@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['reading_cycle_id', 'title', 'date', 'time', 'place', 'address', 'reservation', 'link', 'topics', 'notes'])]
+#[Fillable(['reading_cycle_id', 'title', 'date', 'time', 'place', 'address', 'reservation', 'link', 'topics', 'notes', 'is_online'])]
 class Meeting extends Model
 {
     use HasFactory;
@@ -16,6 +16,7 @@ class Meeting extends Model
     protected $casts = [
         'date' => 'date',
         'topics' => 'array',
+        'is_online' => 'boolean',
     ];
 
     public function readingCycle(): BelongsTo

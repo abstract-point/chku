@@ -8,6 +8,7 @@ use App\Http\Resources\MeetingResource;
 use App\Models\Meeting;
 use App\Models\MeetingReschedule;
 use App\Models\MeetingRsvp;
+use App\Models\ReadingCycle;
 use App\Services\AuditLogService;
 use App\Services\CurrentMemberService;
 use Illuminate\Http\JsonResponse;
@@ -26,7 +27,7 @@ final class MeetingController extends Controller
         $this->authorize('view', $meeting);
 
         return new MeetingResource(
-            $meeting->load('readingCycle.book', 'rsvps.clubMember.user')
+            $meeting->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
                 ->load('reschedules.actor')
         );
     }
@@ -35,15 +36,31 @@ final class MeetingController extends Controller
     {
         $this->authorize('create', Meeting::class);
 
+        $activeCycle = ReadingCycle::where('status', 'active')->first();
+
         $payload = $request->validate([
-            'reading_cycle_id' => ['required', 'integer', 'exists:reading_cycles,id'],
+            'reading_cycle_id' => [
+                'required',
+                'integer',
+                'exists:reading_cycles,id',
+                function (string $attribute, mixed $value, \Closure $fail) use ($activeCycle) {
+                    if (! $activeCycle) {
+                        $fail('Нет активного цикла чтения.');
+                    } elseif ((int) $value !== $activeCycle->id) {
+                        $fail('Встречу можно создать только для текущего активного цикла.');
+                    } elseif ($activeCycle->meeting()->exists()) {
+                        $fail('У текущего цикла уже есть встреча.');
+                    }
+                },
+            ],
             'title' => ['required', 'string', 'max:255'],
             'date' => ['required', 'date'],
             'time' => ['required', 'date_format:H:i'],
-            'place' => ['required', 'string', 'max:255'],
+            'is_online' => ['boolean'],
+            'place' => ['required_unless:is_online,true', 'nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
             'reservation' => ['nullable', 'string', 'max:255'],
-            'link' => ['nullable', 'string', 'max:255'],
+            'link' => ['required_if:is_online,true', 'nullable', 'string', 'max:255'],
             'topics' => ['nullable', 'array'],
             'topics.*' => ['string'],
             'notes' => ['nullable', 'string'],
@@ -57,7 +74,7 @@ final class MeetingController extends Controller
         }
 
         return new MeetingResource(
-            $meeting->load('readingCycle.book', 'rsvps.clubMember.user')
+            $meeting->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
                 ->load('reschedules.actor')
         );
     }
@@ -70,7 +87,8 @@ final class MeetingController extends Controller
             'title' => ['sometimes', 'string', 'max:255'],
             'date' => ['sometimes', 'date'],
             'time' => ['sometimes', 'date_format:H:i'],
-            'place' => ['sometimes', 'string', 'max:255'],
+            'is_online' => ['boolean'],
+            'place' => ['sometimes', 'nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
             'reservation' => ['nullable', 'string', 'max:255'],
             'link' => ['nullable', 'string', 'max:255'],
@@ -107,7 +125,7 @@ final class MeetingController extends Controller
         }
 
         return new MeetingResource(
-            $meeting->load('readingCycle.book', 'rsvps.clubMember.user')
+            $meeting->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
                 ->load('reschedules.actor')
         );
     }
@@ -130,7 +148,7 @@ final class MeetingController extends Controller
         );
 
         return new MeetingResource(
-            $meeting->refresh()->load('readingCycle.book', 'rsvps.clubMember.user', 'reschedules.actor')
+            $meeting->refresh()->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
         );
     }
 
@@ -145,7 +163,7 @@ final class MeetingController extends Controller
         $meeting->update(['topics' => $topics]);
 
         return new MeetingResource(
-            $meeting->refresh()->load('readingCycle.book', 'rsvps.clubMember.user', 'reschedules.actor')
+            $meeting->refresh()->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
         );
     }
 }
