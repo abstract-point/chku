@@ -22,7 +22,6 @@ class UserSeeder extends Seeder
             ['name' => 'Сергей Котов', 'initials' => 'Н2', 'email' => 'sergey@example.com', 'joined' => '2023-08-15', 'active' => false, 'genre' => 'scifi', 'role' => 'member'],
         ];
 
-        $members = [];
         foreach ($membersData as $data) {
             $user = User::create([
                 'name' => $data['name'],
@@ -30,7 +29,7 @@ class UserSeeder extends Seeder
                 'password' => bcrypt('password'),
             ]);
 
-            $members[$data['initials']] = ClubMember::create([
+            ClubMember::create([
                 'club_id' => $club->id,
                 'user_id' => $user->id,
                 'initials' => $data['initials'],
@@ -41,7 +40,5 @@ class UserSeeder extends Seeder
 
             $user->assignRole($data['role']);
         }
-
-        return $members;
     }
 }

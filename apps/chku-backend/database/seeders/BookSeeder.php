@@ -28,9 +28,8 @@ class BookSeeder extends Seeder
             ['title' => 'Краткая история времени', 'author' => 'Стивен Хокинг', 'slug' => 'kratkaya-istoriya-vremeni', 'genre' => 'nonfiction', 'color' => '#2a3b4c', 'desc' => 'Доступное введение в космологию: чёрные дыры, Большой взрыв и природа времени.'],
         ];
 
-        $books = [];
         foreach ($booksData as $data) {
-            $books[$data['slug']] = Book::create([
+            Book::create([
                 'title' => $data['title'],
                 'author' => $data['author'],
                 'slug' => $data['slug'],
@@ -39,7 +38,5 @@ class BookSeeder extends Seeder
                 'cover_color' => $data['color'],
             ]);
         }
-
-        return $books;
     }
 }
