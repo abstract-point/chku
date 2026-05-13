@@ -41,6 +41,7 @@ final class DashboardService
         $nextMeeting = Meeting::with([
             'readingCycle',
             'rsvps.clubMember.user',
+            'rsvps.clubMember.favoriteGenre',
         ])
             ->whereHas('readingCycle', fn ($q) => $q->where('status', 'active'))
             ->orderBy('date')

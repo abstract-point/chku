@@ -51,6 +51,7 @@ class DashboardResource extends JsonResource
                     ? $this->resource->activeCandidate->status->value
                     : ($currentCycle ? 'reading' : 'awaiting_next_book'),
                 'currentCycleStatus' => $currentCycle?->status->value,
+                'currentCycleId' => $currentCycle?->id,
                 'nextSelector' => $nextSelector ? new MemberResource($nextSelector) : null,
                 'nextSelectorQueueEmpty' => $this->resource->nextSelectorQueueEmpty,
                 'shouldShowChooseBookBanner' => $isNextSelector && $this->resource->nextSelectorQueueEmpty,
