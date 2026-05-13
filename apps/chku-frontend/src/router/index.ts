@@ -10,6 +10,8 @@ import MembersView from '../views/MembersView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import ProfileSettingsView from '../views/ProfileSettingsView.vue'
 import MeetingDetailView from '../views/MeetingDetailView.vue'
+import MeetingCreateView from '../views/MeetingCreateView.vue'
+import MeetingEditView from '../views/MeetingEditView.vue'
 import AddMemberView from '../views/AddMemberView.vue'
 import ProposeNewSelectionView from '../views/ProposeNewSelectionView.vue'
 
@@ -76,10 +78,22 @@ const router = createRouter({
           meta: { title: 'Архив' },
         },
         {
+          path: 'meetings/create',
+          name: 'meeting-create',
+          component: MeetingCreateView,
+          meta: { title: 'Новая встреча' },
+        },
+        {
           path: 'meetings/:id',
           name: 'meeting-detail',
           component: MeetingDetailView,
           meta: { title: 'Встреча' },
+        },
+        {
+          path: 'meetings/:id/edit',
+          name: 'meeting-edit',
+          component: MeetingEditView,
+          meta: { title: 'Редактирование встречи' },
         },
         {
           path: 'propose-selection',
