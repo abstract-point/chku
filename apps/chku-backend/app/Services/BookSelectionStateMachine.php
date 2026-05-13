@@ -161,8 +161,10 @@ final class BookSelectionStateMachine
             ->get()
             ->each(fn (ClubMember $member) => BookCandidateResponse::create([
                 'book_candidate_id' => $candidate->id,
-                'club_member_id' => $member->id,
-                'response' => BookCandidateResponseEnum::Pending,
+                'club_member_id'    => $member->id,
+                'response'          => $member->id === $selector->id
+                    ? BookCandidateResponseEnum::NotRead
+                    : BookCandidateResponseEnum::Pending,
             ]));
 
         return $candidate;

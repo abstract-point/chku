@@ -263,7 +263,9 @@ class DatabaseSeeder extends Seeder
             BookCandidateResponse::create([
                 'book_candidate_id' => $candidate->id,
                 'club_member_id' => $member->id,
-                'response' => BookCandidateResponseEnum::Pending,
+                'response' => $member->id === $candidate->proposer_id
+                    ? BookCandidateResponseEnum::NotRead
+                    : BookCandidateResponseEnum::Pending,
             ]);
         }
 
