@@ -184,9 +184,9 @@ vi.mock('@/queries/archiveQueries', () => ({
 }))
 
 vi.mock('@/queries/meetingQueries', () => ({
-  useMeetingQuery: (id: unknown) => {
+  useMeetingQuery: (_id: unknown, _currentUserId?: unknown) => {
     const data = computed(() =>
-      String(toValue(id)) === meetingDetail.id ? meetingDetail : undefined,
+      String(toValue(_id)) === meetingDetail.id ? meetingDetail : undefined,
     )
     const error = computed(() => (data.value ? null : new Error('Not found')))
 
@@ -198,6 +198,8 @@ vi.mock('@/queries/meetingQueries', () => ({
   },
   useUpdateMeetingRsvpMutation: () => mutationResult(),
   useAddMeetingTopicMutation: () => mutationResult(),
+  useCreateMeetingMutation: () => mutationResult(),
+  useUpdateMeetingMutation: () => mutationResult(),
 }))
 
 vi.mock('@/queries/candidateQueries', () => ({
