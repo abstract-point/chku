@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\MemberCycleHistoryService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -9,6 +10,8 @@ class MemberDetailResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $readingHistory = app(MemberCycleHistoryService::class)->forMember($this->resource);
+
         return [
             'id' => $this->id,
             'name' => $this->user?->name,
@@ -19,23 +22,11 @@ class MemberDetailResource extends JsonResource
             'favoriteGenreId' => $this->favorite_genre_id,
             'favoriteGenre' => $this->favoriteGenre?->name,
             'stats' => [
-                'read' => $this->readingProgress()->where('status', 'finished')->count(),
+                'read' => $readingHistory->count(),
                 'proposed' => $this->proposedCycles()->count(),
                 'meetings' => $this->meetingRsvps()->where('status', 'attending')->count(),
             ],
-            'readingHistory' => $this->readingProgress()
-                ->with('readingCycle.book', 'readingCycle.proposer.user')
-                ->where('status', 'finished')
-                ->latest()
-                ->get()
-                ->map(fn ($progress) => [
-                    'title' => $progress->readingCycle?->book?->title,
-                    'coverTitle' => $progress->readingCycle?->book?->title,
-                    'author' => $progress->readingCycle?->book?->author,
-                    'completedLabel' => $progress->readingCycle?->completed_at?->translatedFormat('F Y')
-                        ?? "Цикл #{$progress->readingCycle?->cycle_number}",
-                    'proposedBy' => $progress->readingCycle?->proposer?->user?->name,
-                ]),
+            'readingHistory' => $readingHistory,
         ];
     }
 }

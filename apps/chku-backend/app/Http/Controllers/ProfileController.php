@@ -8,6 +8,7 @@ use App\Actions\Fortify\UpdateUserPassword;
 use App\Http\Resources\MemberDetailResource;
 use App\Models\ClubMember;
 use App\Models\User;
+use App\Services\MemberCycleHistoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,26 @@ use Illuminate\Validation\Rule;
 
 final class ProfileController extends Controller
 {
+    public function readingHistory(Request $request, MemberCycleHistoryService $history): JsonResponse
+    {
+        $user = $request->user();
+        assert($user instanceof User);
+
+        $member = ClubMember::query()
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $member) {
+            return response()->json([
+                'message' => 'Профиль участника не найден.',
+            ], 404);
+        }
+
+        return response()->json([
+            'data' => $history->forMember($member),
+        ]);
+    }
+
     public function update(Request $request): MemberDetailResource|JsonResponse
     {
         $user = $request->user();

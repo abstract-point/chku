@@ -27,6 +27,7 @@ Route::post('two-factor-challenge', [AuthController::class, 'twoFactorChallenge'
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
+    Route::get('me/reading-history', [ProfileController::class, 'readingHistory']);
     Route::patch('me/profile', [ProfileController::class, 'update']);
     Route::put('me/password', [ProfileController::class, 'updatePassword']);
     Route::post('me/two-factor-authentication', [TwoFactorController::class, 'enable']);
