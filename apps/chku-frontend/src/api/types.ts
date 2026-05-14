@@ -140,10 +140,12 @@ export type ApiDashboard = {
   nextMeeting: ApiMeeting | null
   turnOrder: {
     name: string
-    status: string
+    initials: string
+    status?: string
     active?: boolean
     isChoosingNow?: boolean
     isCurrentCycleProposer?: boolean
+    hasProposedBook?: boolean
     cycleNumber?: number | null
   }[]
   activeCandidate: ApiBookCandidate | null

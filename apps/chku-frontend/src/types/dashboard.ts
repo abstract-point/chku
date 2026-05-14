@@ -20,10 +20,12 @@ export type BookProgressMember = {
 
 export type TurnOrderMember = {
   name: string
-  status: string
+  initials: string
+  status?: string
   active?: boolean
   isChoosingNow?: boolean
   isCurrentCycleProposer?: boolean
+  hasProposedBook?: boolean
   cycleNumber?: number | null
 }
 
