@@ -109,6 +109,22 @@ const authSession = ref({
   twoFactorEnabled: false,
 })
 
+export function setAuthRoles(roles: string[]) {
+  authSession.value = {
+    ...authSession.value,
+    roles,
+  }
+}
+
+export function resetAuthSession() {
+  authSession.value = {
+    user: members[0]!,
+    roles: ['member'],
+    permissions: [],
+    twoFactorEnabled: false,
+  }
+}
+
 vi.mock('@/queries/authQueries', () => ({
   authSessionQueryOptions: () => ({
     queryKey: ['session', 'me'],
@@ -213,6 +229,8 @@ vi.mock('@/queries/meetingQueries', () => ({
   useAddMeetingTopicMutation: () => mutationResult(),
   useCreateMeetingMutation: () => mutationResult(),
   useUpdateMeetingMutation: () => mutationResult(),
+  useStartMeetingMutation: () => mutationResult(),
+  useFinishMeetingMutation: () => mutationResult(),
 }))
 
 vi.mock('@/queries/candidateQueries', () => ({

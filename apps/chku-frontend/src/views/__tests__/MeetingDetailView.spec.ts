@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import { ref } from 'vue'
 
 import MeetingDetailView from '../MeetingDetailView.vue'
+import { resetAuthSession, setAuthRoles } from '@/test/setup'
 
 const route = ref({
   params: {
@@ -32,6 +33,10 @@ function mountMeetingDetail(id = 'october-42') {
 }
 
 describe('MeetingDetailView', () => {
+  afterEach(() => {
+    resetAuthSession()
+  })
+
   it('renders meeting details, topics and attendees', () => {
     const wrapper = mountMeetingDetail()
 
@@ -72,6 +77,16 @@ describe('MeetingDetailView', () => {
     await buttons[1]!.trigger('click')
     expect(buttons[0]!.classes()).toContain('button--secondary')
     expect(buttons[1]!.classes()).toContain('button--primary')
+  })
+
+  it('shows meeting lifecycle controls for admins', () => {
+    setAuthRoles(['admin'])
+
+    const wrapper = mountMeetingDetail()
+
+    expect(wrapper.text()).toContain('Управление встречей')
+    expect(wrapper.text()).toContain('Начать встречу')
+    expect(wrapper.text()).toContain('Закончить встречу')
   })
 
   it('renders fallback for unknown meeting id', () => {
