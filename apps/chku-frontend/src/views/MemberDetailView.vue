@@ -1,13 +1,25 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { ArrowLeft, Mail, Star } from '@lucide/vue'
+import { ArrowLeft, CalendarCheck, Mail, MessageSquare, Star } from '@lucide/vue'
 import { useMemberQuery } from '@/queries/memberQueries'
+import type { ProfileBook } from '@/types/club'
 
 const route = useRoute()
 const memberId = computed(() => Number(route.params.id))
 const memberQuery = useMemberQuery(memberId)
 const member = computed(() => memberQuery.data.value)
+
+function ratingLabel(rating: number | null | undefined) {
+  return rating ? `${rating.toFixed(1)}/10` : 'нет'
+}
+
+function rsvpLabel(book: ProfileBook) {
+  if (book.attendedMeeting) return 'был(а)'
+  if (book.meetingRsvpStatus === 'not_attending') return 'не был(а)'
+  if (book.meetingRsvpStatus === 'pending') return 'без ответа'
+  return 'нет RSVP'
+}
 </script>
 
 <template lang="pug">
@@ -67,16 +79,37 @@ main.member-detail.container(v-else-if="member")
         h2#reading-history-title История чтения
         span.label-text {{ member.readingHistory.length }} книг
 
-      .panel.member-detail__book-list
-        article.member-detail__book(v-for="book in member.readingHistory" :key="book.title")
-          .book-cover.member-detail__book-cover(:class="`member-detail__book-cover--${book.coverVariant ?? 'default'}`")
+      .panel.member-detail__book-list(v-if="member.readingHistory.length")
+        component.member-detail__book(
+          v-for="book in member.readingHistory"
+          :key="book.title"
+          :is="book.slug ? RouterLink : 'article'"
+          :to="book.slug ? `/archive/${book.slug}` : undefined"
+        )
+          .book-cover.member-detail__book-cover(:style="{ '--cover-color': book.coverColor ?? undefined }")
             span.book-cover__content {{ book.coverTitle }}
           .member-detail__book-details
+            .member-detail__book-meta
+              span.label-text {{ book.cycleLabel }}
+              span.label-text Завершено: {{ book.completedLabel }}
             h3.member-detail__book-title {{ book.title }}
             p.body-text.member-detail__book-author {{ book.author }}
-            .member-detail__book-meta
-              span.label-text Завершено: {{ book.completedLabel }}
-              span.label-text Предложил(а): {{ book.proposedBy }}
+            .member-detail__book-stats(aria-label="Статистика цикла")
+              span.member-detail__book-stat.label-text
+                Star.member-detail__icon
+                | Оценка: {{ ratingLabel(book.myRating) }}
+              span.member-detail__book-stat.label-text
+                Star.member-detail__icon
+                | Средняя: {{ ratingLabel(book.clubAverageRating) }}
+              span.member-detail__book-stat.label-text
+                MessageSquare.member-detail__icon
+                | Ревью: {{ book.hasReview ? 'есть' : 'нет' }}
+              span.member-detail__book-stat.label-text
+                CalendarCheck.member-detail__icon
+                | Встреча: {{ rsvpLabel(book) }}
+
+      section.panel.member-detail__empty(v-else aria-live="polite")
+        p.body-text История появится после завершённых циклов с участием этого участника.
 
 section.panel.container(v-else aria-live="polite")
   .section-header.section-header--compact
@@ -169,6 +202,13 @@ section.panel.container(v-else aria-live="polite")
   gap: var(--space-md);
   padding: var(--space-lg) 0;
   border-bottom: var(--border-width) solid var(--border);
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a.member-detail__book:hover .member-detail__book-title {
+  color: var(--accent-dim);
 }
 
 .member-detail__book:last-child {
@@ -179,21 +219,10 @@ section.panel.container(v-else aria-live="polite")
   flex: 0 0 3.75rem;
   width: 3.75rem;
   height: 5.625rem;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.035)),
+    var(--cover-color, var(--bg-panel));
   font-size: 0.65rem;
-}
-
-.member-detail__book-cover--accent {
-  border-color: var(--accent-border);
-  background:
-    linear-gradient(135deg, rgba(67, 224, 125, 0.16), rgba(255, 255, 255, 0.02)),
-    var(--bg-panel);
-}
-
-.member-detail__book-cover--blue {
-  border-color: var(--warn-border);
-  background:
-    linear-gradient(135deg, rgba(216, 137, 43, 0.18), rgba(255, 255, 255, 0.02)),
-    var(--bg-panel);
 }
 
 .member-detail__book-details {
@@ -216,7 +245,31 @@ section.panel.container(v-else aria-live="polite")
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-md);
+  margin-bottom: var(--space-sm);
   color: var(--text-muted);
+}
+
+.member-detail__book-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.member-detail__book-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding: var(--space-sm);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-panel);
+  color: var(--text-muted);
+}
+
+.member-detail__empty {
+  max-width: 36rem;
 }
 
 @media (max-width: 960px) {
@@ -237,6 +290,10 @@ section.panel.container(v-else aria-live="polite")
 
   .member-detail__book {
     align-items: flex-start;
+  }
+
+  .member-detail__book-stats {
+    grid-template-columns: 1fr;
   }
 }
 </style>

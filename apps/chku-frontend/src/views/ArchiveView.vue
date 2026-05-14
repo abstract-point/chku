@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { ChevronDown, Search, Star } from '@lucide/vue'
+import { CalendarCheck, ChevronDown, MessageSquare, Search, Star } from '@lucide/vue'
 import { useArchiveQuery } from '@/queries/archiveQueries'
 import type { ArchiveBookGenre } from '@/types/club'
 
@@ -53,7 +53,7 @@ const filteredBooks = computed(() => {
       }
 
       if (sortMode.value === 'rating') {
-        return right.rating - left.rating
+        return (right.averageRating ?? right.rating) - (left.averageRating ?? left.rating)
       }
 
       return right.cycleNumber - left.cycleNumber
@@ -93,6 +93,10 @@ function getGenreBadgeClass(genre: ArchiveBookGenre) {
   if (genre === 'nonfiction') return 'badge--done'
   return 'badge--reading'
 }
+
+function ratingLabel(rating: number | undefined) {
+  return typeof rating === 'number' ? `${rating.toFixed(1)}/10` : 'нет'
+}
 </script>
 
 <template lang="pug">
@@ -101,7 +105,7 @@ main.archive.container
     h1.archive__title Архив
     span.archive__count
       strong {{ archiveBooks.length }}
-      |  книг прочитано
+      |  циклов завершено
 
   .archive__controls(aria-label="Фильтры архива")
     label.archive__search
@@ -147,10 +151,22 @@ main.archive.container
             | {{ book.genreLabel }}
         h2.archive-card__title {{ book.title }}
         p.body-text.archive-card__author {{ book.author }}
-        .archive-card__footer
-          span.archive-card__rating.label-text
+        .archive-card__details
+          span.label-text Завершено: {{ book.completedLabel }}
+          span.label-text Предложил(а): {{ book.proposedBy }}
+        .archive-card__stats(aria-label="Статистика цикла")
+          span.archive-card__stat.label-text
             Star(:size="15" aria-hidden="true")
-            span {{ book.rating.toFixed(1) }}/10
+            span {{ ratingLabel(book.averageRating ?? book.rating) }}
+          span.archive-card__stat.label-text
+            Star(:size="15" aria-hidden="true")
+            span {{ book.ratingsCount ?? book.reviews.length }} оценок
+          span.archive-card__stat.label-text
+            MessageSquare(:size="15" aria-hidden="true")
+            span {{ book.reviewsCount ?? book.reviews.length }} отзывов
+          span.archive-card__stat.label-text
+            CalendarCheck(:size="15" aria-hidden="true")
+            span {{ book.attendingCount ?? 0 }}/{{ book.rsvpCount ?? 0 }} RSVP
 
   section.panel.archive__empty(v-else aria-live="polite")
     .section-header.section-header--compact
@@ -342,8 +358,7 @@ main.archive.container
   padding: var(--space-xs) 0;
 }
 
-.archive-card__meta,
-.archive-card__footer {
+.archive-card__meta {
   display: flex;
   align-items: center;
 }
@@ -364,21 +379,35 @@ main.archive.container
   margin-bottom: var(--space-md);
 }
 
-.archive-card__footer {
-  justify-content: center;
+.archive-card__details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-md);
+  color: var(--text-muted);
+}
+
+.archive-card__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
   margin-top: auto;
   padding-top: var(--space-md);
   border-top: var(--border-width) solid var(--border);
 }
 
-.archive-card__rating {
+.archive-card__stat {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
-  color: var(--accent-dim);
+  gap: var(--space-xs);
+  min-width: 0;
+  color: var(--text-muted);
   white-space: nowrap;
-  font-size: 0.86rem;
+  font-size: 0.78rem;
+}
+
+.archive-card__stat:first-child {
+  color: var(--accent-dim);
 }
 
 .archive__empty {

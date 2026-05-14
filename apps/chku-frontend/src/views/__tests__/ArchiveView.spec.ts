@@ -18,9 +18,12 @@ describe('ArchiveView', () => {
     const wrapper = mountArchive()
 
     expect(wrapper.text()).toContain('Архив')
-    expect(wrapper.text()).toContain('8 книг прочитано')
+    expect(wrapper.text()).toContain('8 циклов завершено')
     expect(wrapper.text()).toContain('Тайная история')
     expect(wrapper.text()).toContain('Дюна')
+    expect(wrapper.text()).toContain('2 оценок')
+    expect(wrapper.text()).toContain('2 отзывов')
+    expect(wrapper.text()).toContain('4/5 RSVP')
     expect(wrapper.findComponent(RouterLinkStub).props('to')).toBe('/archive/ten-istoriya')
   })
 
