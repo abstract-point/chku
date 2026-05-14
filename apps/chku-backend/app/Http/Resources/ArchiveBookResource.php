@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Enums\MeetingRsvpStatusEnum;
+use App\Support\MemberAvatar;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -28,7 +29,7 @@ class ArchiveBookResource extends JsonResource
             'cycleLabel' => "Цикл #{$this->cycle_number}",
             'completedLabel' => $this->completed_at?->translatedFormat('F Y'),
             'proposedBy' => $this->whenLoaded('proposer', fn () => $this->proposer->user?->name),
-            'proposerInitials' => $this->whenLoaded('proposer', fn () => $this->proposer->initials),
+            'proposerAvatarUrl' => $this->whenLoaded('proposer', fn () => MemberAvatar::url($this->proposer)),
             'rating' => round($avgRating, 1),
             'averageRating' => round($avgRating, 1),
             'ratingsCount' => $this->ratings->count(),

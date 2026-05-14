@@ -10,10 +10,12 @@ use App\Models\User;
 use App\Http\Resources\MemberDetailResource;
 use App\Http\Resources\MemberResource;
 use App\Services\AuditLogService;
+use App\Services\UserAvatarService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 final class ClubMemberController extends Controller
@@ -44,7 +46,22 @@ final class ClubMemberController extends Controller
         );
     }
 
-    public function store(Request $request): MemberDetailResource
+    public function avatar(ClubMember $member): mixed
+    {
+        $this->authorize('view', $member);
+
+        $path = $member->loadMissing('user')->user?->avatar_path;
+
+        if (! $path || ! Storage::disk('local')->exists($path)) {
+            abort(404);
+        }
+
+        return Storage::disk('local')->response($path, null, [
+            'Cache-Control' => 'private, max-age=86400',
+        ]);
+    }
+
+    public function store(Request $request, UserAvatarService $avatars): MemberDetailResource
     {
         $this->authorize('create', ClubMember::class);
 
@@ -52,13 +69,13 @@ final class ClubMemberController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8'],
-            'initials' => ['required', 'string', 'max:10'],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'favorite_genre_id' => ['nullable', 'integer', 'exists:genres,id'],
             'joined_at' => ['required', 'date'],
             'role' => ['required', 'string', 'in:member,admin,developer'],
         ]);
 
-        $member = DB::transaction(function () use ($payload, $request) {
+        $member = DB::transaction(function () use ($payload, $avatars) {
             $user = User::create([
                 'name' => $payload['name'],
                 'email' => $payload['email'],
@@ -73,11 +90,16 @@ final class ClubMemberController extends Controller
             $member = ClubMember::create([
                 'club_id' => $club->id,
                 'user_id' => $user->id,
-                'initials' => $payload['initials'],
                 'is_active' => true,
                 'joined_at' => $payload['joined_at'],
                 'favorite_genre_id' => $payload['favorite_genre_id'] ?? null,
             ]);
+
+            if (isset($payload['avatar'])) {
+                $user->forceFill([
+                    'avatar_path' => $avatars->store($user, $payload['avatar']),
+                ])->save();
+            }
 
             $user->assignRole($payload['role']);
 

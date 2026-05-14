@@ -9,6 +9,7 @@ use App\Http\Resources\MemberDetailResource;
 use App\Models\ClubMember;
 use App\Models\User;
 use App\Services\MemberCycleHistoryService;
+use App\Services\UserAvatarService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -53,7 +54,6 @@ final class ProfileController extends Controller
 
         $payload = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'initials' => ['required', 'string', 'max:10'],
             'favorite_genre_id' => ['nullable', 'integer', Rule::exists('genres', 'id')],
         ]);
 
@@ -63,10 +63,39 @@ final class ProfileController extends Controller
             ])->save();
 
             $member->forceFill([
-                'initials' => $payload['initials'],
                 'favorite_genre_id' => $payload['favorite_genre_id'] ?? null,
             ])->save();
         });
+
+        return new MemberDetailResource(
+            $member->refresh()->load('user', 'favoriteGenre', 'readingProgress', 'proposedCycles', 'meetingRsvps')
+        );
+    }
+
+    public function updateAvatar(Request $request, UserAvatarService $avatars): MemberDetailResource|JsonResponse
+    {
+        $user = $request->user();
+        assert($user instanceof User);
+
+        $member = ClubMember::query()
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $member) {
+            return response()->json([
+                'message' => 'Профиль участника не найден.',
+            ], 404);
+        }
+
+        $payload = $request->validate([
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ]);
+
+        $path = $avatars->store($user, $payload['avatar']);
+
+        $user->forceFill([
+            'avatar_path' => $path,
+        ])->save();
 
         return new MemberDetailResource(
             $member->refresh()->load('user', 'favoriteGenre', 'readingProgress', 'proposedCycles', 'meetingRsvps')

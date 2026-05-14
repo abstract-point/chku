@@ -20,7 +20,6 @@ final class AuditLogService
             'metadata' => [
                 'user_name' => $newMember->user?->name,
                 'user_email' => $newMember->user?->email,
-                'initials' => $newMember->initials,
             ],
         ]);
     }

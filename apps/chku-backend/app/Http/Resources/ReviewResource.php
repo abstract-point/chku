@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\MemberAvatar;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -12,7 +13,7 @@ class ReviewResource extends JsonResource
         return [
             'id' => $this->id,
             'memberName' => $this->whenLoaded('clubMember', fn () => $this->clubMember->user?->name),
-            'memberInitials' => $this->whenLoaded('clubMember', fn () => $this->clubMember->initials),
+            'memberAvatarUrl' => $this->whenLoaded('clubMember', fn () => MemberAvatar::url($this->clubMember)),
             'rating' => $this->whenLoaded('clubMember', fn () => $this->readingCycle?->ratings->firstWhere('club_member_id', $this->club_member_id)?->rating),
             'text' => $this->text,
         ];

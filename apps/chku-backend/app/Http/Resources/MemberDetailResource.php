@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Services\MemberCycleHistoryService;
+use App\Support\MemberAvatar;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -15,7 +16,7 @@ class MemberDetailResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->user?->name,
-            'initials' => $this->initials,
+            'avatarUrl' => MemberAvatar::url($this->resource),
             'email' => $this->user?->email,
             'isActive' => $this->is_active,
             'memberSince' => $this->joined_at?->format('Y'),

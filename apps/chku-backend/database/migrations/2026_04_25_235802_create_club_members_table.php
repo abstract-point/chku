@@ -13,7 +13,6 @@ return new class extends Migration
             $table->foreignId('club_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('favorite_genre_id')->nullable()->constrained('genres')->nullOnDelete();
-            $table->string('initials', 10);
             $table->boolean('is_active')->default(true);
             $table->date('joined_at');
             $table->timestamps();

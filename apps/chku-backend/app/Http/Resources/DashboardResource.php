@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\DTOs\DashboardData;
+use App\Support\MemberAvatar;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -34,8 +35,8 @@ class DashboardResource extends JsonResource
                 'cycleStatus' => $currentCycle->status->value,
             ] : null,
             'memberProgress' => $this->resource->memberProgress?->map(fn ($p) => [
-                'initials' => $p->clubMember?->initials,
                 'name' => $p->clubMember?->user?->name,
+                'avatarUrl' => MemberAvatar::url($p->clubMember),
                 'status' => $p->status->value === 'finished' ? 'Закончила' : null,
                 'progress' => $p->progress_percent,
                 'badge' => $p->status->value === 'reading' ? 'Читает' : null,
@@ -43,6 +44,7 @@ class DashboardResource extends JsonResource
             'nextMeeting' => $this->resource->nextMeeting ? new MeetingResource($this->resource->nextMeeting) : null,
             'turnOrder' => $this->resource->turnOrder?->map(fn ($to) => [
                 'name' => $to->position . '. ' . $to->clubMember?->user?->name,
+                'avatarUrl' => MemberAvatar::url($to->clubMember),
                 'status' => $to->is_current ? 'Текущий' : ($to->is_next ? 'Выбирает следующую' : ''),
                 'active' => $to->is_next,
                 'isChoosingNow' => $activeCandidateProposerId !== null && $to->club_member_id === $activeCandidateProposerId,

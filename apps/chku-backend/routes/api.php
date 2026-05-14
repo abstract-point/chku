@@ -29,6 +29,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('me', [AuthController::class, 'me']);
     Route::get('me/reading-history', [ProfileController::class, 'readingHistory']);
     Route::patch('me/profile', [ProfileController::class, 'update']);
+    Route::post('me/avatar', [ProfileController::class, 'updateAvatar']);
     Route::put('me/password', [ProfileController::class, 'updatePassword']);
     Route::post('me/two-factor-authentication', [TwoFactorController::class, 'enable']);
     Route::post('me/confirmed-two-factor-authentication', [TwoFactorController::class, 'confirm']);
@@ -52,6 +53,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('me/book-queue/reorder', [MemberBookQueueController::class, 'reorder']);
 
     Route::get('members', [ClubMemberController::class, 'index']);
+    Route::get('members/{member}/avatar', [ClubMemberController::class, 'avatar'])->name('members.avatar');
     Route::get('members/{member}', [ClubMemberController::class, 'show']);
     Route::post('members', [ClubMemberController::class, 'store']);
     Route::post('members/{member}/deactivate', [ClubMemberController::class, 'deactivate']);
