@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import { useClubStore } from '@/stores/club'
+import { useClubQuery } from '@/queries/clubQueries'
 
-const club = useClubStore()
+const clubQuery = useClubQuery()
 const currentYear = computed(() => new Date().getFullYear())
+const clubName = computed(() => clubQuery.data.value?.name ?? 'ЧКУ')
 </script>
 
 <template lang="pug">
 footer.app-footer
   .container.app-footer__inner
     .app-footer__brand
-      span.app-footer__brand-name {{ club.name }}
+      span.app-footer__brand-name {{ clubName }}
       span.app-footer__copy © {{ currentYear }}
     nav.app-footer__nav(aria-label="Нижняя навигация")
       RouterLink(to="/") Дашборд

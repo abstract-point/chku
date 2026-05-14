@@ -4,15 +4,16 @@ import { RouterLink, useRouter } from 'vue-router'
 import { BookMarked, ChevronDown, LogOut, Moon, Settings, Sun, User } from '@lucide/vue'
 import AppLogo from '@/components/AppLogo.vue'
 import { useAuthSession, useLogoutMutation } from '@/queries/authQueries'
-import { useClubStore } from '@/stores/club'
+import { useClubQuery } from '@/queries/clubQueries'
 
-const club = useClubStore()
+const clubQuery = useClubQuery()
 const { isAuthenticated, isDeveloper, roles, user } = useAuthSession()
 const logoutMutation = useLogoutMutation()
 const router = useRouter()
 const theme = ref<'light' | 'dark'>('dark')
 const isUserMenuOpen = ref(false)
 const menuRoot = ref<HTMLElement | null>(null)
+const clubName = computed(() => clubQuery.data.value?.name ?? 'ЧКУ')
 
 const roleLabel = computed(() => {
   if (isDeveloper.value) return 'Разработчик'
@@ -82,7 +83,7 @@ onBeforeUnmount(() => {
 header.app-header
   RouterLink.app-header__brand(to="/")
     AppLogo
-    span.app-header__brand-name {{ club.name }}
+    span.app-header__brand-name {{ clubName }}
 
   nav.app-header__nav(aria-label="Основная навигация")
     template(v-if="isAuthenticated")
