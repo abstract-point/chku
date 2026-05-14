@@ -1,9 +1,11 @@
 export const queryKeys = {
+  club: ['club'] as const,
   dashboard: ['dashboard'] as const,
   activeCandidate: ['candidate', 'active'] as const,
   bookQueue: ['me', 'book-queue'] as const,
   authSession: ['session', 'me'] as const,
   currentUser: ['session', 'me'] as const,
+  currentUserReadingHistory: ['session', 'me', 'reading-history'] as const,
   twoFactorQrCode: ['session', 'two-factor', 'qr-code'] as const,
   twoFactorSecretKey: ['session', 'two-factor', 'secret-key'] as const,
   twoFactorRecoveryCodes: ['session', 'two-factor', 'recovery-codes'] as const,

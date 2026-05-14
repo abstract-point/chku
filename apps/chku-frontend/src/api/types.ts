@@ -16,12 +16,20 @@ export type ApiMember = {
 }
 
 export type ApiProfileBook = {
+  slug?: string | null
   title: string
   coverTitle: string
   author: string
+  coverColor?: string | null
+  cycleNumber: number
+  cycleLabel: string
   completedLabel: string
   proposedBy: string
-  coverVariant?: 'default' | 'accent' | 'blue'
+  myRating?: number | null
+  clubAverageRating?: number | null
+  hasReview: boolean
+  meetingRsvpStatus?: 'attending' | 'not_attending' | 'pending' | null
+  attendedMeeting: boolean
 }
 
 export type ApiClub = {
@@ -185,6 +193,11 @@ export type ApiArchiveBook = {
   proposedBy: string
   proposerInitials: string
   rating: number
+  averageRating?: number
+  ratingsCount?: number
+  reviewsCount?: number
+  attendingCount?: number
+  rsvpCount?: number
   synopsis: string
   meetingLabel: string
   discussionPrompt: string

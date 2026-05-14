@@ -152,6 +152,14 @@ vi.mock('@/queries/dashboardQueries', () => ({
   useUpdateReadingProgressMutation: () => mutationResult(),
 }))
 
+vi.mock('@/queries/clubQueries', () => ({
+  useClubQuery: () => queryResult({
+    id: 1,
+    name: 'Читальный клуб умничек',
+    shortName: 'ЧКУ',
+  }),
+}))
+
 vi.mock('@/queries/memberQueries', () => ({
   useCurrentUserQuery: () => queryResult(members[0]),
   useMembersQuery: () => queryResult(members),
@@ -167,6 +175,10 @@ vi.mock('@/queries/memberQueries', () => ({
       error,
     }
   },
+}))
+
+vi.mock('@/queries/profileQueries', () => ({
+  useCurrentUserReadingHistoryQuery: () => queryResult(members[0]!.readingHistory),
 }))
 
 vi.mock('@/queries/archiveQueries', () => ({
@@ -210,8 +222,26 @@ vi.mock('@/queries/candidateQueries', () => ({
 
 vi.mock('@/queries/bookQueueQueries', () => ({
   useBookQueueQuery: () => ({
-    ...queryResult([]),
-    items: computed(() => []),
+    ...queryResult([
+      {
+        id: 1,
+        position: 1,
+        status: 'queued',
+        title: 'Шум времени',
+        author: 'Джулиан Барнс',
+        reason: 'Роман о компромиссе и достоинстве в эпоху террора.',
+      },
+    ]),
+    items: computed(() => [
+      {
+        id: 1,
+        position: 1,
+        status: 'queued',
+        title: 'Шум времени',
+        author: 'Джулиан Барнс',
+        reason: 'Роман о компромиссе и достоинстве в эпоху террора.',
+      },
+    ]),
   }),
   useCreateBookQueueItemMutation: () => mutationResult(),
   useRemoveBookQueueItemMutation: () => mutationResult(),

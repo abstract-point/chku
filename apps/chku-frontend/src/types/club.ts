@@ -54,12 +54,20 @@ export type MemberProfile = {
 }
 
 export type ProfileBook = {
+  slug?: string | null
   title: string
   coverTitle: string
   author: string
+  coverColor?: string | null
+  cycleNumber: number
+  cycleLabel: string
   completedLabel: string
   proposedBy: string
-  coverVariant?: 'default' | 'accent' | 'blue'
+  myRating?: number | null
+  clubAverageRating?: number | null
+  hasReview: boolean
+  meetingRsvpStatus?: 'attending' | 'not_attending' | 'pending' | null
+  attendedMeeting: boolean
 }
 
 export type ArchiveBookGenre = 'fiction' | 'nonfiction' | 'scifi'
@@ -91,6 +99,11 @@ export type ArchiveBook = {
   proposedBy: string
   proposerInitials: string
   rating: number
+  averageRating?: number
+  ratingsCount?: number
+  reviewsCount?: number
+  attendingCount?: number
+  rsvpCount?: number
   synopsis: string
   meetingLabel: string
   discussionPrompt: string
