@@ -18,6 +18,7 @@ class DashboardResource extends JsonResource
         $progress = $this->resource->currentUserProgress;
         $nextSelector = $this->resource->nextSelector;
         $isNextSelector = $nextSelector?->id === $this->resource->currentMember->id;
+        $activeCandidateProposerId = $this->resource->activeCandidate?->proposer_id;
 
         return [
             'club' => new ClubResource($this->resource->club),
@@ -29,6 +30,8 @@ class DashboardResource extends JsonResource
                 'description' => $book->description,
                 'progress' => $progress?->progress_percent ?? 0,
                 'progressLabel' => $this->formatProgressLabel($progress),
+                'cycleNumber' => $currentCycle->cycle_number,
+                'cycleStatus' => $currentCycle->status->value,
             ] : null,
             'memberProgress' => $this->resource->memberProgress?->map(fn ($p) => [
                 'initials' => $p->clubMember?->initials,
@@ -42,6 +45,9 @@ class DashboardResource extends JsonResource
                 'name' => $to->position . '. ' . $to->clubMember?->user?->name,
                 'status' => $to->is_current ? 'Текущий' : ($to->is_next ? 'Выбирает следующую' : ''),
                 'active' => $to->is_next,
+                'isChoosingNow' => $activeCandidateProposerId !== null && $to->club_member_id === $activeCandidateProposerId,
+                'isCurrentCycleProposer' => $to->is_current && $currentCycle !== null,
+                'cycleNumber' => $to->is_current ? ($currentCycle?->cycle_number) : null,
             ]),
             'activeCandidate' => $this->resource->activeCandidate
                 ? new BookCandidateResource($this->resource->activeCandidate)
@@ -52,7 +58,9 @@ class DashboardResource extends JsonResource
                     : ($currentCycle ? 'reading' : 'awaiting_next_book'),
                 'currentCycleStatus' => $currentCycle?->status->value,
                 'currentCycleId' => $currentCycle?->id,
+                'currentCycleNumber' => $currentCycle?->cycle_number,
                 'nextSelector' => $nextSelector ? new MemberResource($nextSelector) : null,
+                'nextSelectorName' => $nextSelector?->user?->name,
                 'nextSelectorQueueEmpty' => $this->resource->nextSelectorQueueEmpty,
                 'shouldShowChooseBookBanner' => $isNextSelector && $this->resource->nextSelectorQueueEmpty,
                 'canCompleteCycle' => $currentCycle !== null && $this->resource->missingRatings->isEmpty(),

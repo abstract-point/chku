@@ -4,6 +4,8 @@ export const turnOrder = [
   {
     name: '1. Михаил',
     status: 'Текущий',
+    isCurrentCycleProposer: true,
+    cycleNumber: 42,
   },
   {
     name: '2. Елена',
@@ -12,10 +14,10 @@ export const turnOrder = [
   },
   {
     name: '3. Анна',
-    status: 'Ноябрь',
+    status: '',
   },
   {
     name: '4. Тимур',
-    status: 'Декабрь',
+    status: '',
   },
 ] satisfies TurnOrderMember[]

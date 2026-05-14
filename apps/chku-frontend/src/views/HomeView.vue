@@ -38,6 +38,7 @@ main.dashboard.container
         v-else-if="dashboardQuery.data.value.currentBook"
         :book="dashboardQuery.data.value.currentBook"
         :members="dashboardQuery.data.value.memberProgress"
+        :next-selector-name="dashboardQuery.data.value.lifecycle?.nextSelectorName"
       )
       section.panel(v-else)
         .section-header.section-header--compact
@@ -64,7 +65,10 @@ main.dashboard.container
             :disabled="completeCycleMutation.isPending.value"
             @click="completeCycleMutation.mutate()"
           ) {{ completeCycleMutation.isPending.value ? 'Завершаем...' : 'Завершить цикл' }}
-        DashboardTurnOrderCard(:members="dashboardQuery.data.value.turnOrder")
+        DashboardTurnOrderCard(
+          :members="dashboardQuery.data.value.turnOrder"
+          :cycle-status="dashboardQuery.data.value.lifecycle?.currentCycleStatus"
+        )
         section.panel.panel--filled.dashboard-stats(aria-labelledby="club-stats-title")
           .section-header.section-header--compact
             span#club-stats-title.label-text Клубная сводка

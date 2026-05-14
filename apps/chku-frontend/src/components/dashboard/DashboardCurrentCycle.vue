@@ -8,6 +8,7 @@ import type { BookProgressMember, CurrentBook } from '@/types/dashboard'
 const props = defineProps<{
   book: CurrentBook
   members: BookProgressMember[]
+  nextSelectorName?: string | null
 }>()
 
 const coverTitleLines = computed(() => props.book.coverTitle.split('\n'))
@@ -17,6 +18,20 @@ const updateProgressMutation = useUpdateReadingProgressMutation()
 const progressErrorMessage = computed(() =>
   updateProgressMutation.error.value ? 'Не удалось сохранить прогресс. Попробуй ещё раз.' : '',
 )
+
+const cycleHeaderLabel = computed(() => {
+  if (props.book.cycleStatus === 'active') {
+    return `Цикл #${props.book.cycleNumber}`
+  }
+  return null
+})
+
+const nextSelectorLabel = computed(() => {
+  if (props.nextSelectorName) {
+    return `Выбирает следующую: ${props.nextSelectorName}`
+  }
+  return null
+})
 
 function openProgressForm() {
   updateProgressMutation.reset()
@@ -44,7 +59,8 @@ function saveProgress(progressPercent: number) {
 section.dashboard__main(aria-labelledby="current-cycle-title")
   .section-header
     h2#current-cycle-title Текущий цикл
-    span.label-text Цикл #42 • Завершение 15 окт
+    span.label-text(v-if="cycleHeaderLabel") {{ cycleHeaderLabel }}
+    span.label-text(v-if="nextSelectorLabel") {{ nextSelectorLabel }}
 
   article.current-book
     .book-cover.current-book__cover(:aria-label="`Обложка книги ${book.title}`")
