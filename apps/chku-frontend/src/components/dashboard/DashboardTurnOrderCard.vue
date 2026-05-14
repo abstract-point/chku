@@ -62,6 +62,13 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
   color: var(--text-main);
 }
 
+.turn-order__current-process .turn-order__item--active {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
 .turn-order__item {
   color: var(--text-muted);
   min-height: 3rem;
