@@ -14,12 +14,30 @@ export const membersApi = {
     name: string
     email: string
     password: string
-    initials: string
+    avatar?: File | null
     favorite_genre_id: number | null
     joined_at: string
     role: 'member' | 'admin' | 'developer'
   }) {
-    return http.post<unknown, ApiMember>('/members', payload)
+    if (!payload.avatar) {
+      const { avatar: _avatar, ...jsonPayload } = payload
+      return http.post<unknown, ApiMember>('/members', jsonPayload)
+    }
+
+    const formData = new FormData()
+    formData.set('name', payload.name)
+    formData.set('email', payload.email)
+    formData.set('password', payload.password)
+    formData.set('joined_at', payload.joined_at)
+    formData.set('role', payload.role)
+    if (payload.favorite_genre_id !== null) {
+      formData.set('favorite_genre_id', String(payload.favorite_genre_id))
+    }
+    formData.set('avatar', payload.avatar)
+
+    return http.post<unknown, ApiMember>('/members', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
   },
 
   async deactivate(id: number) {

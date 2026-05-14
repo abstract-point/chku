@@ -20,10 +20,10 @@ export const meetingDetail = {
   ],
   rsvpStatus: 'pending' as const,
   attendees: [
-    { id: 1, name: 'Екатерина Л.', initials: 'ЕЛ', status: 'attending' as const },
-    { id: 2, name: 'Михаил К.', initials: 'МК', status: 'attending' as const },
-    { id: 3, name: 'Анна С.', initials: 'АС', status: 'attending' as const },
-    { id: 4, name: 'Дмитрий П.', initials: 'ДП', status: 'attending' as const },
+    { id: 1, name: 'Екатерина Л.', status: 'attending' as const },
+    { id: 2, name: 'Михаил К.', status: 'attending' as const },
+    { id: 3, name: 'Анна С.', status: 'attending' as const },
+    { id: 4, name: 'Дмитрий П.', status: 'attending' as const },
   ],
   book: {
     title: 'Тень ветра',

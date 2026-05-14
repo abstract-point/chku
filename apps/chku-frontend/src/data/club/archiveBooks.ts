@@ -12,7 +12,7 @@ export const archiveBooks = [
     cycleLabel: 'Цикл #41',
     completedLabel: 'сентябрь 2023',
     proposedBy: 'Елена',
-    proposerInitials: 'ЕЛ',
+    proposerAvatarUrl: null,
     rating: 9.2,
     averageRating: 9.2,
     ratingsCount: 2,
@@ -28,13 +28,13 @@ export const archiveBooks = [
     reviews: [
       {
         memberName: 'Елена',
-        memberInitials: 'ЕЛ',
+        memberAvatarUrl: null,
         rating: 9,
         text: 'Очень плотная книга для обсуждения: атмосфера держит, а герои вызывают споры почти в каждой сцене.',
       },
       {
         memberName: 'Михаил',
-        memberInitials: 'МИ',
+        memberAvatarUrl: null,
         rating: 10,
         text: 'Лучший разговор сезона. Особенно хорошо сработала тема избранности и самообмана.',
       },
@@ -42,7 +42,7 @@ export const archiveBooks = [
     discussion: [
       {
         memberName: 'Анна',
-        memberInitials: 'АН',
+        memberAvatarUrl: null,
         dateLabel: 'после встречи',
         text: 'Хочется отдельно вернуться к тому, как роман показывает дружбу как зависимость.',
       },
@@ -59,7 +59,7 @@ export const archiveBooks = [
     cycleLabel: 'Цикл #40',
     completedLabel: 'август 2023',
     proposedBy: 'Михаил',
-    proposerInitials: 'МИ',
+    proposerAvatarUrl: null,
     rating: 8.6,
     averageRating: 8.6,
     ratingsCount: 2,
@@ -74,13 +74,13 @@ export const archiveBooks = [
     reviews: [
       {
         memberName: 'Михаил',
-        memberInitials: 'МИ',
+        memberAvatarUrl: null,
         rating: 9,
         text: 'Масштаб впечатляет, но сильнее всего зацепили экологические детали и цена пророчества.',
       },
       {
         memberName: 'Ольга',
-        memberInitials: 'ОЛ',
+        memberAvatarUrl: null,
         rating: 8,
         text: 'Местами тяжеловато, зато мир ощущается цельным и очень продуманным.',
       },
@@ -88,7 +88,7 @@ export const archiveBooks = [
     discussion: [
       {
         memberName: 'Елена',
-        memberInitials: 'ЕЛ',
+        memberAvatarUrl: null,
         dateLabel: 'на встрече',
         text: 'Обсуждение ушло в вопрос о том, как харизма лидера становится ловушкой для общества.',
       },
@@ -105,7 +105,7 @@ export const archiveBooks = [
     cycleLabel: 'Цикл #39',
     completedLabel: 'июль 2023',
     proposedBy: 'Анна',
-    proposerInitials: 'АН',
+    proposerAvatarUrl: null,
     rating: 7.8,
     averageRating: 7.8,
     ratingsCount: 2,
@@ -120,13 +120,13 @@ export const archiveBooks = [
     reviews: [
       {
         memberName: 'Анна',
-        memberInitials: 'АН',
+        memberAvatarUrl: null,
         rating: 8,
         text: 'Не со всем согласна, но книга отлично запускает разговор о коллективных мифах.',
       },
       {
         memberName: 'Елена',
-        memberInitials: 'ЕЛ',
+        memberAvatarUrl: null,
         rating: 7,
         text: 'Понравилась структура, хотя некоторые главы хотелось проверять по дополнительным источникам.',
       },
@@ -134,7 +134,7 @@ export const archiveBooks = [
     discussion: [
       {
         memberName: 'Михаил',
-        memberInitials: 'МИ',
+        memberAvatarUrl: null,
         dateLabel: 'после встречи',
         text: 'Отдельно записал тему денег как доверия для будущей дискуссии.',
       },
@@ -151,7 +151,7 @@ export const archiveBooks = [
     cycleLabel: 'Цикл #38',
     completedLabel: 'июнь 2023',
     proposedBy: 'Ольга',
-    proposerInitials: 'ОЛ',
+    proposerAvatarUrl: null,
     rating: 9.0,
     averageRating: 9.0,
     ratingsCount: 2,
@@ -166,13 +166,13 @@ export const archiveBooks = [
     reviews: [
       {
         memberName: 'Ольга',
-        memberInitials: 'ОЛ',
+        memberAvatarUrl: null,
         rating: 9,
         text: 'Перечитывать было тревожно, но разговор получился очень точным.',
       },
       {
         memberName: 'Анна',
-        memberInitials: 'АН',
+        memberAvatarUrl: null,
         rating: 9,
         text: 'Больше всего обсуждали язык как инструмент ограничения воображения.',
       },
@@ -180,7 +180,7 @@ export const archiveBooks = [
     discussion: [
       {
         memberName: 'Елена',
-        memberInitials: 'ЕЛ',
+        memberAvatarUrl: null,
         dateLabel: 'заметка',
         text: 'Стоит сравнить с Замятиным в одном из следующих циклов.',
       },
@@ -197,7 +197,7 @@ export const archiveBooks = [
     cycleLabel: 'Цикл #37',
     completedLabel: 'май 2023',
     proposedBy: 'Елена',
-    proposerInitials: 'ЕЛ',
+    proposerAvatarUrl: null,
     rating: 7.4,
     averageRating: 7.4,
     ratingsCount: 2,
@@ -212,13 +212,13 @@ export const archiveBooks = [
     reviews: [
       {
         memberName: 'Елена',
-        memberInitials: 'ЕЛ',
+        memberAvatarUrl: null,
         rating: 8,
         text: 'Книга совсем не про монстра в привычном смысле, а про оставленность.',
       },
       {
         memberName: 'Михаил',
-        memberInitials: 'МИ',
+        memberAvatarUrl: null,
         rating: 7,
         text: 'Понравилась рамочная структура, но эмоционально не всё сработало.',
       },
@@ -226,7 +226,7 @@ export const archiveBooks = [
     discussion: [
       {
         memberName: 'Ольга',
-        memberInitials: 'ОЛ',
+        memberAvatarUrl: null,
         dateLabel: 'на встрече',
         text: 'Сошлись на том, что роман лучше обсуждать через тему родительства.',
       },
@@ -243,7 +243,7 @@ export const archiveBooks = [
     cycleLabel: 'Цикл #36',
     completedLabel: 'апрель 2023',
     proposedBy: 'Михаил',
-    proposerInitials: 'МИ',
+    proposerAvatarUrl: null,
     rating: 8.1,
     averageRating: 8.1,
     ratingsCount: 2,
@@ -258,13 +258,13 @@ export const archiveBooks = [
     reviews: [
       {
         memberName: 'Михаил',
-        memberInitials: 'МИ',
+        memberAvatarUrl: null,
         rating: 8,
         text: 'Некоторые главы сухие, зато примеры легко применить к собственным решениям.',
       },
       {
         memberName: 'Анна',
-        memberInitials: 'АН',
+        memberAvatarUrl: null,
         rating: 8,
         text: 'Хорошо для клуба: каждый принёс личный пример ошибки мышления.',
       },
@@ -272,7 +272,7 @@ export const archiveBooks = [
     discussion: [
       {
         memberName: 'Елена',
-        memberInitials: 'ЕЛ',
+        memberAvatarUrl: null,
         dateLabel: 'заметка',
         text: 'В следующий раз к нон-фикшну стоит готовить список вопросов заранее.',
       },
@@ -289,7 +289,7 @@ export const archiveBooks = [
     cycleLabel: 'Цикл #35',
     completedLabel: 'март 2023',
     proposedBy: 'Ольга',
-    proposerInitials: 'ОЛ',
+    proposerAvatarUrl: null,
     rating: 8.8,
     averageRating: 8.8,
     ratingsCount: 2,
@@ -304,13 +304,13 @@ export const archiveBooks = [
     reviews: [
       {
         memberName: 'Ольга',
-        memberInitials: 'ОЛ',
+        memberAvatarUrl: null,
         rating: 9,
         text: 'Очень цельный опыт: язык, сюжет и тема искупления держатся вместе.',
       },
       {
         memberName: 'Елена',
-        memberInitials: 'ЕЛ',
+        memberAvatarUrl: null,
         rating: 9,
         text: 'Одна из самых тихих и сильных встреч клуба.',
       },
@@ -318,7 +318,7 @@ export const archiveBooks = [
     discussion: [
       {
         memberName: 'Михаил',
-        memberInitials: 'МИ',
+        memberAvatarUrl: null,
         dateLabel: 'после встречи',
         text: 'Понравилась мысль о том, что герой не исправляет прошлое, а несёт его.',
       },
@@ -335,7 +335,7 @@ export const archiveBooks = [
     cycleLabel: 'Цикл #34',
     completedLabel: 'февраль 2023',
     proposedBy: 'Анна',
-    proposerInitials: 'АН',
+    proposerAvatarUrl: null,
     rating: 8.4,
     averageRating: 8.4,
     ratingsCount: 2,
@@ -350,13 +350,13 @@ export const archiveBooks = [
     reviews: [
       {
         memberName: 'Анна',
-        memberInitials: 'АН',
+        memberAvatarUrl: null,
         rating: 9,
         text: 'Сильнее всего сработала невозможность понять чужое без насилия интерпретации.',
       },
       {
         memberName: 'Ольга',
-        memberInitials: 'ОЛ',
+        memberAvatarUrl: null,
         rating: 8,
         text: 'Медленная, но очень точная книга для разговора о памяти.',
       },
@@ -364,7 +364,7 @@ export const archiveBooks = [
     discussion: [
       {
         memberName: 'Елена',
-        memberInitials: 'ЕЛ',
+        memberAvatarUrl: null,
         dateLabel: 'на встрече',
         text: 'Отдельно обсуждали, почему научная экспедиция быстро становится исповедью.',
       },

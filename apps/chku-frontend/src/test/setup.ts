@@ -137,6 +137,7 @@ vi.mock('@/queries/authQueries', () => ({
   useTwoFactorChallengeMutation: () => mutationResult(),
   useLogoutMutation: () => mutationResult(),
   useUpdateProfileMutation: () => mutationResult(),
+  useUpdateAvatarMutation: () => mutationResult(),
   useUpdatePasswordMutation: () => mutationResult(),
   useEnableTwoFactorMutation: () => mutationResult(),
   useConfirmTwoFactorSetupMutation: () => mutationResult(),

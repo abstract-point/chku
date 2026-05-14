@@ -11,8 +11,8 @@ export type CurrentBook = {
 }
 
 export type BookProgressMember = {
-  initials: string
   name: string
+  avatarUrl?: string | null
   status?: string
   progress?: number
   badge?: string
@@ -20,7 +20,7 @@ export type BookProgressMember = {
 
 export type TurnOrderMember = {
   name: string
-  initials: string
+  avatarUrl?: string | null
   status?: string
   active?: boolean
   isChoosingNow?: boolean
@@ -42,7 +42,7 @@ export type MeetingSummary = {
 export type MeetingAttendee = {
   id: number
   name: string
-  initials: string
+  avatarUrl?: string | null
   status: 'attending' | 'not_attending' | 'pending'
   favoriteGenre?: string
   memberSince?: string

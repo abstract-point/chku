@@ -30,10 +30,18 @@ export const authApi = {
 
   async updateProfile(payload: {
     name: string
-    initials: string
     favorite_genre_id: number | null
   }) {
     return http.patch<unknown, ApiMember>('/me/profile', payload)
+  },
+
+  async updateAvatar(avatar: File) {
+    const formData = new FormData()
+    formData.set('avatar', avatar)
+
+    return http.post<unknown, ApiMember>('/me/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
   },
 
   async updatePassword(payload: {

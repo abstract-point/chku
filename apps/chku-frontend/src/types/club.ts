@@ -9,9 +9,9 @@ export type BookChoiceEvent = {
   responses?: {
     id: number
     member: {
-      id: number
-      name: string
-      initials: string
+    id: number
+    name: string
+    avatarUrl?: string | null
     }
     response: 'not_read' | 'read' | 'pending'
   }[]
@@ -39,7 +39,7 @@ export type BookQueueItem = {
 export type MemberProfile = {
   id: number
   name: string
-  initials: string
+  avatarUrl?: string | null
   memberSince: string
   isActive: boolean
   email: string
@@ -74,14 +74,14 @@ export type ArchiveBookGenre = 'fiction' | 'nonfiction' | 'scifi'
 
 export type ArchiveBookReview = {
   memberName: string
-  memberInitials: string
+  memberAvatarUrl?: string | null
   rating: number
   text: string
 }
 
 export type ArchiveDiscussionMessage = {
   memberName: string
-  memberInitials: string
+  memberAvatarUrl?: string | null
   dateLabel: string
   text: string
 }
@@ -97,7 +97,7 @@ export type ArchiveBook = {
   cycleLabel: string
   completedLabel: string
   proposedBy: string
-  proposerInitials: string
+  proposerAvatarUrl?: string | null
   rating: number
   averageRating?: number
   ratingsCount?: number

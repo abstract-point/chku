@@ -4,7 +4,6 @@ export const members = [
   {
     id: 1,
     name: 'Елена Воронцова',
-    initials: 'ЕЛ',
     memberSince: '2021',
     isActive: true,
     email: 'elena@example.com',
@@ -68,7 +67,6 @@ export const members = [
   {
     id: 2,
     name: 'Михаил Корнев',
-    initials: 'МК',
     memberSince: '2021',
     isActive: true,
     email: 'mikhail@example.com',
@@ -132,7 +130,6 @@ export const members = [
   {
     id: 3,
     name: 'Анна Соколова',
-    initials: 'АС',
     memberSince: '2022',
     isActive: true,
     email: 'anna@example.com',
@@ -196,7 +193,6 @@ export const members = [
   {
     id: 4,
     name: 'Тимур Васильев',
-    initials: 'ТВ',
     memberSince: '2022',
     isActive: true,
     email: 'timur@example.com',
@@ -260,7 +256,6 @@ export const members = [
   {
     id: 5,
     name: 'Ольга Петрова',
-    initials: 'ОП',
     memberSince: '2021',
     isActive: false,
     email: 'olga@example.com',
@@ -324,7 +319,6 @@ export const members = [
   {
     id: 6,
     name: 'Дмитрий Смирнов',
-    initials: 'ДС',
     memberSince: '2020',
     isActive: false,
     email: 'dmitry@example.com',

@@ -18,7 +18,7 @@ export function mapMeetingSummary(meeting: ApiMeeting): MeetingSummary {
       meeting.rsvps?.map((rsvp) => ({
         id: rsvp.member.id,
         name: rsvp.member.name,
-        initials: rsvp.member.initials,
+        avatarUrl: rsvp.member.avatarUrl ?? null,
         status: rsvp.status,
         favoriteGenre: rsvp.member.favoriteGenre,
         memberSince: rsvp.member.memberSince,

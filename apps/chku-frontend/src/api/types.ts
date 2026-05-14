@@ -1,7 +1,7 @@
 export type ApiMember = {
   id: number
   name: string
-  initials: string
+  avatarUrl?: string | null
   email: string
   isActive: boolean
   memberSince: string
@@ -131,8 +131,8 @@ export type ApiDashboard = {
     cycleStatus: string
   } | null
   memberProgress: {
-    initials: string
     name: string
+    avatarUrl?: string | null
     status?: string | null
     progress?: number | null
     badge?: string | null
@@ -140,7 +140,7 @@ export type ApiDashboard = {
   nextMeeting: ApiMeeting | null
   turnOrder: {
     name: string
-    initials: string
+    avatarUrl?: string | null
     status?: string
     active?: boolean
     isChoosingNow?: boolean
@@ -200,7 +200,7 @@ export type ApiArchiveBook = {
   cycleLabel: string
   completedLabel: string
   proposedBy: string
-  proposerInitials: string
+  proposerAvatarUrl?: string | null
   rating: number
   averageRating?: number
   ratingsCount?: number
@@ -213,13 +213,13 @@ export type ApiArchiveBook = {
   coverColor: string
   reviews: {
     memberName: string
-    memberInitials: string
+    memberAvatarUrl?: string | null
     rating: number
     text: string
   }[]
   discussion: {
     memberName: string
-    memberInitials: string
+    memberAvatarUrl?: string | null
     dateLabel: string
     text: string
   }[]

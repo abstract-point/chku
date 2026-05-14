@@ -114,7 +114,27 @@ export function useUpdateProfileMutation() {
 
   return useMutation({
     mutationFn: authApi.updateProfile,
-    onSuccess: () => refreshAuthSession(client),
+    onSuccess: (member) => {
+      refreshAuthSession(client)
+      void client.invalidateQueries({ queryKey: queryKeys.members })
+      void client.invalidateQueries({ queryKey: queryKeys.member(member.id) })
+      void client.invalidateQueries({ queryKey: queryKeys.dashboard })
+    },
+  })
+}
+
+export function useUpdateAvatarMutation() {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: authApi.updateAvatar,
+    onSuccess: (member) => {
+      refreshAuthSession(client)
+      void client.invalidateQueries({ queryKey: queryKeys.members })
+      void client.invalidateQueries({ queryKey: queryKeys.member(member.id) })
+      void client.invalidateQueries({ queryKey: queryKeys.dashboard })
+      void client.invalidateQueries({ queryKey: queryKeys.archive })
+    },
   })
 }
 
