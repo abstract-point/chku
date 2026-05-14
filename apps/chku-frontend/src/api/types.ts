@@ -119,6 +119,8 @@ export type ApiDashboard = {
     description: string
     progress: number
     progressLabel: string
+    cycleNumber: number
+    cycleStatus: string
   } | null
   memberProgress: {
     initials: string
@@ -132,13 +134,18 @@ export type ApiDashboard = {
     name: string
     status: string
     active?: boolean
+    isChoosingNow?: boolean
+    isCurrentCycleProposer?: boolean
+    cycleNumber?: number | null
   }[]
   activeCandidate: ApiBookCandidate | null
   lifecycle?: {
     state: string
     currentCycleStatus?: string | null
     currentCycleId?: number | null
+    currentCycleNumber?: number | null
     nextSelector?: ApiMember | null
+    nextSelectorName?: string | null
     nextSelectorQueueEmpty: boolean
     shouldShowChooseBookBanner: boolean
     canCompleteCycle: boolean

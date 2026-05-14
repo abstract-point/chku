@@ -6,6 +6,8 @@ export type CurrentBook = {
   description: string
   progress: number
   progressLabel: string
+  cycleNumber: number
+  cycleStatus: string
 }
 
 export type BookProgressMember = {
@@ -20,6 +22,9 @@ export type TurnOrderMember = {
   name: string
   status: string
   active?: boolean
+  isChoosingNow?: boolean
+  isCurrentCycleProposer?: boolean
+  cycleNumber?: number | null
 }
 
 export type MeetingSummary = {
