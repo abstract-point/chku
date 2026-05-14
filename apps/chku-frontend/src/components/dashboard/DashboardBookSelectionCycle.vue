@@ -44,7 +44,7 @@ const responseSummary = computed(() => {
     return 'Есть ответ «читал(а)», этот кандидат не пройдёт проверку.'
   }
 
-  return `Ответили «не читал(а)»: ${notReadCount.value}. Ждём ответов: ${pendingCount.value}.`
+  return `Ответили «не читал(а)»: ${notReadCount.value}. Ждём: ${pendingCount.value}.`
 })
 
 function responseLabel(response: ApiBookCandidateResponse['response']) {

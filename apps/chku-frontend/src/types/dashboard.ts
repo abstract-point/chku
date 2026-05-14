@@ -16,6 +16,8 @@ export type BookProgressMember = {
   status?: string
   progress?: number
   badge?: string
+  rank?: number
+  medal?: 'gold' | 'silver' | 'bronze' | null
 }
 
 export type TurnOrderMember = {
@@ -67,6 +69,10 @@ export type MeetingDetail = {
   placeReservation?: string
   meetingLink?: string
   topics: string[]
+  status: 'scheduled' | 'started' | 'finished'
+  canStart: boolean
+  canFinish: boolean
+  missingRatingMemberIds: number[]
   rsvpStatus: 'attending' | 'not_attending' | 'pending'
   attendees: MeetingAttendee[]
   book: MeetingBook

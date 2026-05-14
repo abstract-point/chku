@@ -12,6 +12,10 @@ export const meetingDetail = {
   placeAddress: 'ул. Литературная, 123, центр',
   placeReservation: 'Забронировано на имя «ЧКУ»',
   meetingLink: 'zoom.us/j/chku-meeting',
+  status: 'scheduled',
+  canStart: true,
+  canFinish: false,
+  missingRatingMemberIds: [],
   topics: [
     'Значение Кладбища забытых книг.',
     'Прогрессия характера Даниэля и параллели с Хулианом Караксом.',

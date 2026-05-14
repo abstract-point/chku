@@ -32,6 +32,14 @@ export const meetingsApi = {
     return http.patch<unknown, ApiMeeting>(`/meetings/${id}`, payload)
   },
 
+  async start(id: string | number) {
+    return http.post<unknown, ApiMeeting>(`/meetings/${id}/start`)
+  },
+
+  async finish(id: string | number) {
+    return http.post<unknown, ApiMeeting>(`/meetings/${id}/finish`)
+  },
+
   async updateMyRsvp(id: string | number, status: 'attending' | 'not_attending' | 'pending') {
     return http.patch<unknown, ApiMeeting>(`/meetings/${id}/rsvps/me`, { status })
   },

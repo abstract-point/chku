@@ -86,6 +86,12 @@ export type ApiMeeting = {
   isOnline?: boolean
   topics?: string[]
   notes?: string
+  startedAt?: string | null
+  finishedAt?: string | null
+  status?: 'scheduled' | 'started' | 'finished'
+  canStart?: boolean
+  canFinish?: boolean
+  missingRatingMemberIds?: number[]
   rsvps?: ApiMeetingRsvp[]
   reschedules?: ApiMeetingReschedule[]
   book?: ApiBook
@@ -136,6 +142,8 @@ export type ApiDashboard = {
     status?: string | null
     progress?: number | null
     badge?: string | null
+    rank?: number
+    medal?: 'gold' | 'silver' | 'bronze' | null
   }[]
   nextMeeting: ApiMeeting | null
   turnOrder: {

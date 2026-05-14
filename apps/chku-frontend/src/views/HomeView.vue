@@ -7,11 +7,9 @@ import DashboardMeetingCard from '@/components/dashboard/DashboardMeetingCard.vu
 import DashboardTurnOrderCard from '@/components/dashboard/DashboardTurnOrderCard.vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
-import { useCompleteCurrentCycleMutation } from '@/queries/readingCycleQueries'
 
 const dashboardQuery = useDashboardQuery()
 const { isAdmin } = useAuthSession()
-const completeCycleMutation = useCompleteCurrentCycleMutation()
 const statIcons = [BookOpen, Star, Users, Calendar]
 </script>
 
@@ -56,15 +54,6 @@ main.dashboard.container
             h3 Встреча ещё не назначена
             p.body-text Начните новый цикл с планирования встречи.
           RouterLink.button.button--primary.label-text.dashboard-card__button(to="/meetings/create") Назначить встречу
-        section.panel.dashboard-card(v-if="isAdmin && dashboardQuery.data.value.lifecycle?.canCompleteCycle")
-          .section-header.section-header--compact
-            span.label-text Завершение цикла
-          p.body-text Все активные участники поставили оценки. Цикл можно отправить в архив.
-          button.button.button--primary.label-text.dashboard-card__button(
-            type="button"
-            :disabled="completeCycleMutation.isPending.value"
-            @click="completeCycleMutation.mutate()"
-          ) {{ completeCycleMutation.isPending.value ? 'Завершаем...' : 'Завершить цикл' }}
         DashboardTurnOrderCard(
           :members="dashboardQuery.data.value.turnOrder"
           :cycle-status="dashboardQuery.data.value.lifecycle?.currentCycleStatus"

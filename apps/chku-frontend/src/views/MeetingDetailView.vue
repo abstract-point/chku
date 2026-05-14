@@ -5,7 +5,9 @@ import { BookOpen, CalendarDays, Link as LinkIcon, MapPin, Monitor, Pencil, Send
 import UserAvatar from '@/components/UserAvatar.vue'
 import {
   useAddMeetingTopicMutation,
+  useFinishMeetingMutation,
   useMeetingQuery,
+  useStartMeetingMutation,
   useUpdateMeetingRsvpMutation,
 } from '@/queries/meetingQueries'
 import { useAuthSession } from '@/queries/authQueries'
@@ -17,6 +19,8 @@ const meetingId = computed(() => String(route.params.id ?? ''))
 const meetingQuery = useMeetingQuery(meetingId, computed(() => user.value?.id))
 const updateRsvpMutation = useUpdateMeetingRsvpMutation(meetingId)
 const addTopicMutation = useAddMeetingTopicMutation(meetingId)
+const startMeetingMutation = useStartMeetingMutation(meetingId)
+const finishMeetingMutation = useFinishMeetingMutation(meetingId)
 const saveRatingReviewMutation = useSaveRatingReviewMutation()
 const meeting = computed(() => meetingQuery.data.value)
 const newTopic = ref('')
@@ -25,6 +29,14 @@ const localTopics = ref<string[]>([])
 const rating = ref<number | null>(null)
 const review = ref('')
 const ratingSubmitted = ref(false)
+
+const missingRatingAttendees = computed(() => {
+  if (!meeting.value) return []
+
+  return meeting.value.attendees.filter((attendee) =>
+    meeting.value!.missingRatingMemberIds.includes(attendee.id),
+  )
+})
 
 watchEffect(() => {
   rsvpStatus.value = meeting.value?.rsvpStatus ?? 'pending'
@@ -59,6 +71,14 @@ function submitRatingReview() {
     rating: rating.value,
     review: review.value.trim(),
   })
+}
+
+function startMeeting() {
+  startMeetingMutation.mutate()
+}
+
+function finishMeeting() {
+  finishMeetingMutation.mutate()
 }
 </script>
 
@@ -116,6 +136,27 @@ main.meeting-detail.container
               .meeting-detail__link-box
                 LinkIcon
                 span.body-text {{ meeting.meetingLink }}
+
+        .panel.meeting-detail__admin(v-if="isAdmin")
+          .section-header.section-header--compact
+            h2 Управление встречей
+            span.label-text {{ meeting.status === 'finished' ? 'Завершена' : meeting.status === 'started' ? 'Идёт' : 'Запланирована' }}
+          .meeting-detail__admin-actions
+            button.button.button--secondary.label-text(
+              type="button"
+              :disabled="!meeting.canStart || startMeetingMutation.isPending.value"
+              @click="startMeeting"
+            ) {{ startMeetingMutation.isPending.value ? 'Начинаем...' : 'Начать встречу' }}
+            button.button.button--primary.label-text(
+              type="button"
+              :disabled="meeting.status !== 'started' || !meeting.canFinish || finishMeetingMutation.isPending.value"
+              @click="finishMeeting"
+            ) {{ finishMeetingMutation.isPending.value ? 'Завершаем...' : 'Закончить встречу' }}
+          .inline-alert(v-if="meeting.status === 'started' && missingRatingAttendees.length")
+            | Нужны оценки:
+            span.meeting-detail__missing-rating(v-for="attendee in missingRatingAttendees" :key="attendee.id") {{ attendee.name }}
+          p.proposal__error(v-if="startMeetingMutation.error.value") Не удалось начать встречу.
+          p.proposal__error(v-if="finishMeetingMutation.error.value") Не удалось завершить встречу.
 
         .section-header.meeting-detail__topics-header
           h2 Темы для обсуждения
@@ -304,6 +345,24 @@ main.meeting-detail.container
   margin-top: var(--space-xl);
 }
 
+.meeting-detail__admin {
+  display: grid;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.meeting-detail__admin-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.meeting-detail__missing-rating {
+  display: inline-block;
+  margin-left: var(--space-xs);
+  color: var(--text-main);
+}
+
 .meeting-detail__topics {
   display: grid;
   gap: var(--space-sm);
@@ -401,6 +460,12 @@ main.meeting-detail.container
 
 @media (max-width: 960px) {
   .meeting-detail__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .meeting-detail__admin-actions {
     grid-template-columns: 1fr;
   }
 }

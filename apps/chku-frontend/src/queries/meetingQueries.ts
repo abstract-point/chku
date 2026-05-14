@@ -59,3 +59,29 @@ export function useUpdateMeetingMutation(id: MaybeRefOrGetter<string>) {
     },
   })
 }
+
+export function useStartMeetingMutation(id: MaybeRefOrGetter<string>) {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => meetingsApi.start(toValue(id)),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: queryKeys.meeting(toValue(id)) })
+      client.invalidateQueries({ queryKey: queryKeys.dashboard })
+    },
+  })
+}
+
+export function useFinishMeetingMutation(id: MaybeRefOrGetter<string>) {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => meetingsApi.finish(toValue(id)),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: queryKeys.meeting(toValue(id)) })
+      client.invalidateQueries({ queryKey: queryKeys.dashboard })
+      client.invalidateQueries({ queryKey: queryKeys.activeCandidate })
+      client.invalidateQueries({ queryKey: queryKeys.archive })
+    },
+  })
+}

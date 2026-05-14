@@ -26,6 +26,10 @@ export function mapMeetingDetail(meeting: ApiMeeting, currentUserId?: number): M
     placeReservation: meeting.reservation,
     meetingLink: meeting.link,
     topics: meeting.topics ?? [],
+    status: meeting.status ?? 'scheduled',
+    canStart: meeting.canStart ?? false,
+    canFinish: meeting.canFinish ?? false,
+    missingRatingMemberIds: meeting.missingRatingMemberIds ?? [],
     rsvpStatus: currentUserId
       ? (allRsvps.find((a) => a.id === currentUserId)?.status ?? 'pending')
       : 'pending',

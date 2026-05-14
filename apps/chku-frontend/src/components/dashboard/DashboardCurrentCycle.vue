@@ -34,6 +34,18 @@ const nextSelectorLabel = computed(() => {
   return null
 })
 
+const activeProgressCount = computed(() => props.members.length)
+
+function medalLabel(medal?: BookProgressMember['medal']) {
+  const labels: Record<string, string> = {
+    gold: 'Золото',
+    silver: 'Серебро',
+    bronze: 'Бронза',
+  }
+
+  return medal ? labels[medal] : null
+}
+
 function openProgressForm() {
   updateProgressMutation.reset()
   isProgressFormOpen.value = true
@@ -100,15 +112,20 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 
   .section-header.dashboard__section-spaced
     h3 Прогресс клуба
-    span.label-text 4 из 6 участников активны
+    span.label-text {{ activeProgressCount }} участников
 
   ul.data-list.club-progress(role="list")
     li.data-list__item.club-progress__item(v-for="member in members" :key="member.name")
       .member-status
+        .club-progress__rank(:class="member.medal ? `club-progress__rank--${member.medal}` : ''")
+          img.club-progress__owl(v-if="member.medal" src="/favicon.svg" alt="" aria-hidden="true")
+          span.label-text {{ member.rank ?? '—' }}
         UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" size="sm")
-        span.member-status__name {{ member.name }}
+        span.member-status__name
+          | {{ member.name }}
+          span.club-progress__medal(v-if="member.medal") {{ medalLabel(member.medal) }}
       span.label-text(v-if="member.status") {{ member.status }}
-      .member-status__progress(v-else-if="member.progress")
+      .member-status__progress(v-else-if="member.progress !== undefined && member.progress !== null")
         .progress.member-status__progress-track(:aria-label="`${member.name}: ${member.progress}%`")
           .progress__bar(:style="{ '--progress-value': `${member.progress}%` }")
         span.label-text {{ member.progress }}%
@@ -200,6 +217,54 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 .club-progress__item {
   min-height: 3.4rem;
   padding: 0.7rem var(--space-md);
+}
+
+.club-progress__rank {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-panel);
+  overflow: hidden;
+}
+
+.club-progress__rank--gold {
+  border-color: rgba(226, 184, 92, 0.55);
+  background: linear-gradient(180deg, rgba(226, 184, 92, 0.22), rgba(226, 184, 92, 0.06));
+}
+
+.club-progress__rank--silver {
+  border-color: rgba(188, 198, 205, 0.5);
+  background: linear-gradient(180deg, rgba(188, 198, 205, 0.18), rgba(188, 198, 205, 0.05));
+}
+
+.club-progress__rank--bronze {
+  border-color: rgba(196, 131, 82, 0.5);
+  background: linear-gradient(180deg, rgba(196, 131, 82, 0.18), rgba(196, 131, 82, 0.05));
+}
+
+.club-progress__owl {
+  position: absolute;
+  inset: 0.22rem;
+  width: calc(100% - 0.44rem);
+  height: calc(100% - 0.44rem);
+  opacity: 0.2;
+}
+
+.club-progress__rank .label-text {
+  position: relative;
+  color: var(--text-main);
+}
+
+.club-progress__medal {
+  display: block;
+  margin-top: 0.08rem;
+  color: var(--text-subtle);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
 }
 
 .club-progress__link {
