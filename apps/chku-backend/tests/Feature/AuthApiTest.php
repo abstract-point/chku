@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AuthApiTest extends TestCase
@@ -48,6 +50,7 @@ class AuthApiTest extends TestCase
 
         $response->assertOk();
         $response->assertJsonPath('user.email', 'elena@example.com');
+        $response->assertJsonPath('user.avatarUrl', null);
         $response->assertJsonPath('twoFactorEnabled', false);
         $response->assertJsonPath('user.favoriteGenreId', $user->clubMember?->favorite_genre_id);
     }
@@ -78,21 +81,38 @@ class AuthApiTest extends TestCase
 
         $response = $this->actingAs($user)->patchJson('/api/me/profile', [
             'name' => 'Елена Новая',
-            'initials' => 'ЕН',
             'favorite_genre_id' => $genreId,
         ]);
 
         $response->assertOk();
         $response->assertJsonPath('data.name', 'Елена Новая');
-        $response->assertJsonPath('data.initials', 'ЕН');
+        $response->assertJsonPath('data.avatarUrl', null);
         $response->assertJsonPath('data.favoriteGenreId', $genreId);
 
         $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Елена Новая']);
         $this->assertDatabaseHas('club_members', [
             'user_id' => $user->id,
-            'initials' => 'ЕН',
             'favorite_genre_id' => $genreId,
         ]);
+    }
+
+    public function test_authenticated_user_can_upload_avatar(): void
+    {
+        Storage::fake('local');
+        $this->seed(DatabaseSeeder::class);
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+
+        $response = $this->actingAs($user)->post('/api/me/avatar', [
+            'avatar' => UploadedFile::fake()->image('avatar.png', 640, 480),
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('data.avatarUrl', "/api/members/{$user->clubMember->id}/avatar");
+
+        $path = $user->refresh()->avatar_path;
+        $this->assertSame("avatars/users/{$user->id}.jpg", $path);
+        Storage::disk('local')->assertExists($path);
+        $this->assertSame([256, 256], array_slice(getimagesize(Storage::disk('local')->path($path)), 0, 2));
     }
 
     public function test_authenticated_user_can_update_password(): void

@@ -16,21 +16,21 @@ class TurnOrderSeeder extends Seeder
 
         TurnOrder::create([
             'club_id' => $club->id,
-            'club_member_id' => $members['П1']->id,
+            'club_member_id' => $members['elena@example.com']->id,
             'position' => 1,
             'is_current' => true,
         ]);
 
         TurnOrder::create([
             'club_id' => $club->id,
-            'club_member_id' => $members['П2']->id,
+            'club_member_id' => $members['mikhail@example.com']->id,
             'position' => 2,
             'is_next' => true,
         ]);
 
         TurnOrder::create([
             'club_id' => $club->id,
-            'club_member_id' => $members['АД']->id,
+            'club_member_id' => $members['admin@example.com']->id,
             'position' => 3,
         ]);
     }
@@ -38,8 +38,8 @@ class TurnOrderSeeder extends Seeder
     private function getMembers(): array
     {
         $members = [];
-        foreach (ClubMember::all() as $member) {
-            $members[$member->initials] = $member;
+        foreach (ClubMember::with('user')->get() as $member) {
+            $members[$member->user->email] = $member;
         }
         return $members;
     }

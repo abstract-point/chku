@@ -14,7 +14,6 @@ class DeveloperSeeder extends Seeder
         $name = env('CHKU_DEVELOPER_NAME');
         $email = env('CHKU_DEVELOPER_EMAIL');
         $password = env('CHKU_DEVELOPER_PASSWORD');
-        $initials = env('CHKU_DEVELOPER_INITIALS', 'DEV');
 
         if (! $name || ! $email || ! $password) {
             $this->command->warn('Developer credentials not set in .env. Skipping developer seed.');
@@ -39,7 +38,6 @@ class DeveloperSeeder extends Seeder
             ['user_id' => $user->id],
             [
                 'club_id' => $club->id,
-                'initials' => $initials,
                 'is_active' => true,
                 'joined_at' => now(),
             ]

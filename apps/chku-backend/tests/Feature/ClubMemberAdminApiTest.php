@@ -6,6 +6,8 @@ use App\Models\ClubMember;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ClubMemberAdminApiTest extends TestCase
@@ -33,15 +35,35 @@ class ClubMemberAdminApiTest extends TestCase
             'name' => 'Новый Участник',
             'email' => 'new@example.com',
             'password' => 'secret123',
-            'initials' => 'НУ',
             'joined_at' => '2024-01-15',
             'role' => 'member',
         ]);
 
         $response->assertCreated();
+        $response->assertJsonPath('data.avatarUrl', null);
         $this->assertDatabaseHas('users', ['email' => 'new@example.com']);
-        $this->assertDatabaseHas('club_members', ['initials' => 'НУ']);
         $this->assertDatabaseHas('audit_logs', ['action' => 'member_created']);
+    }
+
+    public function test_admin_can_create_member_with_avatar(): void
+    {
+        Storage::fake('local');
+        $this->actingAsAdmin();
+
+        $response = $this->post('/api/members', [
+            'name' => 'Новый Участник',
+            'email' => 'new@example.com',
+            'password' => 'secret123',
+            'avatar' => UploadedFile::fake()->image('avatar.png', 300, 420),
+            'joined_at' => '2024-01-15',
+            'role' => 'member',
+        ]);
+
+        $response->assertCreated();
+        $user = User::where('email', 'new@example.com')->firstOrFail();
+
+        $response->assertJsonPath('data.avatarUrl', "/api/members/{$user->clubMember->id}/avatar");
+        Storage::disk('local')->assertExists($user->avatar_path);
     }
 
     public function test_members_list_places_inactive_members_last(): void
@@ -69,7 +91,6 @@ class ClubMemberAdminApiTest extends TestCase
             'name' => 'Новый Участник',
             'email' => 'new@example.com',
             'password' => 'secret123',
-            'initials' => 'НУ',
             'joined_at' => '2024-01-15',
             'role' => 'member',
         ]);
@@ -85,7 +106,6 @@ class ClubMemberAdminApiTest extends TestCase
             'name' => 'Новый Участник',
             'email' => 'new@example.com',
             'password' => 'secret123',
-            'initials' => 'НУ',
             'joined_at' => '2024-01-15',
             'role' => 'member',
         ]);
