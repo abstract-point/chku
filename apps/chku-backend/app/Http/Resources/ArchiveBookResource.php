@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\MeetingRsvpStatusEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -12,6 +13,9 @@ class ArchiveBookResource extends JsonResource
         $book = $this->book;
         $genre = $book?->genre;
         $avgRating = $this->ratings->avg('rating') ?? 0;
+        $rsvps = $this->meeting?->rsvps;
+        $attendingCount = $rsvps?->where('status', MeetingRsvpStatusEnum::Attending)->count() ?? 0;
+        $rsvpCount = $rsvps?->count() ?? 0;
 
         return [
             'slug' => $book?->slug,
@@ -26,6 +30,11 @@ class ArchiveBookResource extends JsonResource
             'proposedBy' => $this->whenLoaded('proposer', fn () => $this->proposer->user?->name),
             'proposerInitials' => $this->whenLoaded('proposer', fn () => $this->proposer->initials),
             'rating' => round($avgRating, 1),
+            'averageRating' => round($avgRating, 1),
+            'ratingsCount' => $this->ratings->count(),
+            'reviewsCount' => $this->reviews->count(),
+            'attendingCount' => $attendingCount,
+            'rsvpCount' => $rsvpCount,
             'synopsis' => $book?->description,
             'meetingLabel' => $this->whenLoaded('meeting', fn () => $this->meeting->date?->format('d F Y') . ', ' . $this->meeting->place),
             'discussionPrompt' => $this->discussion_prompt,
