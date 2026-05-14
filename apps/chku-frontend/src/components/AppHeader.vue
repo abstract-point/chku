@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { BookMarked, ChevronDown, LogOut, Moon, Settings, Sun, User } from '@lucide/vue'
 import AppLogo from '@/components/AppLogo.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { useAuthSession, useLogoutMutation } from '@/queries/authQueries'
 import { useClubQuery } from '@/queries/clubQueries'
 
@@ -19,13 +20,6 @@ const roleLabel = computed(() => {
   if (isDeveloper.value) return 'Разработчик'
   if (roles.value.includes('admin')) return 'Администратор'
   return 'Участник'
-})
-
-const userInitials = computed(() => {
-  if (user.value?.initials) return user.value.initials
-  const parts = user.value?.name.trim().split(/\s+/) ?? []
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
-  return parts[0]?.slice(0, 2).toUpperCase() ?? ''
 })
 
 function getPreferredTheme() {
@@ -97,12 +91,12 @@ header.app-header
           aria-haspopup="menu"
           @click.stop="isUserMenuOpen = !isUserMenuOpen"
         )
-          .app-header__avatar {{ userInitials }}
+          UserAvatar(:name="user.name" :avatar-url="user.avatarUrl" size="sm")
           span.app-header__user-name {{ user.name }}
           ChevronDown.app-header__chevron(:size="14" :class="{ 'app-header__chevron--open': isUserMenuOpen }")
         .app-header__dropdown(v-if="isUserMenuOpen" role="menu")
           .app-header__dropdown-header
-            .app-header__dropdown-avatar {{ userInitials }}
+            UserAvatar(:name="user.name" :avatar-url="user.avatarUrl")
             .app-header__dropdown-info
               .app-header__dropdown-name {{ user.name }}
               .app-header__dropdown-role {{ roleLabel }}

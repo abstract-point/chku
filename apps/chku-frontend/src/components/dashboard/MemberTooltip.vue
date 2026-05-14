@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import UserAvatar from '@/components/UserAvatar.vue'
 import type { MeetingAttendee } from '@/types/dashboard'
 
 defineProps<{
@@ -9,7 +9,7 @@ defineProps<{
 
 <template lang="pug">
 .member-tooltip
-  RouterLink.avatar(:to="`/members/${member.id}`") {{ member.initials }}
+  UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" :to="`/members/${member.id}`" size="sm")
   .member-tooltip__popover
     .member-tooltip__name {{ member.name }}
     .member-tooltip__meta(v-if="member.favoriteGenre")

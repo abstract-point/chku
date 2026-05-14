@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { ArrowLeft, CalendarDays, MessageSquare, Star, UserRound } from '@lucide/vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { useArchiveBookQuery } from '@/queries/archiveQueries'
 
 const route = useRoute()
@@ -40,7 +41,7 @@ main.archive-book.container
             span.label-text.archive-book__muted Выбрал(а)
             .archive-book__member
               UserRound.archive-book__icon
-              span.avatar.archive-book__avatar {{ book.proposerInitials }}
+              UserAvatar.archive-book__avatar(:name="book.proposedBy" :avatar-url="book.proposerAvatarUrl" size="sm")
               span.label-text {{ book.proposedBy }}
           .archive-book__meta-item
             span.label-text.archive-book__muted Средняя оценка
@@ -66,7 +67,7 @@ main.archive-book.container
         article.panel.archive-book__review(v-for="review in book.reviews" :key="`${review.memberName}-${review.rating}`")
           .archive-book__review-header
             .archive-book__member
-              span.avatar {{ review.memberInitials }}
+              UserAvatar(:name="review.memberName" :avatar-url="review.memberAvatarUrl" size="sm")
               span.label-text {{ review.memberName }}
             span.archive-book__rating.label-text {{ review.rating }}/10
           p.body-text {{ review.text }}
@@ -84,7 +85,7 @@ main.archive-book.container
             .archive-book__message-header
               .archive-book__member
                 MessageSquare.archive-book__icon
-                span.avatar {{ message.memberInitials }}
+                UserAvatar(:name="message.memberName" :avatar-url="message.memberAvatarUrl" size="sm")
                 span.label-text {{ message.memberName }}
               span.label-text.archive-book__muted {{ message.dateLabel }}
             p.body-text {{ message.text }}

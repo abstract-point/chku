@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import DashboardReadingProgressForm from '@/components/dashboard/DashboardReadingProgressForm.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { useUpdateReadingProgressMutation } from '@/queries/dashboardQueries'
 import type { BookProgressMember, CurrentBook } from '@/types/dashboard'
 
@@ -104,7 +105,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   ul.data-list.club-progress(role="list")
     li.data-list__item.club-progress__item(v-for="member in members" :key="member.name")
       .member-status
-        span.avatar {{ member.initials }}
+        UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" size="sm")
         span.member-status__name {{ member.name }}
       span.label-text(v-if="member.status") {{ member.status }}
       .member-status__progress(v-else-if="member.progress")

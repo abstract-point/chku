@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { BookOpen, CalendarCheck, ListOrdered, MessageSquare, Settings, Sparkles, Star } from '@lucide/vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { useBookQueueQuery } from '@/queries/bookQueueQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
@@ -48,7 +49,7 @@ main.profile.container
   .profile__grid(v-else)
     aside.profile__sidebar(aria-label="Профиль участника")
       .panel.profile__hero
-        .avatar.avatar--large {{ currentMember.initials }}
+        UserAvatar(:name="currentMember.name" :avatar-url="currentMember.avatarUrl" size="lg")
         div
           h1.profile__name {{ currentMember.name }}
           p.subtitle-italic Участник клуба с {{ currentMember.memberSince }}
@@ -105,7 +106,7 @@ main.profile.container
           span#profile-settings-title.label-text Настройки профиля
           Settings.profile__section-icon
         p.body-text
-          | Имя, инициалы, любимый жанр, пароль и двухфакторная защита настраиваются на отдельной странице.
+          | Имя, аватар, любимый жанр, пароль и двухфакторная защита настраиваются на отдельной странице.
         RouterLink.button.button--secondary.label-text.profile__save(to="/profile/settings") Открыть настройки
 
     section.profile__history(aria-labelledby="reading-history-title")

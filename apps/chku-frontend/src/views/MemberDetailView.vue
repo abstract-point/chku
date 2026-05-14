@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { ArrowLeft, CalendarCheck, Mail, MessageSquare, Star } from '@lucide/vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { useMemberQuery } from '@/queries/memberQueries'
 import type { ProfileBook } from '@/types/club'
 
@@ -39,7 +40,7 @@ main.member-detail.container(v-else-if="member")
   .member-detail__grid
     aside.member-detail__sidebar(aria-label="Профиль участника")
       .panel.member-detail__hero
-        .avatar.avatar--large {{ member.initials }}
+        UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" size="lg")
         div
           h1.member-detail__name {{ member.name }}
           p.subtitle-italic Участник клуба с {{ member.memberSince }}

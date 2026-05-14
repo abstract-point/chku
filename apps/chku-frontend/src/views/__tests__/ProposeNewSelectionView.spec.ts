@@ -17,7 +17,7 @@ describe('ProposeNewSelectionView', () => {
     expect(wrapper.text()).toContain('Моя очередь книг')
     expect(wrapper.text()).toContain('Добавить книгу')
     expect(wrapper.text()).toContain('Название книги')
-    expect(wrapper.text()).toContain('Выберите книгу')
+    expect(wrapper.text()).toContain('Почему эта книга?')
   })
 
   it('validates required fields before submitting', async () => {

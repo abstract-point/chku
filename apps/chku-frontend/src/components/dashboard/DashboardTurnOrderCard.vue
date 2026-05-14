@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Users, Clock3 } from '@lucide/vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import type { TurnOrderMember } from '@/types/dashboard'
 
 const props = defineProps<{
@@ -23,12 +24,8 @@ const currentProcessBadge = computed(() => {
   return null
 })
 
-function getAvatarInitials(name: string): string {
-  const cleanName = name.replace(/^\d+\.\s*/, '')
-  const parts = cleanName.trim().split(/\s+/)
-  const firstLetter = parts[0]?.[0]?.toUpperCase() ?? ''
-  const numberPrefix = name.match(/^(\d+)/)?.[1] ?? ''
-  return `${numberPrefix}${firstLetter}`
+function avatarName(name: string): string {
+  return name.replace(/^\d+\.\s*/, '')
 }
 </script>
 
@@ -46,7 +43,10 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
       .turn-order__current-header СЕЙЧАС ВЫБИРАЕТ
       .turn-order__item.turn-order__item--active
         .turn-order__person
-          .turn-order__avatar {{ getAvatarInitials(currentProcessMember.name) }}
+          UserAvatar.turn-order__avatar(
+            :name="avatarName(currentProcessMember.name)"
+            :avatar-url="currentProcessMember.avatarUrl"
+          )
           .turn-order__info
             span.turn-order__name {{ currentProcessMember.name }}
             span.turn-order__description После проверки книга может стать следующей.
@@ -61,7 +61,7 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
     )
       .turn-order__person
         span.turn-order__index {{ index + 1 }}
-        .turn-order__avatar {{ getAvatarInitials(member.name) }}
+        UserAvatar.turn-order__avatar(:name="avatarName(member.name)" :avatar-url="member.avatarUrl")
         span.turn-order__name {{ member.name }}
       .turn-order__badge.turn-order__badge--outline(v-if="index === 0")
         Clock3(:size="14")

@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { MoreHorizontal, Plus, Search, SlidersHorizontal, UserRoundCheck, UserRoundMinus } from '@lucide/vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDeactivateMemberMutation, useMembersQuery } from '@/queries/memberQueries'
 
@@ -19,7 +20,7 @@ const filteredMembers = computed(() => {
   return members.value.filter((member) => {
     const matchesQuery =
       !normalizedQuery ||
-      [member.name, member.initials, member.favoriteGenre].some((value) =>
+      [member.name, member.favoriteGenre].some((value) =>
         value.toLocaleLowerCase('ru').includes(normalizedQuery),
       )
     const matchesStatus =
@@ -85,7 +86,7 @@ main.members.container
       :to="`/members/${member.id}`"
     )
       .member-card__hero
-        span.avatar.member-card__avatar {{ member.initials }}
+        UserAvatar.member-card__avatar(:name="member.name" :avatar-url="member.avatarUrl")
         .member-card__info
           .member-card__name-row
             h2.member-card__name {{ member.name }}

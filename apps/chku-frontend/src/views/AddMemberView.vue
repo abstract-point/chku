@@ -14,7 +14,7 @@ const form = ref({
   name: '',
   email: '',
   password: '',
-  initials: '',
+  avatar: null as File | null,
   favorite_genre_id: null as number | null,
   joined_at: new Date().toISOString().split('T')[0],
   role: 'member' as 'member' | 'admin' | 'developer',
@@ -30,6 +30,11 @@ async function submit() {
   } catch (e: unknown) {
     error.value = (e as Error).message || 'Ошибка создания участника'
   }
+}
+
+function selectAvatar(event: Event) {
+  const input = event.target as HTMLInputElement
+  form.value.avatar = input.files?.[0] ?? null
 }
 </script>
 
@@ -66,8 +71,12 @@ main.add-member.container
           label.label-text(for="am-password") Пароль
           input#am-password.field-control.add-member__input(type="password" v-model="form.password" required minlength="8" autocomplete="new-password")
         .add-member__group
-          label.label-text(for="am-initials") Инициалы
-          input#am-initials.field-control.add-member__input(type="text" v-model="form.initials" required maxlength="10")
+          label.label-text(for="am-avatar") Аватар
+          input#am-avatar.field-control.add-member__input(
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            @change="selectAvatar"
+          )
         .add-member__group
           label.label-text(for="am-joined") Дата вступления
           input#am-joined.field-control.add-member__input(type="date" v-model="form.joined_at" required)

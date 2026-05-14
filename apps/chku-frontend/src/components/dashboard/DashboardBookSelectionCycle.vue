@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Check, Clock3, X } from '@lucide/vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import type { ApiBookCandidate, ApiBookCandidateResponse } from '@/api/types'
 import { useAuthSession } from '@/queries/authQueries'
 import { useCandidateResponseMutation, useConfirmCandidateMutation } from '@/queries/candidateQueries'
@@ -130,7 +131,7 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
   ul.data-list.club-progress(role="list")
     li.data-list__item.club-progress__item(v-for="response in candidate.responses" :key="response.id")
       .member-status
-        span.avatar {{ response.member.initials }}
+        UserAvatar(:name="response.member.name" :avatar-url="response.member.avatarUrl" size="sm")
         span.member-status__name {{ response.member.name }}
       span.label-text.book-selection__response-status(:class="responseModifier(response.response)")
         component(:is="responseIcon(response.response)" :size="15" aria-hidden="true")

@@ -2,6 +2,7 @@
 import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { BookOpen, CalendarDays, Link as LinkIcon, MapPin, Monitor, Pencil, Send, Users } from '@lucide/vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import {
   useAddMeetingTopicMutation,
   useMeetingQuery,
@@ -187,7 +188,7 @@ main.meeting-detail.container
           ul.data-list
             li.data-list__item(v-for="attendee in meeting.attendees" :key="attendee.id")
               RouterLink.meeting-detail__attendee(:to="`/members/${attendee.id}`")
-                span.avatar {{ attendee.initials }}
+                UserAvatar(:name="attendee.name" :avatar-url="attendee.avatarUrl" size="sm")
                 span.body-text {{ attendee.name }}
 
         .panel
@@ -381,7 +382,7 @@ main.meeting-detail.container
   color: var(--accent);
 }
 
-.meeting-detail__attendee:hover .avatar {
+.meeting-detail__attendee:hover .user-avatar {
   border-color: var(--accent-border);
 }
 
