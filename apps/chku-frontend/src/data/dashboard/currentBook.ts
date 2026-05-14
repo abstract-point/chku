@@ -9,4 +9,6 @@ export const currentBook = {
     'В послевоенной Барселоне мальчик находит таинственную книгу на Кладбище забытых книг. Эта находка ведёт его в историю о памяти, любви и старых тайнах города.',
   progress: 65,
   progressLabel: '65% · глава 12',
+  cycleNumber: 42,
+  cycleStatus: 'active',
 } satisfies CurrentBook
