@@ -64,6 +64,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('meetings/{meeting}', [MeetingController::class, 'show']);
     Route::post('meetings', [MeetingController::class, 'store']);
     Route::patch('meetings/{meeting}', [MeetingController::class, 'update']);
+    Route::post('meetings/{meeting}/start', [MeetingController::class, 'start']);
+    Route::post('meetings/{meeting}/finish', [MeetingController::class, 'finish']);
     Route::patch('meetings/{meeting}/rsvps/me', [MeetingController::class, 'updateMyRsvp']);
     Route::post('meetings/{meeting}/topics', [MeetingController::class, 'storeTopic']);
 

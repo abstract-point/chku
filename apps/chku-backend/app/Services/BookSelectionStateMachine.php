@@ -24,7 +24,7 @@ final class BookSelectionStateMachine
     public function createCandidateFromNextSelector(int $clubId): ?BookCandidate
     {
         return DB::transaction(function () use ($clubId): ?BookCandidate {
-            if ($this->activeCandidate($clubId) || $this->activeCycle($clubId)) {
+            if ($this->activeCandidate($clubId) || $this->openCycle($clubId)) {
                 return null;
             }
 
@@ -40,13 +40,13 @@ final class BookSelectionStateMachine
     public function recalculateCandidate(BookCandidate $candidate): BookCandidate
     {
         return DB::transaction(function () use ($candidate): BookCandidate {
-            $candidate->loadMissing('proposer', 'queueItem', 'responses');
+            $candidate->loadMissing('proposer', 'queueItem', 'responses', 'readingCycle');
             $responses = $this->activeResponses($candidate);
 
             if ($responses->contains(fn (BookCandidateResponseEnum $response) => $response === BookCandidateResponseEnum::Read)) {
                 $candidate->update(['status' => BookCandidateStatusEnum::Rejected]);
                 $candidate->queueItem?->update(['status' => MemberBookQueueItemStatusEnum::Rejected]);
-                $this->createCandidateFromNextQueuedItem($candidate->proposer);
+                $this->createCandidateFromNextQueuedItem($candidate->proposer, $candidate->readingCycle);
 
                 return $candidate->refresh();
             }
@@ -70,7 +70,7 @@ final class BookSelectionStateMachine
     public function confirmCandidate(BookCandidate $candidate): BookCandidate
     {
         return DB::transaction(function () use ($candidate): BookCandidate {
-            $candidate->loadMissing('proposer', 'queueItem', 'responses');
+            $candidate->loadMissing('proposer', 'queueItem', 'responses', 'readingCycle');
 
             if ($candidate->status !== BookCandidateStatusEnum::AwaitingOwnerConfirmation) {
                 abort(422, 'Кандидата можно подтвердить только после ответов not_read от всех активных участников.');
@@ -80,11 +80,22 @@ final class BookSelectionStateMachine
                 abort(422, 'Новый цикл нельзя начать, пока текущий цикл активен.');
             }
 
-            $cycle = ReadingCycle::create([
-                'club_id' => $candidate->proposer->club_id,
+            $cycle = $candidate->readingCycle;
+            if (! $cycle) {
+                $cycle = ReadingCycle::create([
+                    'club_id' => $candidate->proposer->club_id,
+                    'book_id' => $candidate->book_id,
+                    'proposer_id' => $candidate->proposer_id,
+                    'cycle_number' => (int) ReadingCycle::max('cycle_number') + 1,
+                    'status' => ReadingCycleStatusEnum::Proposed,
+                ]);
+            }
+
+            abort_if($cycle->status !== ReadingCycleStatusEnum::Proposed, 422, 'Подтвердить можно только предложенный цикл.');
+
+            $cycle->update([
                 'book_id' => $candidate->book_id,
                 'proposer_id' => $candidate->proposer_id,
-                'cycle_number' => (int) ReadingCycle::max('cycle_number') + 1,
                 'status' => ReadingCycleStatusEnum::Active,
             ]);
 
@@ -128,7 +139,7 @@ final class BookSelectionStateMachine
             : false;
     }
 
-    private function createCandidateFromNextQueuedItem(ClubMember $selector): ?BookCandidate
+    private function createCandidateFromNextQueuedItem(ClubMember $selector, ?ReadingCycle $cycle = null): ?BookCandidate
     {
         if ($this->activeCandidate($selector->club_id)) {
             return null;
@@ -146,9 +157,24 @@ final class BookSelectionStateMachine
 
         $item->update(['status' => MemberBookQueueItemStatusEnum::InVerification]);
 
+        $cycle ??= ReadingCycle::create([
+            'club_id' => $selector->club_id,
+            'book_id' => $item->book_id,
+            'proposer_id' => $selector->id,
+            'cycle_number' => (int) ReadingCycle::max('cycle_number') + 1,
+            'status' => ReadingCycleStatusEnum::Proposed,
+        ]);
+
+        $cycle->update([
+            'book_id' => $item->book_id,
+            'proposer_id' => $selector->id,
+            'status' => ReadingCycleStatusEnum::Proposed,
+        ]);
+
         $candidate = BookCandidate::create([
             'book_id' => $item->book_id,
             'proposer_id' => $selector->id,
+            'reading_cycle_id' => $cycle->id,
             'member_book_queue_item_id' => $item->id,
             'reason' => $item->reason,
             'description' => $item->description,
@@ -190,6 +216,16 @@ final class BookSelectionStateMachine
                 BookCandidateStatusEnum::AwaitingOwnerConfirmation->value,
             ])
             ->whereHas('proposer', fn ($query) => $query->where('club_id', $clubId))
+            ->first();
+    }
+
+    private function openCycle(int $clubId): ?ReadingCycle
+    {
+        return ReadingCycle::where('club_id', $clubId)
+            ->whereIn('status', [
+                ReadingCycleStatusEnum::Proposed->value,
+                ReadingCycleStatusEnum::Active->value,
+            ])
             ->first();
     }
 

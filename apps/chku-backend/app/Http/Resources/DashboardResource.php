@@ -34,13 +34,23 @@ class DashboardResource extends JsonResource
                 'cycleNumber' => $currentCycle->cycle_number,
                 'cycleStatus' => $currentCycle->status->value,
             ] : null,
-            'memberProgress' => $this->resource->memberProgress?->map(fn ($p) => [
-                'name' => $p->clubMember?->user?->name,
-                'avatarUrl' => MemberAvatar::url($p->clubMember),
-                'status' => $p->status->value === 'finished' ? 'Закончила' : null,
-                'progress' => $p->progress_percent,
-                'badge' => $p->status->value === 'reading' ? 'Читает' : null,
-            ]),
+            'memberProgress' => $this->resource->memberProgress
+                ?->sortByDesc(fn ($p) => $p->progress_percent ?? 0)
+                ->values()
+                ->map(fn ($p, int $index) => [
+                    'name' => $p->clubMember?->user?->name,
+                    'avatarUrl' => MemberAvatar::url($p->clubMember),
+                    'status' => $p->status->value === 'finished' ? 'Закончила' : null,
+                    'progress' => $p->progress_percent,
+                    'badge' => $p->status->value === 'reading' ? 'Читает' : null,
+                    'rank' => $index + 1,
+                    'medal' => match ($index) {
+                        0 => 'gold',
+                        1 => 'silver',
+                        2 => 'bronze',
+                        default => null,
+                    },
+                ]),
             'nextMeeting' => $this->resource->nextMeeting ? new MeetingResource($this->resource->nextMeeting) : null,
             'turnOrder' => $this->resource->turnOrder?->map(fn ($to) => [
                 'name' => $to->position . '. ' . $to->clubMember?->user?->name,

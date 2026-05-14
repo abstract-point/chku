@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\MeetingRsvpStatusEnum;
+use App\Enums\ReadingCycleStatusEnum;
 use App\Http\Resources\MeetingResource;
 use App\Models\Meeting;
 use App\Models\MeetingReschedule;
 use App\Models\MeetingRsvp;
+use App\Models\Rating;
 use App\Models\ReadingCycle;
+use App\Models\Review;
 use App\Services\AuditLogService;
+use App\Services\BookSelectionStateMachine;
 use App\Services\CurrentMemberService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 final class MeetingController extends Controller
@@ -161,6 +167,78 @@ final class MeetingController extends Controller
         $topics = $meeting->topics ?? [];
         $topics[] = $payload['topic'];
         $meeting->update(['topics' => $topics]);
+
+        return new MeetingResource(
+            $meeting->refresh()->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
+        );
+    }
+
+    public function start(Request $request, Meeting $meeting): MeetingResource
+    {
+        $this->authorize('update', $meeting);
+
+        abort_if($meeting->finished_at !== null, 422, 'Завершённую встречу нельзя начать заново.');
+        abort_if($meeting->readingCycle?->status !== ReadingCycleStatusEnum::Active, 422, 'Встречу можно начать только в активном цикле.');
+
+        if ($meeting->started_at === null) {
+            $meeting->update(['started_at' => now()]);
+        }
+
+        return new MeetingResource(
+            $meeting->refresh()->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
+        );
+    }
+
+    public function finish(
+        Request $request,
+        Meeting $meeting,
+        BookSelectionStateMachine $stateMachine,
+    ): MeetingResource|JsonResponse {
+        $this->authorize('update', $meeting);
+
+        $meeting->loadMissing('readingCycle.club', 'rsvps');
+
+        abort_if($meeting->started_at === null, 422, 'Сначала начните встречу.');
+        abort_if($meeting->finished_at !== null, 422, 'Встреча уже завершена.');
+        abort_if($meeting->readingCycle?->status !== ReadingCycleStatusEnum::Active, 422, 'Завершить можно только встречу активного цикла.');
+
+        $attendingMemberIds = $meeting->rsvps()
+            ->where('status', MeetingRsvpStatusEnum::Attending->value)
+            ->pluck('club_member_id');
+
+        $ratedMemberIds = Rating::query()
+            ->where('reading_cycle_id', $meeting->reading_cycle_id)
+            ->whereIn('club_member_id', $attendingMemberIds)
+            ->pluck('club_member_id');
+
+        $missing = $attendingMemberIds->diff($ratedMemberIds);
+        if ($missing->isNotEmpty()) {
+            return response()->json([
+                'message' => 'Встречу можно завершить только после оценок всех участников встречи.',
+                'missingMemberIds' => $missing->values(),
+            ], 422);
+        }
+
+        DB::transaction(function () use ($meeting, $attendingMemberIds, $stateMachine): void {
+            foreach ($attendingMemberIds as $memberId) {
+                Review::firstOrCreate(
+                    [
+                        'reading_cycle_id' => $meeting->reading_cycle_id,
+                        'club_member_id' => $memberId,
+                    ],
+                    ['text' => 'Промолчал'],
+                );
+            }
+
+            $meeting->update(['finished_at' => now()]);
+
+            $meeting->readingCycle->update([
+                'status' => ReadingCycleStatusEnum::Completed,
+                'completed_at' => now(),
+            ]);
+
+            $stateMachine->createCandidateFromNextSelector($meeting->readingCycle->club_id);
+        });
 
         return new MeetingResource(
             $meeting->refresh()->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')

@@ -45,7 +45,10 @@ final class BookCandidateController extends Controller
         $payload = $request->validate([
             'response' => [
                 'required',
-                Rule::in([BookCandidateResponseEnum::Read->value, BookCandidateResponseEnum::NotRead->value]),
+                Rule::in([
+                    BookCandidateResponseEnum::Read->value,
+                    BookCandidateResponseEnum::NotRead->value,
+                ]),
             ],
         ]);
 
