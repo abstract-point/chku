@@ -1,13 +1,22 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import { BookOpen, ListOrdered, Settings, Sparkles } from '@lucide/vue'
+import { BookOpen, CalendarCheck, ListOrdered, MessageSquare, Settings, Sparkles, Star } from '@lucide/vue'
+import { useBookQueueQuery } from '@/queries/bookQueueQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
+import { useCurrentUserReadingHistoryQuery } from '@/queries/profileQueries'
+import type { ProfileBook } from '@/types/club'
 
 const currentUserQuery = useCurrentUserQuery()
 const dashboardQuery = useDashboardQuery()
+const bookQueueQuery = useBookQueueQuery()
+const readingHistoryQuery = useCurrentUserReadingHistoryQuery()
 const currentMember = computed(() => currentUserQuery.data.value)
+const readingHistory = computed(() => readingHistoryQuery.data.value ?? [])
+const nextQueuedBook = computed(() =>
+  bookQueueQuery.items.value.find((item) => item.status === 'queued') ?? null,
+)
 const currentMemberFirstName = computed(() => currentMember.value?.name.split(' ')[0] ?? '')
 const canProposeNextBook = computed(() =>
   dashboardQuery.data.value?.turnOrder.some(
@@ -17,6 +26,17 @@ const canProposeNextBook = computed(() =>
       member.name.includes(currentMemberFirstName.value),
   ),
 )
+
+function ratingLabel(rating: number | null | undefined) {
+  return rating ? `${rating.toFixed(1)}/10` : 'нет'
+}
+
+function rsvpLabel(book: ProfileBook) {
+  if (book.attendedMeeting) return 'был(а)'
+  if (book.meetingRsvpStatus === 'not_attending') return 'не был(а)'
+  if (book.meetingRsvpStatus === 'pending') return 'без ответа'
+  return 'нет RSVP'
+}
 </script>
 
 <template lang="pug">
@@ -50,6 +70,15 @@ main.profile.container
           ListOrdered.profile__section-icon
         p.body-text
           | Веди личный список книг для предложки. Первая книга автоматически уйдёт на проверку, когда подойдёт твоя очередь.
+        .profile__next-queue(aria-live="polite")
+          p.label-text(v-if="bookQueueQuery.isLoading.value") Загружаем очередь...
+          p.label-text(v-else-if="bookQueueQuery.error.value") Не удалось загрузить очередь.
+          p.label-text(v-else-if="!nextQueuedBook") В очереди нет книги для автоматической предложки.
+          article.profile__next-book(v-else)
+            span.profile__next-book-label.label-text Автоматически пойдёт в предложку
+            strong {{ nextQueuedBook.title }}
+            small {{ nextQueuedBook.author }}
+            p.body-text(v-if="nextQueuedBook.reason") {{ nextQueuedBook.reason }}
         RouterLink.button.button--primary.label-text.profile__turn-action(to="/propose-selection")
           | Открыть очередь
 
@@ -59,6 +88,15 @@ main.profile.container
           Sparkles.profile__section-icon
         p.body-text
           | Проверь личную очередь книг. Первая книга из списка автоматически уйдёт на проверку клуба.
+        .profile__next-queue(aria-live="polite")
+          p.label-text(v-if="bookQueueQuery.isLoading.value") Загружаем очередь...
+          p.label-text(v-else-if="bookQueueQuery.error.value") Не удалось загрузить очередь.
+          p.label-text(v-else-if="!nextQueuedBook") В очереди нет книги для автоматической предложки.
+          article.profile__next-book(v-else)
+            span.profile__next-book-label.label-text Автоматически пойдёт в предложку
+            strong {{ nextQueuedBook.title }}
+            small {{ nextQueuedBook.author }}
+            p.body-text(v-if="nextQueuedBook.reason") {{ nextQueuedBook.reason }}
         RouterLink.button.button--primary.label-text.profile__turn-action(to="/propose-selection")
           | Управлять очередью
 
@@ -75,16 +113,41 @@ main.profile.container
         h2#reading-history-title История чтения
         span.label-text Цикл #28 - сейчас
 
-      .panel.profile__book-list
-        article.profile__book(v-for="book in currentMember.readingHistory" :key="book.title")
-          .book-cover.profile__book-cover(:class="`profile__book-cover--${book.coverVariant ?? 'default'}`")
+      section.panel(v-if="readingHistoryQuery.isLoading.value" aria-live="polite")
+        p.body-text Загружаем историю чтения...
+      section.panel(v-else-if="readingHistoryQuery.error.value" aria-live="polite")
+        p.body-text Не удалось загрузить историю чтения.
+      .panel.profile__book-list(v-else-if="readingHistory.length")
+        component.profile__book(
+          v-for="book in readingHistory"
+          :key="`${book.cycleNumber}-${book.title}`"
+          :is="book.slug ? RouterLink : 'article'"
+          :to="book.slug ? `/archive/${book.slug}` : undefined"
+        )
+          .book-cover.profile__book-cover(:style="{ '--cover-color': book.coverColor ?? undefined }")
             span.book-cover__content {{ book.coverTitle }}
           .profile__book-details
+            .profile__book-meta
+              span.label-text {{ book.cycleLabel }}
+              span.label-text Завершено: {{ book.completedLabel }}
             h3.profile__book-title {{ book.title }}
             p.body-text.profile__book-author {{ book.author }}
-            .profile__book-meta
-              span.label-text Завершено: {{ book.completedLabel }}
-              span.label-text Предложил(а): {{ book.proposedBy }}
+            .profile__book-stats(aria-label="Статистика цикла")
+              span.profile__book-stat.label-text
+                Star.profile__archive-icon
+                | Моя: {{ ratingLabel(book.myRating) }}
+              span.profile__book-stat.label-text
+                Star.profile__archive-icon
+                | Средняя: {{ ratingLabel(book.clubAverageRating) }}
+              span.profile__book-stat.label-text
+                MessageSquare.profile__archive-icon
+                | Ревью: {{ book.hasReview ? 'есть' : 'нет' }}
+              span.profile__book-stat.label-text
+                CalendarCheck.profile__archive-icon
+                | Встреча: {{ rsvpLabel(book) }}
+
+      section.panel.profile__empty(v-else aria-live="polite")
+        p.body-text История чтения появится после завершённых циклов, где есть оценка, отзыв, прогресс или RSVP.
 
       RouterLink.button.button--ghost.label-text.profile__archive-link(to="/archive")
         BookOpen.profile__archive-icon
@@ -153,6 +216,49 @@ main.profile.container
   margin-top: var(--space-md);
 }
 
+.profile__next-queue {
+  margin-top: var(--space-md);
+}
+
+.profile__next-book {
+  display: grid;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--accent-border);
+  border-radius: var(--radius-inner);
+  background:
+    linear-gradient(180deg, rgba(67, 224, 125, 0.055), rgba(67, 224, 125, 0.018)),
+    var(--bg-panel);
+}
+
+.profile__next-book-label {
+  color: var(--accent-dim);
+}
+
+.profile__next-book strong {
+  overflow: hidden;
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile__next-book small {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile__next-book .body-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .profile__section-icon,
 .profile__archive-icon {
   width: 1rem;
@@ -175,6 +281,13 @@ main.profile.container
   gap: var(--space-md);
   padding: var(--space-lg) 0;
   border-bottom: var(--border-width) solid var(--border);
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a.profile__book:hover .profile__book-title {
+  color: var(--accent-dim);
 }
 
 .profile__book:last-child {
@@ -185,21 +298,10 @@ main.profile.container
   flex: 0 0 3.75rem;
   width: 3.75rem;
   height: 5.625rem;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.035)),
+    var(--cover-color, var(--bg-panel));
   font-size: 0.65rem;
-}
-
-.profile__book-cover--accent {
-  background:
-    linear-gradient(135deg, rgba(67, 224, 125, 0.16), rgba(255, 255, 255, 0.02)),
-    var(--bg-panel);
-  border-color: var(--accent-border);
-}
-
-.profile__book-cover--blue {
-  background:
-    linear-gradient(135deg, rgba(216, 137, 43, 0.18), rgba(255, 255, 255, 0.02)),
-    var(--bg-panel);
-  border-color: var(--warn-border);
 }
 
 .profile__book-details {
@@ -222,7 +324,31 @@ main.profile.container
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-md);
+  margin-bottom: var(--space-sm);
   color: var(--text-muted);
+}
+
+.profile__book-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.profile__book-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding: var(--space-sm);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-panel);
+  color: var(--text-muted);
+}
+
+.profile__empty {
+  max-width: 36rem;
 }
 
 .profile__archive-link {
@@ -247,6 +373,10 @@ main.profile.container
 
   .profile__book {
     align-items: flex-start;
+  }
+
+  .profile__book-stats {
+    grid-template-columns: 1fr;
   }
 }
 </style>

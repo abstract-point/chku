@@ -27,6 +27,13 @@ describe('ProfileView', () => {
     expect(wrapper.text()).toContain('История чтения')
     expect(wrapper.text()).toContain('Тайная история')
     expect(wrapper.text()).toContain('Франкенштейн')
+    expect(wrapper.text()).toContain('Моя: 9.0/10')
+    expect(wrapper.text()).toContain('Средняя: 9.2/10')
+    expect(wrapper.text()).toContain('Ревью: есть')
+    expect(wrapper.text()).toContain('Встреча: был(а)')
+    expect(
+      wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/archive/ten-istoriya'),
+    ).toBe(true)
     expect(
       wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/archive'),
     ).toBe(true)
@@ -38,6 +45,8 @@ describe('ProfileView', () => {
     const wrapper = mountProfile()
 
     expect(wrapper.text()).toContain('Сейчас твоя очередь')
+    expect(wrapper.text()).toContain('Автоматически пойдёт в предложку')
+    expect(wrapper.text()).toContain('Шум времени')
     expect(wrapper.findComponent(RouterLinkStub).props('to')).toBe('/propose-selection')
   })
 })
