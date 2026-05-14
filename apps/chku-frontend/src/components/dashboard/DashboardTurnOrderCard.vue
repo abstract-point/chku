@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Users, Clock3 } from '@lucide/vue'
 import type { TurnOrderMember } from '@/types/dashboard'
 
 const props = defineProps<{
@@ -17,13 +18,17 @@ const queueMembers = computed(() =>
 
 const currentProcessBadge = computed(() => {
   if (!currentProcessMember.value) return null
-  if (currentProcessMember.value.isChoosingNow) return 'Выбирает...'
-  if (currentProcessMember.value.isCurrentCycleProposer) return 'Текущий цикл'
+  if (currentProcessMember.value.isChoosingNow) return 'ВЫБИРАЕТ КНИГУ'
+  if (currentProcessMember.value.isCurrentCycleProposer) return 'ВЫБРАЛ КНИГУ'
   return null
 })
 
-function displayMemberName(name: string) {
-  return name.replace(/^\d+\.\s*/, '')
+function getAvatarInitials(name: string): string {
+  const cleanName = name.replace(/^\d+\.\s*/, '')
+  const parts = cleanName.trim().split(/\s+/)
+  const firstLetter = parts[0]?.[0]?.toUpperCase() ?? ''
+  const numberPrefix = name.match(/^(\d+)/)?.[1] ?? ''
+  return `${numberPrefix}${firstLetter}`
 }
 </script>
 
