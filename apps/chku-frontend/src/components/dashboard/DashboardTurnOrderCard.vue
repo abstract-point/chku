@@ -35,26 +35,40 @@ function getAvatarInitials(name: string): string {
 <template lang="pug">
 section.panel.dashboard-card(aria-labelledby="turn-order-title")
   .section-header.section-header--compact
-    span#turn-order-title.label-text Очередь выбора
+    .section-header__icon(aria-hidden="true")
+      Users(:size="18")
+    .section-header__content
+      span#turn-order-title.label-text.section-header__title Очередь выбора
+      p.section-header__description Книги выбираются по очереди. Следующую книгу можно утвердить, только если её ещё никто не читал.
 
   template(v-if="currentProcessMember")
     .turn-order__current-process
+      .turn-order__current-header СЕЙЧАС ВЫБИРАЕТ
       .turn-order__item.turn-order__item--active
         .turn-order__person
-          span.turn-order__name {{ displayMemberName(currentProcessMember.name) }}
-        span.badge.badge--action.label-text {{ currentProcessBadge }}
+          .turn-order__avatar {{ getAvatarInitials(currentProcessMember.name) }}
+          .turn-order__info
+            span.turn-order__name {{ currentProcessMember.name }}
+            span.turn-order__description После проверки книга может стать следующей.
+        .turn-order__badge.turn-order__badge--dark
+          span.turn-order__badge-dot
+          span {{ currentProcessBadge }}
 
-  ul.data-list(v-if="queueMembers.length" role="list")
-    li.data-list__item.turn-order__item(
+  .turn-order__queue(v-if="queueMembers.length")
+    .turn-order__item.turn-order__item--queue(
       v-for="(member, index) in queueMembers"
       :key="member.name"
-      :class="{ 'turn-order__item--next': member.active }"
     )
       .turn-order__person
-        span.turn-order__index {{ index + 1 }}.
-        span.turn-order__name {{ displayMemberName(member.name) }}
-      span.badge.badge--action.label-text(v-if="member.active") {{ member.status }}
-      span.label-text.turn-order__status(v-else-if="member.status") {{ member.status }}
+        span.turn-order__index {{ index + 1 }}
+        .turn-order__avatar {{ getAvatarInitials(member.name) }}
+        span.turn-order__name {{ member.name }}
+      .turn-order__badge.turn-order__badge--outline(v-if="index === 0")
+        Clock3(:size="14")
+        span СЛЕДУЮЩАЯ
+
+  .turn-order__empty(v-if="!currentProcessMember && !queueMembers.length")
+    p.body-text Не удалось загрузить очередь.
 </template>
 
 <style scoped>
