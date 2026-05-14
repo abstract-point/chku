@@ -12,6 +12,7 @@ use App\Models\ClubMember;
 use App\Models\MemberBookQueueItem;
 use App\Models\ReadingCycle;
 use App\Models\User;
+use App\Services\BookSelectionStateMachine;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -26,12 +27,28 @@ class BookCandidateApiTest extends TestCase
         return $this->actingAs($user);
     }
 
+    private function createProposedCandidate(): BookCandidate
+    {
+        ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->update([
+            'status' => ReadingCycleStatusEnum::Completed,
+            'completed_at' => now(),
+        ]);
+
+        $clubId = ClubMember::whereHas('user', fn ($query) => $query->where('email', 'mikhail@example.com'))
+            ->firstOrFail()
+            ->club_id;
+
+        app(BookSelectionStateMachine::class)->createCandidateFromNextSelector($clubId);
+
+        return BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
+    }
+
     public function test_current_member_can_answer_candidate_verification(): void
     {
         $this->seed(DatabaseSeeder::class);
         $this->actingAsFirstMember();
 
-        $candidate = BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
+        $candidate = $this->createProposedCandidate();
 
         $response = $this->patchJson("/api/candidates/{$candidate->id}/responses/me", [
             'response' => BookCandidateResponseEnum::NotRead->value,
@@ -49,7 +66,7 @@ class BookCandidateApiTest extends TestCase
         $this->seed(DatabaseSeeder::class);
         $this->actingAsFirstMember();
 
-        $candidate = BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
+        $candidate = $this->createProposedCandidate();
 
         $response = $this->patchJson("/api/candidates/{$candidate->id}/responses/me", [
             'response' => BookCandidateResponseEnum::Read->value,
@@ -64,6 +81,10 @@ class BookCandidateApiTest extends TestCase
             'id' => $candidate->member_book_queue_item_id,
             'status' => MemberBookQueueItemStatusEnum::Rejected->value,
         ]);
+        $this->assertDatabaseHas('book_candidates', [
+            'proposer_id' => $candidate->proposer_id,
+            'status' => BookCandidateStatusEnum::Pending->value,
+        ]);
     }
 
     public function test_candidate_waits_for_owner_confirmation_when_all_active_members_have_not_read_it(): void
@@ -71,7 +92,7 @@ class BookCandidateApiTest extends TestCase
         $this->seed(DatabaseSeeder::class);
         $this->actingAsFirstMember();
 
-        $candidate = BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
+        $candidate = $this->createProposedCandidate();
         BookCandidateResponse::where('book_candidate_id', $candidate->id)->update([
             'response' => BookCandidateResponseEnum::NotRead->value,
         ]);
@@ -90,14 +111,9 @@ class BookCandidateApiTest extends TestCase
     public function test_owner_can_confirm_candidate_after_current_cycle_is_completed(): void
     {
         $this->seed(DatabaseSeeder::class);
-        $this->actingAsFirstMember();
+        $this->actingAs(User::where('email', 'mikhail@example.com')->firstOrFail());
 
-        ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->update([
-            'status' => ReadingCycleStatusEnum::Completed,
-            'completed_at' => now(),
-        ]);
-
-        $candidate = BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
+        $candidate = $this->createProposedCandidate();
         BookCandidateResponse::where('book_candidate_id', $candidate->id)->update([
             'response' => BookCandidateResponseEnum::NotRead->value,
         ]);
@@ -111,6 +127,7 @@ class BookCandidateApiTest extends TestCase
             'status' => BookCandidateStatusEnum::Approved->value,
         ]);
         $this->assertDatabaseHas('reading_cycles', [
+            'id' => $candidate->reading_cycle_id,
             'book_id' => $candidate->book_id,
             'status' => ReadingCycleStatusEnum::Active->value,
         ]);

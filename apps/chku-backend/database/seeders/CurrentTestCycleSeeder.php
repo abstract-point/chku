@@ -2,14 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Enums\BookCandidateResponseEnum;
-use App\Enums\BookCandidateStatusEnum;
 use App\Enums\MemberBookQueueItemStatusEnum;
 use App\Enums\ReadingProgressStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
 use App\Models\Book;
-use App\Models\BookCandidate;
-use App\Models\BookCandidateResponse;
 use App\Models\Club;
 use App\Models\ClubMember;
 use App\Models\Meeting;
@@ -44,20 +40,31 @@ class CurrentTestCycleSeeder extends Seeder
             'topics' => ['Обсуждение книги', 'Выводы и впечатления'],
         ]);
 
-        ReadingProgress::create([
-            'reading_cycle_id' => $currentCycle->id,
-            'club_member_id' => $members['elena@example.com']->id,
-            'status' => ReadingProgressStatusEnum::NotStarted,
-            'progress_percent' => 0,
-        ]);
+        $progress = [
+            'elena@example.com' => [ReadingProgressStatusEnum::Reading, 72],
+            'mikhail@example.com' => [ReadingProgressStatusEnum::Reading, 94],
+            'anna@example.com' => [ReadingProgressStatusEnum::Reading, 88],
+            'pavel@example.com' => [ReadingProgressStatusEnum::Reading, 63],
+            'marina@example.com' => [ReadingProgressStatusEnum::Finished, 100],
+            'admin@example.com' => [ReadingProgressStatusEnum::NotStarted, 0],
+        ];
 
-        $queueItem = MemberBookQueueItem::create([
+        foreach ($progress as $email => [$status, $percent]) {
+            ReadingProgress::create([
+                'reading_cycle_id' => $currentCycle->id,
+                'club_member_id' => $members[$email]->id,
+                'status' => $status,
+                'progress_percent' => $percent,
+            ]);
+        }
+
+        MemberBookQueueItem::create([
             'club_member_id' => $members['elena@example.com']->id,
             'book_id' => $books['cvety-dlya-elzherona']->id,
             'position' => 1,
             'reason' => 'Книга поднимает вечный вопрос о цене знаний и о том, что делает нас людьми.',
             'description' => $books['cvety-dlya-elzherona']->description,
-            'status' => MemberBookQueueItemStatusEnum::InVerification,
+            'status' => MemberBookQueueItemStatusEnum::Approved,
         ]);
 
         MemberBookQueueItem::create([
@@ -78,26 +85,8 @@ class CurrentTestCycleSeeder extends Seeder
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
 
-        $candidate = BookCandidate::create([
-            'book_id' => $books['cvety-dlya-elzherona']->id,
-            'proposer_id' => $members['elena@example.com']->id,
-            'member_book_queue_item_id' => $queueItem->id,
-            'reason' => 'Книга поднимает вечный вопрос о цене знаний и о том, что делает нас людьми.',
-            'description' => $books['cvety-dlya-elzherona']->description,
-            'status' => BookCandidateStatusEnum::Pending,
-        ]);
-
-        $activeMembers = ClubMember::where('is_active', true)->get();
-        foreach ($activeMembers as $member) {
-            BookCandidateResponse::create([
-                'book_candidate_id' => $candidate->id,
-                'club_member_id' => $member->id,
-                'response' => BookCandidateResponseEnum::Pending,
-            ]);
-        }
-
-        $adminQueueItem1 = MemberBookQueueItem::create([
-            'club_member_id' => $members['admin@example.com']->id,
+        MemberBookQueueItem::create([
+            'club_member_id' => $members['mikhail@example.com']->id,
             'book_id' => $books['piknik-na-obochine']->id,
             'position' => 1,
             'reason' => 'Хочется обсудить тему непостижимого и человеческую жадность перед лицом неизвестного.',
@@ -106,11 +95,20 @@ class CurrentTestCycleSeeder extends Seeder
         ]);
 
         MemberBookQueueItem::create([
-            'club_member_id' => $members['admin@example.com']->id,
+            'club_member_id' => $members['mikhail@example.com']->id,
             'book_id' => $books['kratkaya-istoriya-vremeni']->id,
             'position' => 2,
             'reason' => 'Научпоп, который меняет взгляд на мир. Хороший контраст после художественной прозы.',
             'description' => $books['kratkaya-istoriya-vremeni']->description,
+            'status' => MemberBookQueueItemStatusEnum::Queued,
+        ]);
+
+        MemberBookQueueItem::create([
+            'club_member_id' => $members['admin@example.com']->id,
+            'book_id' => $books['piknik-na-obochine']->id,
+            'position' => 1,
+            'reason' => 'Хочется обсудить тему непостижимого и человеческую жадность перед лицом неизвестного.',
+            'description' => $books['piknik-na-obochine']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
     }

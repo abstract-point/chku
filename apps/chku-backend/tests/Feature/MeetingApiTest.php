@@ -4,8 +4,12 @@ namespace Tests\Feature;
 
 use App\Enums\ReadingCycleStatusEnum;
 use App\Models\Book;
+use App\Models\ClubMember;
 use App\Models\Meeting;
+use App\Models\MeetingRsvp;
+use App\Models\Rating;
 use App\Models\ReadingCycle;
+use App\Models\Review;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -237,5 +241,104 @@ class MeetingApiTest extends TestCase
         $response->assertJsonPath('data.isOnline', false);
         $response->assertJsonPath('data.title', $meeting->title);
         $response->assertJsonPath('data.cycleId', $cycle->id);
+    }
+
+    public function test_admin_can_start_meeting_for_active_cycle(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $admin = User::where('email', 'elena@example.com')->firstOrFail();
+        $cycle = ReadingCycle::where('status', 'active')->first();
+        $meeting = $cycle->meeting()->first();
+
+        $response = $this->actingAs($admin)->postJson("/api/meetings/{$meeting->id}/start");
+
+        $response->assertOk();
+        $response->assertJsonPath('data.status', 'started');
+        $this->assertNotNull($meeting->refresh()->started_at);
+    }
+
+    public function test_admin_cannot_finish_meeting_until_attending_members_rated(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $admin = User::where('email', 'elena@example.com')->firstOrFail();
+        $cycle = ReadingCycle::where('status', 'active')->first();
+        $meeting = $cycle->meeting()->first();
+        $meeting->update(['started_at' => now()]);
+
+        $attendees = ClubMember::whereHas('user', fn ($query) => $query->whereIn('email', [
+            'elena@example.com',
+            'mikhail@example.com',
+        ]))->get();
+
+        foreach ($attendees as $member) {
+            MeetingRsvp::updateOrCreate(
+                ['meeting_id' => $meeting->id, 'club_member_id' => $member->id],
+                ['status' => 'attending'],
+            );
+        }
+
+        Rating::create([
+            'reading_cycle_id' => $cycle->id,
+            'club_member_id' => $attendees->first()->id,
+            'rating' => 9,
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson("/api/meetings/{$meeting->id}/finish")
+            ->assertUnprocessable()
+            ->assertJsonPath('missingMemberIds.0', $attendees->last()->id);
+    }
+
+    public function test_admin_can_finish_meeting_complete_cycle_and_start_next_proposed_cycle(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $admin = User::where('email', 'elena@example.com')->firstOrFail();
+        $cycle = ReadingCycle::where('status', 'active')->first();
+        $meeting = $cycle->meeting()->first();
+        $meeting->update(['started_at' => now()]);
+
+        $attendees = ClubMember::whereHas('user', fn ($query) => $query->whereIn('email', [
+            'elena@example.com',
+            'mikhail@example.com',
+        ]))->get();
+
+        foreach ($attendees as $member) {
+            MeetingRsvp::updateOrCreate(
+                ['meeting_id' => $meeting->id, 'club_member_id' => $member->id],
+                ['status' => 'attending'],
+            );
+            Rating::create([
+                'reading_cycle_id' => $cycle->id,
+                'club_member_id' => $member->id,
+                'rating' => 8,
+            ]);
+        }
+
+        Review::create([
+            'reading_cycle_id' => $cycle->id,
+            'club_member_id' => $attendees->first()->id,
+            'text' => 'Живое обсуждение.',
+        ]);
+
+        $response = $this->actingAs($admin)->postJson("/api/meetings/{$meeting->id}/finish");
+
+        $response->assertOk();
+        $response->assertJsonPath('data.status', 'finished');
+        $this->assertDatabaseHas('reading_cycles', [
+            'id' => $cycle->id,
+            'status' => ReadingCycleStatusEnum::Completed->value,
+        ]);
+        $this->assertDatabaseHas('reviews', [
+            'reading_cycle_id' => $cycle->id,
+            'club_member_id' => $attendees->last()->id,
+            'text' => 'Промолчал',
+        ]);
+        $this->assertDatabaseHas('reading_cycles', [
+            'cycle_number' => 43,
+            'status' => ReadingCycleStatusEnum::Proposed->value,
+        ]);
     }
 }

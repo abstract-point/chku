@@ -14,25 +14,22 @@ class TurnOrderSeeder extends Seeder
         $club = Club::first();
         $members = $this->getMembers();
 
-        TurnOrder::create([
-            'club_id' => $club->id,
-            'club_member_id' => $members['elena@example.com']->id,
-            'position' => 1,
-            'is_current' => true,
-        ]);
-
-        TurnOrder::create([
-            'club_id' => $club->id,
-            'club_member_id' => $members['mikhail@example.com']->id,
-            'position' => 2,
-            'is_next' => true,
-        ]);
-
-        TurnOrder::create([
-            'club_id' => $club->id,
-            'club_member_id' => $members['admin@example.com']->id,
-            'position' => 3,
-        ]);
+        foreach ([
+            'elena@example.com',
+            'mikhail@example.com',
+            'anna@example.com',
+            'pavel@example.com',
+            'marina@example.com',
+            'admin@example.com',
+        ] as $index => $email) {
+            TurnOrder::create([
+                'club_id' => $club->id,
+                'club_member_id' => $members[$email]->id,
+                'position' => $index + 1,
+                'is_current' => $index === 0,
+                'is_next' => $index === 1,
+            ]);
+        }
     }
 
     private function getMembers(): array
