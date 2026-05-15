@@ -12,13 +12,16 @@ return new class extends Migration
             $table->id();
             $table->foreignId('club_member_id')->constrained()->cascadeOnDelete();
             $table->foreignId('book_id')->constrained()->cascadeOnDelete();
-            $table->unsignedSmallInteger('position');
+            $table->foreignId('next_queue_item_id')
+                ->nullable()
+                ->constrained('member_book_queue_items')
+                ->nullOnDelete();
             $table->text('reason')->nullable();
             $table->text('description')->nullable();
             $table->string('status');
             $table->timestamps();
 
-            $table->unique(['club_member_id', 'position']);
+            $table->unique('next_queue_item_id');
         });
     }
 

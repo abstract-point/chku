@@ -61,52 +61,48 @@ class CurrentTestCycleSeeder extends Seeder
         MemberBookQueueItem::create([
             'club_member_id' => $members['elena@example.com']->id,
             'book_id' => $books['cvety-dlya-elzherona']->id,
-            'position' => 1,
             'reason' => 'Книга поднимает вечный вопрос о цене знаний и о том, что делает нас людьми.',
             'description' => $books['cvety-dlya-elzherona']->description,
             'status' => MemberBookQueueItemStatusEnum::Approved,
         ]);
 
-        MemberBookQueueItem::create([
+        $elenaFirst = MemberBookQueueItem::create([
             'club_member_id' => $members['elena@example.com']->id,
             'book_id' => $books['shum-vremeni']->id,
-            'position' => 2,
             'reason' => 'Роман о компромиссе и достоинстве в эпоху террора — хороший материал для дискуссии.',
             'description' => $books['shum-vremeni']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
 
-        MemberBookQueueItem::create([
+        $elenaSecond = MemberBookQueueItem::create([
             'club_member_id' => $members['elena@example.com']->id,
             'book_id' => $books['oblachnyj-atlas']->id,
-            'position' => 3,
             'reason' => 'Шесть переплетённых историй из разных эпох — интересно обсудить связи между ними.',
             'description' => $books['oblachnyj-atlas']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
+        $elenaFirst->update(['next_queue_item_id' => $elenaSecond->id]);
 
-        MemberBookQueueItem::create([
+        $mikhailFirst = MemberBookQueueItem::create([
             'club_member_id' => $members['mikhail@example.com']->id,
             'book_id' => $books['piknik-na-obochine']->id,
-            'position' => 1,
             'reason' => 'Хочется обсудить тему непостижимого и человеческую жадность перед лицом неизвестного.',
             'description' => $books['piknik-na-obochine']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
 
-        MemberBookQueueItem::create([
+        $mikhailSecond = MemberBookQueueItem::create([
             'club_member_id' => $members['mikhail@example.com']->id,
             'book_id' => $books['kratkaya-istoriya-vremeni']->id,
-            'position' => 2,
             'reason' => 'Научпоп, который меняет взгляд на мир. Хороший контраст после художественной прозы.',
             'description' => $books['kratkaya-istoriya-vremeni']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
+        $mikhailFirst->update(['next_queue_item_id' => $mikhailSecond->id]);
 
         MemberBookQueueItem::create([
             'club_member_id' => $members['admin@example.com']->id,
             'book_id' => $books['piknik-na-obochine']->id,
-            'position' => 1,
             'reason' => 'Хочется обсудить тему непостижимого и человеческую жадность перед лицом неизвестного.',
             'description' => $books['piknik-na-obochine']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
