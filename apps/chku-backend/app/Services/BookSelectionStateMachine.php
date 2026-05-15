@@ -46,7 +46,14 @@ final class BookSelectionStateMachine
             if ($responses->contains(fn (BookCandidateResponseEnum $response) => $response === BookCandidateResponseEnum::Read)) {
                 $candidate->update(['status' => BookCandidateStatusEnum::Rejected]);
                 $candidate->queueItem?->update(['status' => MemberBookQueueItemStatusEnum::Rejected]);
-                $this->createCandidateFromNextQueuedItem($candidate->proposer, $candidate->readingCycle);
+                $next = $this->createCandidateFromNextQueuedItem($candidate->proposer, $candidate->readingCycle);
+
+                if ($next === null) {
+                    $cycle = $candidate->readingCycle;
+                    if ($cycle && $cycle->status === ReadingCycleStatusEnum::Proposed) {
+                        $cycle->delete();
+                    }
+                }
 
                 return $candidate->refresh();
             }
