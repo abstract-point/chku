@@ -9,6 +9,7 @@ use App\Http\Resources\MemberBookQueueItemResource;
 use App\Models\Book;
 use App\Models\Genre;
 use App\Models\MemberBookQueueItem;
+use App\Services\BookSelectionStateMachine;
 use App\Services\CurrentMemberService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -30,8 +31,11 @@ final class MemberBookQueueController extends Controller
         );
     }
 
-    public function store(Request $request, CurrentMemberService $currentMember): MemberBookQueueItemResource
-    {
+    public function store(
+        Request $request,
+        CurrentMemberService $currentMember,
+        BookSelectionStateMachine $stateMachine,
+    ): MemberBookQueueItemResource {
         $payload = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
@@ -53,15 +57,33 @@ final class MemberBookQueueController extends Controller
                 ],
             );
 
+            $existing = $member->bookQueueItems()
+                ->orderBy('position')
+                ->get();
+
+            foreach ($existing as $i => $item) {
+                $item->update(['position' => $i + 10000]);
+            }
+
+            foreach ($existing as $i => $item) {
+                $item->update(['position' => $i + 2]);
+            }
+
             return MemberBookQueueItem::create([
                 'club_member_id' => $member->id,
                 'book_id' => $book->id,
-                'position' => (int) $member->bookQueueItems()->max('position') + 1,
+                'position' => 1,
                 'reason' => $payload['reason'] ?? null,
                 'description' => $payload['description'] ?? null,
                 'status' => MemberBookQueueItemStatusEnum::Queued,
             ]);
         });
+
+        $clubId = $member->club_id;
+        $nextSelector = $stateMachine->nextSelector($clubId);
+        if ($nextSelector && $nextSelector->id === $member->id) {
+            $stateMachine->createCandidateFromNextSelector($clubId);
+        }
 
         return new MemberBookQueueItemResource($item->load('book.genre'));
     }
