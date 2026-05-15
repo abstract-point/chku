@@ -13,6 +13,10 @@ return new class extends Migration
             $table->foreignId('book_id')->constrained()->cascadeOnDelete();
             $table->foreignId('proposer_id')->constrained('club_members')->cascadeOnDelete();
             $table->foreignId('reading_cycle_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('member_book_queue_item_id')
+                ->nullable()
+                ->constrained('member_book_queue_items')
+                ->nullOnDelete();
             $table->text('reason')->nullable();
             $table->text('description')->nullable();
             $table->string('status');
