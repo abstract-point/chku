@@ -24,8 +24,28 @@ final class BookSelectionStateMachine
     public function createCandidateFromNextSelector(int $clubId): ?BookCandidate
     {
         return DB::transaction(function () use ($clubId): ?BookCandidate {
-            if ($this->activeCandidate($clubId) || $this->openCycle($clubId)) {
+            if ($this->activeCandidate($clubId)) {
                 return null;
+            }
+
+            $cycle = $this->openCycle($clubId);
+            if ($cycle) {
+                if ($cycle->status === ReadingCycleStatusEnum::Active) {
+                    return null;
+                }
+
+                $hasActive = $cycle->bookCandidate()
+                    ->whereIn('status', [
+                        BookCandidateStatusEnum::Pending->value,
+                        BookCandidateStatusEnum::AwaitingOwnerConfirmation->value,
+                    ])
+                    ->exists();
+
+                if ($hasActive) {
+                    return null;
+                }
+
+                $cycle->delete();
             }
 
             $selector = $this->nextSelector($clubId);
