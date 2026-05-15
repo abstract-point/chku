@@ -11,8 +11,10 @@ use App\Models\BookCandidateResponse;
 use App\Models\ClubMember;
 use App\Models\MemberBookQueueItem;
 use App\Models\ReadingCycle;
+use App\Models\TurnOrder;
 use App\Models\User;
 use App\Services\BookSelectionStateMachine;
+use App\Services\TurnOrderService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -38,6 +40,7 @@ class BookCandidateApiTest extends TestCase
             ->firstOrFail()
             ->club_id;
 
+        app(TurnOrderService::class)->rotateAfterCompletedCycle($clubId);
         app(BookSelectionStateMachine::class)->createCandidateFromNextSelector($clubId);
 
         return BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
@@ -132,5 +135,17 @@ class BookCandidateApiTest extends TestCase
             'status' => ReadingCycleStatusEnum::Active->value,
         ]);
         $this->assertSame(43, ReadingCycle::max('cycle_number'));
+        $this->assertSame(
+            ['mikhail@example.com', 'anna@example.com', 'pavel@example.com', 'marina@example.com', 'admin@example.com', 'elena@example.com'],
+            $this->turnOrderEmails($candidate->proposer->club_id),
+        );
+    }
+
+    private function turnOrderEmails(int $clubId): array
+    {
+        return app(TurnOrderService::class)
+            ->orderedTurnOrders($clubId)
+            ->map(fn (TurnOrder $order) => $order->clubMember?->user?->email)
+            ->all();
     }
 }

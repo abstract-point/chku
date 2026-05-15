@@ -10,7 +10,9 @@ use App\Models\MeetingRsvp;
 use App\Models\Rating;
 use App\Models\ReadingCycle;
 use App\Models\Review;
+use App\Models\TurnOrder;
 use App\Models\User;
+use App\Services\TurnOrderService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -340,5 +342,21 @@ class MeetingApiTest extends TestCase
             'cycle_number' => 43,
             'status' => ReadingCycleStatusEnum::Proposed->value,
         ]);
+        $mikhail = ClubMember::whereHas('user', fn ($query) => $query->where('email', 'mikhail@example.com'))->firstOrFail();
+        $this->assertDatabaseHas('book_candidates', [
+            'proposer_id' => $mikhail->id,
+        ]);
+        $this->assertSame(
+            ['mikhail@example.com', 'anna@example.com', 'pavel@example.com', 'marina@example.com', 'admin@example.com', 'elena@example.com'],
+            $this->turnOrderEmails($cycle->club_id),
+        );
+    }
+
+    private function turnOrderEmails(int $clubId): array
+    {
+        return app(TurnOrderService::class)
+            ->orderedTurnOrders($clubId)
+            ->map(fn (TurnOrder $order) => $order->clubMember?->user?->email)
+            ->all();
     }
 }

@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\ClubMember;
+use App\Models\TurnOrder;
 use App\Models\User;
+use App\Services\TurnOrderService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -43,6 +45,7 @@ class ClubMemberAdminApiTest extends TestCase
         $response->assertJsonPath('data.avatarUrl', null);
         $this->assertDatabaseHas('users', ['email' => 'new@example.com']);
         $this->assertDatabaseHas('audit_logs', ['action' => 'member_created']);
+        $this->assertSame('new@example.com', collect($this->turnOrderEmails())->last());
     }
 
     public function test_admin_can_create_member_with_avatar(): void
@@ -125,6 +128,7 @@ class ClubMemberAdminApiTest extends TestCase
             'id' => $member->id,
             'is_active' => false,
         ]);
+        $this->assertNotContains('mikhail@example.com', $this->turnOrderEmails());
         $this->assertDatabaseHas('audit_logs', ['action' => 'member_deactivated']);
     }
 
@@ -146,5 +150,16 @@ class ClubMemberAdminApiTest extends TestCase
         $response = $this->postJson("/api/members/{$member->id}/deactivate");
 
         $response->assertForbidden();
+    }
+
+    private function turnOrderEmails(): array
+    {
+        $clubId = ClubMember::whereHas('user', fn ($query) => $query->where('email', 'elena@example.com'))
+            ->value('club_id');
+
+        return app(TurnOrderService::class)
+            ->orderedTurnOrders($clubId)
+            ->map(fn (TurnOrder $order) => $order->clubMember?->user?->email)
+            ->all();
     }
 }

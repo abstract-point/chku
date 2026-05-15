@@ -6,7 +6,9 @@ use App\Enums\ReadingCycleStatusEnum;
 use App\Models\ClubMember;
 use App\Models\Rating;
 use App\Models\ReadingCycle;
+use App\Models\TurnOrder;
 use App\Models\User;
+use App\Services\TurnOrderService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -64,5 +66,22 @@ class ReadingCycleCompletionApiTest extends TestCase
             'id' => $cycle->id,
             'status' => ReadingCycleStatusEnum::Completed->value,
         ]);
+        $this->assertDatabaseHas('reading_cycles', [
+            'cycle_number' => 43,
+            'proposer_id' => ClubMember::whereHas('user', fn ($query) => $query->where('email', 'mikhail@example.com'))->value('id'),
+            'status' => ReadingCycleStatusEnum::Proposed->value,
+        ]);
+        $this->assertSame(
+            ['mikhail@example.com', 'anna@example.com', 'pavel@example.com', 'marina@example.com', 'admin@example.com', 'elena@example.com'],
+            $this->turnOrderEmails($cycle->club_id),
+        );
+    }
+
+    private function turnOrderEmails(int $clubId): array
+    {
+        return app(TurnOrderService::class)
+            ->orderedTurnOrders($clubId)
+            ->map(fn (TurnOrder $order) => $order->clubMember?->user?->email)
+            ->all();
     }
 }
