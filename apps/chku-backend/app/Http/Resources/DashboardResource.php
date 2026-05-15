@@ -40,10 +40,13 @@ class DashboardResource extends JsonResource
                 ->map(fn ($p, int $index) => [
                     'name' => $p->clubMember?->user?->name,
                     'avatarUrl' => MemberAvatar::url($p->clubMember),
-                    'status' => $p->status->value === 'finished' ? 'Закончила' : null,
+                    'status' => match ($p->status->value) {
+                        'finished' => 'Закончила',
+                        'not_started' => 'Не начал',
+                        default => null,
+                    },
                     'progress' => $p->progress_percent,
                     'badge' => $p->status->value === 'reading' ? 'Читает' : null,
-                    'rank' => $index + 1,
                     'medal' => match ($index) {
                         0 => 'gold',
                         1 => 'silver',

@@ -30,8 +30,8 @@ const allMembers = computed(() => {
   if (currentProcessMember.value) {
     result.push({ member: currentProcessMember.value, isActive: true, isNext: false })
   }
-  queueMembers.value.forEach((m, i) => {
-    result.push({ member: m, isActive: false, isNext: i === 0 })
+  queueMembers.value.forEach((m) => {
+    result.push({ member: m, isActive: false, isNext: !!m.active })
   })
   return result
 })
