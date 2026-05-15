@@ -56,6 +56,13 @@ function saveProgress(progressPercent: number) {
     },
   )
 }
+
+function medalLabel(medal: BookProgressMember['medal']) {
+  if (medal === 'gold') return 'Золото'
+  if (medal === 'silver') return 'Серебро'
+  if (medal === 'bronze') return 'Бронза'
+  return ''
+}
 </script>
 
 <template lang="pug">
@@ -113,9 +120,10 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
           v-if="member.medal"
           :class="`club-progress__owl--${member.medal}`"
           src="/favicon.svg"
-          alt=""
-          aria-hidden="true"
+          :alt="medalLabel(member.medal)"
+          :title="medalLabel(member.medal)"
         )
+        span.member-status__medal.label-text(v-if="member.medal") {{ medalLabel(member.medal) }}
       .member-status__progress(v-if="member.progress && member.progress > 0")
         .progress.member-status__progress-track(:aria-label="`${member.name}: ${member.progress}%`")
           .progress__bar(:style="{ '--progress-value': `${member.progress}%` }")
@@ -243,6 +251,11 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 .member-status__name {
   color: var(--text-main);
   font-size: 0.82rem;
+}
+
+.member-status__medal {
+  color: var(--text-subtle);
+  font-size: 0.58rem;
 }
 
 .member-status__progress {
