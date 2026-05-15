@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, Calendar, CalendarPlus, ListPlus, Star, Users } from '@lucide/vue'
+import { BookOpen, Calendar, CalendarPlus, Star, Users } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
 import DashboardBookSelectionCycle from '@/components/dashboard/DashboardBookSelectionCycle.vue'
 import DashboardCurrentCycle from '@/components/dashboard/DashboardCurrentCycle.vue'
@@ -20,13 +20,6 @@ main.dashboard.container
   section.panel(v-else-if="dashboardQuery.error.value" aria-live="polite")
     p.body-text Не удалось загрузить дашборд.
   template(v-else-if="dashboardQuery.data.value")
-    section.choose-book-banner(v-if="dashboardQuery.data.value.lifecycle?.shouldShowChooseBookBanner")
-      ListPlus.choose-book-banner__icon(:size="22" aria-hidden="true")
-      .choose-book-banner__content
-        span.label-text Требуется действие
-        h2 Выберите книгу
-        p.body-text Твоя очередь подошла, но в личной очереди нет книг для проверки.
-      RouterLink.button.button--primary.label-text(to="/propose-selection") Управлять очередью
     .dashboard__grid
       DashboardBookSelectionCycle(
         v-if="dashboardQuery.data.value.activeCandidate"
@@ -81,33 +74,6 @@ main.dashboard.container
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
-}
-
-.choose-book-banner {
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
-  margin-bottom: var(--space-xl);
-  padding: var(--space-lg) var(--space-xl);
-  border: var(--border-width) solid var(--warn-border);
-  border-radius: var(--radius-panel);
-  background:
-    linear-gradient(180deg, rgba(216, 137, 43, 0.08), rgba(216, 137, 43, 0.018)),
-    var(--bg-panel);
-}
-
-.choose-book-banner__icon {
-  flex: 0 0 auto;
-  color: var(--warn);
-}
-
-.choose-book-banner__content {
-  flex: 1;
-}
-
-.choose-book-banner h2 {
-  margin: 0.2rem 0;
-  font-size: 1.2rem;
 }
 
 .dashboard-stats__grid {
@@ -174,11 +140,4 @@ main.dashboard.container
   }
 }
 
-@media (max-width: 760px) {
-  .choose-book-banner {
-    align-items: stretch;
-    flex-direction: column;
-    padding: var(--space-lg);
-  }
-}
 </style>

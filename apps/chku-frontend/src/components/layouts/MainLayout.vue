@@ -5,6 +5,7 @@ import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
 import BookCandidateVerificationBanner from '@/components/dashboard/BookCandidateVerificationBanner.vue'
 import TwoFactorRequiredBanner from '@/components/TwoFactorRequiredBanner.vue'
+import BannerSection from '@/components/layouts/BannerSection.vue'
 import { mapCandidateToChoice } from '@/mappers/candidateMapper'
 import { useAuthSession } from '@/queries/authQueries'
 import { useActiveCandidateQuery } from '@/queries/candidateQueries'
@@ -44,6 +45,7 @@ const shouldShowTwoFactorBanner = computed(() => isAdmin.value && !twoFactorEnab
     TwoFactorRequiredBanner
   .container(v-if="activeBookChoice && !isDashboardPage")
     BookCandidateVerificationBanner(:choice="activeBookChoice")
+  BannerSection
   main.app-main
     RouterView
   AppFooter
