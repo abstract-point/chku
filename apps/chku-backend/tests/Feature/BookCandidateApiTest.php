@@ -141,6 +141,62 @@ class BookCandidateApiTest extends TestCase
         );
     }
 
+    public function test_owner_can_replace_pending_candidate_from_personal_queue(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $this->actingAs(User::where('email', 'mikhail@example.com')->firstOrFail());
+
+        $candidate = $this->createProposedCandidate();
+        $replacement = MemberBookQueueItem::query()
+            ->where('club_member_id', $candidate->proposer_id)
+            ->where('status', MemberBookQueueItemStatusEnum::Queued->value)
+            ->firstOrFail();
+
+        $response = $this->postJson("/api/me/book-queue/{$replacement->id}/candidate");
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('book_candidates', [
+            'id' => $candidate->id,
+            'status' => BookCandidateStatusEnum::Rejected->value,
+        ]);
+        $this->assertDatabaseHas('member_book_queue_items', [
+            'id' => $candidate->member_book_queue_item_id,
+            'status' => MemberBookQueueItemStatusEnum::Queued->value,
+        ]);
+        $this->assertDatabaseHas('member_book_queue_items', [
+            'id' => $replacement->id,
+            'status' => MemberBookQueueItemStatusEnum::InVerification->value,
+        ]);
+
+        $activeCandidate = BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
+        $this->assertSame($replacement->id, $activeCandidate->member_book_queue_item_id);
+        $this->assertSame(
+            ClubMember::where('club_id', $activeCandidate->proposer->club_id)->where('is_active', true)->count(),
+            BookCandidateResponse::where('book_candidate_id', $activeCandidate->id)->count(),
+        );
+    }
+
+    public function test_owner_cannot_replace_candidate_after_all_members_answered_not_read(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $this->actingAs(User::where('email', 'mikhail@example.com')->firstOrFail());
+
+        $candidate = $this->createProposedCandidate();
+        BookCandidateResponse::where('book_candidate_id', $candidate->id)->update([
+            'response' => BookCandidateResponseEnum::NotRead->value,
+        ]);
+        $candidate->update(['status' => BookCandidateStatusEnum::AwaitingOwnerConfirmation]);
+
+        $replacement = MemberBookQueueItem::query()
+            ->where('club_member_id', $candidate->proposer_id)
+            ->where('status', MemberBookQueueItemStatusEnum::Queued->value)
+            ->firstOrFail();
+
+        $this->postJson("/api/me/book-queue/{$replacement->id}/candidate")
+            ->assertUnprocessable();
+    }
+
     private function turnOrderEmails(int $clubId): array
     {
         return app(TurnOrderService::class)

@@ -35,7 +35,27 @@ class MemberBookQueueApiTest extends TestCase
 
         $this->getJson('/api/me/book-queue')
             ->assertOk()
-            ->assertJsonFragment(['title' => 'Пикник на обочине']);
+            ->assertJsonFragment(['title' => 'Пикник на обочине'])
+            ->assertJsonMissingPath('data.0.position');
+    }
+
+    public function test_member_can_reorder_linked_book_queue(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $this->actingAs(User::where('email', 'elena@example.com')->firstOrFail());
+
+        $items = $this->getJson('/api/me/book-queue')
+            ->assertOk()
+            ->json('data');
+
+        $ids = array_column($items, 'id');
+        $reorderedIds = array_reverse($ids);
+
+        $this->postJson('/api/me/book-queue/reorder', [
+            'itemIds' => $reorderedIds,
+        ])->assertOk()
+            ->assertJsonPath('data.0.id', $reorderedIds[0])
+            ->assertJsonPath('data.0.nextQueueItemId', $reorderedIds[1]);
     }
 
     public function test_member_cannot_remove_another_members_queue_item(): void
