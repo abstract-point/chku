@@ -16,6 +16,7 @@ use App\Models\Review;
 use App\Services\AuditLogService;
 use App\Services\BookSelectionStateMachine;
 use App\Services\CurrentMemberService;
+use App\Services\TurnOrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -193,6 +194,7 @@ final class MeetingController extends Controller
         Request $request,
         Meeting $meeting,
         BookSelectionStateMachine $stateMachine,
+        TurnOrderService $turnOrder,
     ): MeetingResource|JsonResponse {
         $this->authorize('update', $meeting);
 
@@ -219,7 +221,7 @@ final class MeetingController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($meeting, $attendingMemberIds, $stateMachine): void {
+        DB::transaction(function () use ($meeting, $attendingMemberIds, $stateMachine, $turnOrder): void {
             foreach ($attendingMemberIds as $memberId) {
                 Review::firstOrCreate(
                     [
@@ -237,6 +239,7 @@ final class MeetingController extends Controller
                 'completed_at' => now(),
             ]);
 
+            $turnOrder->rotateAfterCompletedCycle($meeting->readingCycle->club_id);
             $stateMachine->createCandidateFromNextSelector($meeting->readingCycle->club_id);
         });
 

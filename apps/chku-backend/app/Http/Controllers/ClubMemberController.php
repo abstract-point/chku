@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Http\Resources\MemberDetailResource;
 use App\Http\Resources\MemberResource;
 use App\Services\AuditLogService;
+use App\Services\TurnOrderService;
 use App\Services\UserAvatarService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -61,7 +62,7 @@ final class ClubMemberController extends Controller
         ]);
     }
 
-    public function store(Request $request, UserAvatarService $avatars): MemberDetailResource
+    public function store(Request $request, UserAvatarService $avatars, TurnOrderService $turnOrder): MemberDetailResource
     {
         $this->authorize('create', ClubMember::class);
 
@@ -106,6 +107,8 @@ final class ClubMemberController extends Controller
             return $member;
         });
 
+        $turnOrder->appendMember($member);
+
         $actor = $request->user();
         if ($actor) {
             $this->auditLog->logMemberCreated($member, $actor);
@@ -116,7 +119,7 @@ final class ClubMemberController extends Controller
         );
     }
 
-    public function deactivate(Request $request, ClubMember $member): JsonResponse
+    public function deactivate(Request $request, ClubMember $member, TurnOrderService $turnOrder): JsonResponse
     {
         $this->authorize('deactivate', $member);
 
@@ -131,6 +134,8 @@ final class ClubMemberController extends Controller
             'is_active' => false,
             'deactivated_at' => now(),
         ]);
+
+        $turnOrder->removeMember($member);
 
         if ($actor) {
             $this->auditLog->logMemberDeactivated($member, $actor);

@@ -15,12 +15,16 @@ use App\Models\ClubMember;
 use App\Models\MemberBookQueueItem;
 use App\Models\ReadingCycle;
 use App\Models\ReadingProgress;
-use App\Models\TurnOrder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 final class BookSelectionStateMachine
 {
+    public function __construct(
+        private readonly TurnOrderService $turnOrder,
+    ) {
+    }
+
     public function createCandidateFromNextSelector(int $clubId): ?BookCandidate
     {
         return DB::transaction(function () use ($clubId): ?BookCandidate {
@@ -142,19 +146,13 @@ final class BookSelectionStateMachine
                     'status' => ReadingProgressStatusEnum::NotStarted,
                 ]));
 
-            $this->advanceTurnOrder($candidate->proposer);
-
             return $candidate->refresh();
         });
     }
 
     public function nextSelector(int $clubId): ?ClubMember
     {
-        return TurnOrder::with('clubMember.user')
-            ->where('club_id', $clubId)
-            ->where('is_next', true)
-            ->first()
-            ?->clubMember;
+        return $this->turnOrder->currentSelector($clubId);
     }
 
     public function nextSelectorHasQueuedBooks(int $clubId): bool
@@ -261,31 +259,5 @@ final class BookSelectionStateMachine
         return ReadingCycle::where('club_id', $clubId)
             ->where('status', ReadingCycleStatusEnum::Active->value)
             ->first();
-    }
-
-    private function advanceTurnOrder(ClubMember $proposer): void
-    {
-        $orders = TurnOrder::query()
-            ->where('club_id', $proposer->club_id)
-            ->orderBy('position')
-            ->get();
-
-        if ($orders->isEmpty()) {
-            return;
-        }
-
-        $currentIndex = $orders->search(fn (TurnOrder $order) => $order->club_member_id === $proposer->id);
-        if ($currentIndex === false) {
-            return;
-        }
-
-        $nextIndex = ((int) $currentIndex + 1) % $orders->count();
-
-        foreach ($orders as $index => $order) {
-            $order->update([
-                'is_current' => $index === $currentIndex,
-                'is_next' => $index === $nextIndex,
-            ]);
-        }
     }
 }

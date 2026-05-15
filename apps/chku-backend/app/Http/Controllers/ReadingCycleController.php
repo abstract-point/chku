@@ -11,6 +11,7 @@ use App\Models\ReadingCycle;
 use App\Models\Review;
 use App\Services\BookSelectionStateMachine;
 use App\Services\CurrentMemberService;
+use App\Services\TurnOrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +54,7 @@ final class ReadingCycleController extends Controller
     public function completeCurrent(
         Request $request,
         BookSelectionStateMachine $stateMachine,
+        TurnOrderService $turnOrder,
     ): ReadingCycleResource|JsonResponse {
         abort_unless($request->user()?->hasAnyRole(['admin', 'developer']), 403);
 
@@ -76,12 +78,15 @@ final class ReadingCycleController extends Controller
             ], 422);
         }
 
-        $cycle->update([
-            'status' => ReadingCycleStatusEnum::Completed,
-            'completed_at' => now(),
-        ]);
+        DB::transaction(function () use ($cycle, $turnOrder, $stateMachine): void {
+            $cycle->update([
+                'status' => ReadingCycleStatusEnum::Completed,
+                'completed_at' => now(),
+            ]);
 
-        $stateMachine->createCandidateFromNextSelector($cycle->club_id);
+            $turnOrder->rotateAfterCompletedCycle($cycle->club_id);
+            $stateMachine->createCandidateFromNextSelector($cycle->club_id);
+        });
 
         return new ReadingCycleResource($cycle->refresh()->load('book.genre', 'proposer.user'));
     }
