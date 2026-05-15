@@ -15,8 +15,14 @@ const bookQueueQuery = useBookQueueQuery()
 const readingHistoryQuery = useCurrentUserReadingHistoryQuery()
 const currentMember = computed(() => currentUserQuery.data.value)
 const readingHistory = computed(() => readingHistoryQuery.data.value ?? [])
-const nextQueuedBook = computed(() =>
-  bookQueueQuery.items.value.find((item) => item.status === 'queued') ?? null,
+const nextQueueBook = computed(
+  () =>
+    bookQueueQuery.items.value.find((item) => item.isCurrentCandidate) ??
+    bookQueueQuery.items.value.find((item) => item.status === 'queued') ??
+    null,
+)
+const nextQueueLabel = computed(() =>
+  nextQueueBook.value?.isCurrentCandidate ? 'Сейчас в предложке' : 'Автоматически пойдёт в предложку',
 )
 const currentMemberFirstName = computed(() => currentMember.value?.name.split(' ')[0] ?? '')
 const canProposeNextBook = computed(() =>
@@ -74,12 +80,12 @@ main.profile.container
         .profile__next-queue(aria-live="polite")
           p.label-text(v-if="bookQueueQuery.isLoading.value") Загружаем очередь...
           p.label-text(v-else-if="bookQueueQuery.error.value") Не удалось загрузить очередь.
-          p.label-text(v-else-if="!nextQueuedBook") В очереди нет книги для автоматической предложки.
+          p.label-text(v-else-if="!nextQueueBook") В очереди нет книги для автоматической предложки.
           article.profile__next-book(v-else)
-            span.profile__next-book-label.label-text Автоматически пойдёт в предложку
-            strong {{ nextQueuedBook.title }}
-            small {{ nextQueuedBook.author }}
-            p.body-text(v-if="nextQueuedBook.reason") {{ nextQueuedBook.reason }}
+            span.profile__next-book-label.label-text {{ nextQueueLabel }}
+            strong {{ nextQueueBook.title }}
+            small {{ nextQueueBook.author }}
+            p.body-text(v-if="nextQueueBook.reason") {{ nextQueueBook.reason }}
         RouterLink.button.button--primary.label-text.profile__turn-action(to="/propose-selection")
           | Открыть очередь
 
@@ -92,12 +98,12 @@ main.profile.container
         .profile__next-queue(aria-live="polite")
           p.label-text(v-if="bookQueueQuery.isLoading.value") Загружаем очередь...
           p.label-text(v-else-if="bookQueueQuery.error.value") Не удалось загрузить очередь.
-          p.label-text(v-else-if="!nextQueuedBook") В очереди нет книги для автоматической предложки.
+          p.label-text(v-else-if="!nextQueueBook") В очереди нет книги для автоматической предложки.
           article.profile__next-book(v-else)
-            span.profile__next-book-label.label-text Автоматически пойдёт в предложку
-            strong {{ nextQueuedBook.title }}
-            small {{ nextQueuedBook.author }}
-            p.body-text(v-if="nextQueuedBook.reason") {{ nextQueuedBook.reason }}
+            span.profile__next-book-label.label-text {{ nextQueueLabel }}
+            strong {{ nextQueueBook.title }}
+            small {{ nextQueueBook.author }}
+            p.body-text(v-if="nextQueueBook.reason") {{ nextQueueBook.reason }}
         RouterLink.button.button--primary.label-text.profile__turn-action(to="/propose-selection")
           | Управлять очередью
 

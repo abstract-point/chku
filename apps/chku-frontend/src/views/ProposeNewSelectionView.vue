@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { ArrowDown, ArrowUp, BookMarked, Plus, Trash2 } from '@lucide/vue'
+import { ArrowDown, ArrowUp, BookMarked, CheckCircle2, GitBranch, Plus, Send, Trash2 } from '@lucide/vue'
 import {
   useBookQueueQuery,
   useCreateBookQueueItemMutation,
+  useMakeBookQueueItemCandidateMutation,
   useRemoveBookQueueItemMutation,
   useReorderBookQueueMutation,
 } from '@/queries/bookQueueQueries'
+import type { BookQueueItem } from '@/types/club'
 
 const queueQuery = useBookQueueQuery()
 const createQueueItem = useCreateBookQueueItemMutation()
 const removeQueueItem = useRemoveBookQueueItemMutation()
+const makeCandidate = useMakeBookQueueItemCandidateMutation()
 const reorderQueue = useReorderBookQueueMutation()
 
 const form = reactive({
@@ -21,6 +24,8 @@ const form = reactive({
 })
 const submitAttempted = ref(false)
 const items = computed(() => queueQuery.items.value)
+const currentCandidate = computed(() => items.value.find((item) => item.isCurrentCandidate) ?? null)
+const nextCandidate = computed(() => items.value.find((item) => item.status === 'queued') ?? null)
 
 function isFilled(value: string) {
   return value.trim().length > 0
@@ -62,6 +67,19 @@ function statusLabel(status: string) {
   )
 }
 
+function itemBadge(item: BookQueueItem) {
+  if (item.isCurrentCandidate) return 'Сейчас в предложке'
+  if (nextCandidate.value?.id === item.id) return 'Кандидат на следующий цикл'
+  return statusLabel(item.status)
+}
+
+function itemBadgeClass(item: BookQueueItem) {
+  return {
+    'badge--done': item.isCurrentCandidate,
+    'badge--action': nextCandidate.value?.id === item.id && !item.isCurrentCandidate,
+  }
+}
+
 function move(index: number, direction: -1 | 1) {
   const nextIndex = index + direction
   if (nextIndex < 0 || nextIndex >= items.value.length) return
@@ -72,6 +90,11 @@ function move(index: number, direction: -1 | 1) {
   ordered[nextIndex] = current
   reorderQueue.mutate(ordered.map((item) => item.id))
 }
+
+function promote(item: BookQueueItem) {
+  if (!item.canBecomeCandidate || makeCandidate.isPending.value) return
+  makeCandidate.mutate(item.id)
+}
 </script>
 
 <template lang="pug">
@@ -80,7 +103,7 @@ main.proposal.container
     span.label-text.proposal__eyebrow Личный кабинет
     h1 Моя очередь книг
     p.body-text.proposal__intro
-      | Первая книга из списка автоматически уйдёт на проверку, когда подойдёт твоя очередь выбирать.
+      | Голова списка — ближайший кандидат. Когда твоя очередь уже наступила, текущая предложенная книга остаётся первой в цепочке.
 
   .proposal__grid
     section.panel.proposal__form-panel(aria-labelledby="queue-form-title")
@@ -131,7 +154,7 @@ main.proposal.container
     section.proposal__queue(aria-labelledby="queue-title")
       .section-header
         h2#queue-title Очередь
-        span.label-text {{ items.length }} книг
+        span.label-text {{ items.length }} книг в цепочке
 
       section.panel(v-if="queueQuery.isLoading.value")
         p.body-text Загружаем очередь...
@@ -142,26 +165,49 @@ main.proposal.container
         h3 Выберите книгу
         p.body-text Добавь хотя бы одну книгу, чтобы система смогла предложить её, когда подойдёт твоя очередь.
       .panel.proposal__book-list(v-else)
-        article.proposal__book(v-for="(item, index) in items" :key="item.id")
-          .proposal__book-index {{ index + 1 }}
+        .proposal__queue-summary(aria-live="polite")
+          .proposal__summary-item(v-if="currentCandidate")
+            CheckCircle2.proposal__summary-icon
+            div
+              span.label-text Сейчас в предложке
+              strong {{ currentCandidate.title }}
+          .proposal__summary-item(v-if="nextCandidate && nextCandidate.id !== currentCandidate?.id")
+            GitBranch.proposal__summary-icon
+            div
+              span.label-text Ближайший кандидат
+              strong {{ nextCandidate.title }}
+        article.proposal__book(
+          v-for="(item, index) in items"
+          :key="item.id"
+          :class="{ 'proposal__book--active': item.isCurrentCandidate, 'proposal__book--next': nextCandidate?.id === item.id && !item.isCurrentCandidate }"
+        )
+          .proposal__book-node(aria-hidden="true")
+            span
           .proposal__book-main
             .proposal__book-header
               div
                 h3.proposal__book-title {{ item.title }}
                 p.body-text {{ item.author }}
               .proposal__badges
-                span.badge.badge--action.label-text(v-if="index === 0 && item.status === 'queued'")
-                  | Автоматически уйдёт в предложку
-                span.badge.label-text(:class="{ 'badge--done': item.status === 'approved', 'badge--action': item.status === 'in_verification' }")
-                  | {{ statusLabel(item.status) }}
+                span.badge.label-text(:class="itemBadgeClass(item)")
+                  | {{ itemBadge(item) }}
             p.body-text(v-if="item.reason") {{ item.reason }}
           .proposal__book-actions
+            button.button.button--primary.label-text(
+              type="button"
+              :disabled="!item.canBecomeCandidate || makeCandidate.isPending.value"
+              @click="promote(item)"
+              aria-label="Сделать книгу кандидатом"
+            )
+              Send.proposal__button-icon
+              span.proposal__button-text Сделать кандидатом
             button.button.button--secondary.label-text(type="button" :disabled="index === 0 || reorderQueue.isPending.value" @click="move(index, -1)" aria-label="Поднять книгу")
               ArrowUp.proposal__button-icon
             button.button.button--secondary.label-text(type="button" :disabled="index === items.length - 1 || reorderQueue.isPending.value" @click="move(index, 1)" aria-label="Опустить книгу")
               ArrowDown.proposal__button-icon
             button.button.button--secondary.label-text(type="button" :disabled="removeQueueItem.isPending.value || item.status === 'in_verification'" @click="removeQueueItem.mutate(item.id)" aria-label="Удалить книгу")
               Trash2.proposal__button-icon
+        p.proposal__error(v-if="makeCandidate.error.value") Не удалось сделать книгу кандидатом.
 </template>
 
 <style scoped>
@@ -222,25 +268,78 @@ main.proposal.container
 }
 
 .proposal__book-list {
-  padding-top: var(--space-sm);
-  padding-bottom: var(--space-sm);
+  display: grid;
+  gap: var(--space-sm);
 }
 
 .proposal__book {
+  position: relative;
   display: grid;
-  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  grid-template-columns: 1.4rem minmax(0, 1fr) auto;
   gap: var(--space-md);
-  padding: var(--space-lg) 0;
-  border-bottom: var(--border-width) solid var(--border);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.01)),
+    var(--bg-panel);
 }
 
-.proposal__book:last-child {
-  border-bottom: 0;
+.proposal__book--active {
+  border-color: var(--accent-border);
+  background:
+    linear-gradient(180deg, rgba(67, 224, 125, 0.08), rgba(67, 224, 125, 0.02)),
+    var(--bg-panel);
 }
 
-.proposal__book-index {
-  color: var(--text-subtle);
-  font-family: var(--font-mono);
+.proposal__book--next {
+  border-color: var(--warn-border);
+  background:
+    linear-gradient(180deg, rgba(216, 137, 43, 0.07), rgba(216, 137, 43, 0.018)),
+    var(--bg-panel);
+}
+
+.proposal__book-node {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding-top: 0.25rem;
+}
+
+.proposal__book-node::before {
+  position: absolute;
+  top: 1.2rem;
+  bottom: calc(-1 * var(--space-md) - var(--space-sm));
+  left: 50%;
+  width: 1px;
+  background: var(--border-strong);
+  content: '';
+}
+
+.proposal__book:last-of-type .proposal__book-node::before {
+  display: none;
+}
+
+.proposal__book-node span {
+  position: relative;
+  z-index: 1;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: var(--border-width) solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg-surface);
+}
+
+.proposal__book--active .proposal__book-node span {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 0 0.25rem var(--accent-bg);
+}
+
+.proposal__book--next .proposal__book-node span {
+  border-color: var(--warn);
+  background: var(--warn);
+  box-shadow: 0 0 0 0.25rem var(--warn-bg);
 }
 
 .proposal__book-header {
@@ -264,7 +363,8 @@ main.proposal.container
 }
 
 .proposal__book-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(9.5rem, auto) repeat(3, 2.25rem);
   align-items: center;
   gap: var(--space-xs);
 }
@@ -273,6 +373,46 @@ main.proposal.container
   width: 2.25rem;
   min-width: 2.25rem;
   padding: 0;
+}
+
+.proposal__book-actions .button--primary {
+  width: auto;
+  min-width: 9.5rem;
+  padding: 0 var(--space-md);
+}
+
+.proposal__queue-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.proposal__summary-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+  padding: var(--space-sm) var(--space-md);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-surface);
+}
+
+.proposal__summary-item strong {
+  display: block;
+  overflow: hidden;
+  color: var(--text-main);
+  font-size: 0.92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proposal__summary-icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  color: var(--accent);
 }
 
 .proposal__empty {
@@ -292,16 +432,31 @@ main.proposal.container
 }
 
 @media (max-width: 640px) {
-  .proposal__book {
+  .proposal__queue-summary {
     grid-template-columns: 1fr;
   }
 
+  .proposal__book {
+    grid-template-columns: 1rem minmax(0, 1fr);
+  }
+
   .proposal__book-actions {
-    justify-content: stretch;
+    grid-column: 2;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
   }
 
   .proposal__book-actions .button {
-    flex: 1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .proposal__book-actions .button--primary {
+    grid-column: 1 / -1;
+  }
+
+  .proposal__button-text {
+    display: inline;
   }
 }
 </style>

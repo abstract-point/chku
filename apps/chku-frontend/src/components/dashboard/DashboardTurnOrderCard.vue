@@ -9,8 +9,11 @@ const props = defineProps<{
   cycleStatus?: string | null
 }>()
 
+const isCurrentTurn = (member: TurnOrderMember) => member.status === 'Текущий'
+const isNextTurn = (member: TurnOrderMember) => member.status === 'Выбирает следующую'
+
 const currentProcessMember = computed(() =>
-  props.members.find((m) => m.isCurrentCycleProposer || m.isChoosingNow || m.active),
+  props.members.find((m) => m.isCurrentCycleProposer || m.isChoosingNow || isCurrentTurn(m) || m.active),
 )
 
 const queueMembers = computed(() =>
@@ -21,6 +24,7 @@ const currentProcessBadge = computed(() => {
   if (!currentProcessMember.value) return null
   if (currentProcessMember.value.isChoosingNow) return 'Выбирает книгу'
   if (currentProcessMember.value.isCurrentCycleProposer) return 'Выбрал книгу'
+  if (isCurrentTurn(currentProcessMember.value)) return 'Выбирает книгу'
   if (currentProcessMember.value.active) return 'ВЫБИРАЕТ КНИГУ'
   return null
 })
@@ -31,7 +35,7 @@ const allMembers = computed(() => {
     result.push({ member: currentProcessMember.value, isActive: true, isNext: false })
   }
   queueMembers.value.forEach((m) => {
-    result.push({ member: m, isActive: false, isNext: !!m.active })
+    result.push({ member: m, isActive: false, isNext: isNextTurn(m) || !!m.active })
   })
   return result
 })
