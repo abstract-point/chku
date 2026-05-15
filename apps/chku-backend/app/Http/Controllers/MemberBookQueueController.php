@@ -11,23 +11,18 @@ use App\Models\Genre;
 use App\Models\MemberBookQueueItem;
 use App\Services\BookSelectionStateMachine;
 use App\Services\CurrentMemberService;
+use App\Services\MemberBookQueueService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 final class MemberBookQueueController extends Controller
 {
-    public function index(CurrentMemberService $currentMember): AnonymousResourceCollection
+    public function index(CurrentMemberService $currentMember, MemberBookQueueService $queue): AnonymousResourceCollection
     {
         return MemberBookQueueItemResource::collection(
-            $currentMember->get()
-                ->bookQueueItems()
-                ->with('book.genre')
-                ->where('status', '!=', MemberBookQueueItemStatusEnum::Removed->value)
-                ->orderBy('position')
-                ->get()
+            $queue->orderedLiveItems($currentMember->get())
         );
     }
 
@@ -35,6 +30,7 @@ final class MemberBookQueueController extends Controller
         Request $request,
         CurrentMemberService $currentMember,
         BookSelectionStateMachine $stateMachine,
+        MemberBookQueueService $queue,
     ): MemberBookQueueItemResource {
         $payload = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -45,44 +41,28 @@ final class MemberBookQueueController extends Controller
 
         $member = $currentMember->get();
 
-        $item = DB::transaction(function () use ($payload, $member): MemberBookQueueItem {
-            $book = Book::firstOrCreate(
-                ['slug' => $this->uniqueSlug($payload['title'])],
-                [
-                    'title' => $payload['title'],
-                    'author' => $payload['author'],
-                    'description' => $payload['description'] ?? null,
-                    'genre_id' => Genre::where('slug', 'fiction')->value('id'),
-                    'cover_color' => '#3a405a',
-                ],
-            );
-
-            $existing = $member->bookQueueItems()
-                ->orderBy('position')
-                ->get();
-
-            foreach ($existing as $i => $item) {
-                $item->update(['position' => $i + 10000]);
-            }
-
-            foreach ($existing as $i => $item) {
-                $item->update(['position' => $i + 2]);
-            }
-
-            return MemberBookQueueItem::create([
-                'club_member_id' => $member->id,
-                'book_id' => $book->id,
-                'position' => 1,
-                'reason' => $payload['reason'] ?? null,
+        $book = Book::firstOrCreate(
+            ['slug' => $this->uniqueSlug($payload['title'])],
+            [
+                'title' => $payload['title'],
+                'author' => $payload['author'],
                 'description' => $payload['description'] ?? null,
-                'status' => MemberBookQueueItemStatusEnum::Queued,
-            ]);
-        });
+                'genre_id' => Genre::where('slug', 'fiction')->value('id'),
+                'cover_color' => '#3a405a',
+            ],
+        );
+
+        $item = $queue->createAtHead(
+            $member,
+            $book,
+            $payload['reason'] ?? null,
+            $payload['description'] ?? null,
+        );
 
         $clubId = $member->club_id;
         $nextSelector = $stateMachine->nextSelector($clubId);
         if ($nextSelector && $nextSelector->id === $member->id) {
-            $stateMachine->createCandidateFromNextSelector($clubId);
+            $stateMachine->syncPendingCandidateWithQueueHead($member);
         }
 
         return new MemberBookQueueItemResource($item->load('book.genre'));
@@ -105,15 +85,24 @@ final class MemberBookQueueController extends Controller
         return new MemberBookQueueItemResource($item->refresh()->load('book.genre'));
     }
 
-    public function destroy(MemberBookQueueItem $item, CurrentMemberService $currentMember): MemberBookQueueItemResource
+    public function destroy(
+        MemberBookQueueItem $item,
+        CurrentMemberService $currentMember,
+        MemberBookQueueService $queue,
+    ): MemberBookQueueItemResource
     {
         $this->authorizeOwner($item, $currentMember->get()->id);
-        $item->update(['status' => MemberBookQueueItemStatusEnum::Removed]);
+        $item = $queue->removeFromLiveQueue($item, MemberBookQueueItemStatusEnum::Removed);
 
         return new MemberBookQueueItemResource($item->refresh()->load('book.genre'));
     }
 
-    public function reorder(Request $request, CurrentMemberService $currentMember): AnonymousResourceCollection
+    public function reorder(
+        Request $request,
+        CurrentMemberService $currentMember,
+        MemberBookQueueService $queue,
+        BookSelectionStateMachine $stateMachine,
+    ): AnonymousResourceCollection
     {
         $payload = $request->validate([
             'itemIds' => ['required', 'array', 'min:1'],
@@ -121,24 +110,34 @@ final class MemberBookQueueController extends Controller
         ]);
 
         $member = $currentMember->get();
-        $items = $member->bookQueueItems()
-            ->whereIn('id', $payload['itemIds'])
-            ->get()
-            ->keyBy('id');
+        $queue->reorder($member, array_map('intval', $payload['itemIds']));
 
-        abort_if($items->count() !== count($payload['itemIds']), 403, 'Нельзя менять чужую очередь.');
+        $nextSelector = $stateMachine->nextSelector($member->club_id);
+        if ($nextSelector && $nextSelector->id === $member->id) {
+            $stateMachine->syncPendingCandidateWithQueueHead($member);
+        }
 
-        DB::transaction(function () use ($payload, $items): void {
-            foreach ($payload['itemIds'] as $index => $id) {
-                $items[(int) $id]->update(['position' => 10000 + $index]);
-            }
+        return $this->index($currentMember, $queue);
+    }
 
-            foreach ($payload['itemIds'] as $index => $id) {
-                $items[(int) $id]->update(['position' => $index + 1]);
-            }
-        });
+    public function makeCandidate(
+        MemberBookQueueItem $item,
+        CurrentMemberService $currentMember,
+        MemberBookQueueService $queue,
+        BookSelectionStateMachine $stateMachine,
+    ): MemberBookQueueItemResource {
+        $member = $currentMember->get();
+        $this->authorizeOwner($item, $member->id);
+        abort_if($item->status !== MemberBookQueueItemStatusEnum::Queued, 422, 'Кандидатом можно сделать только книгу в очереди.');
 
-        return $this->index($currentMember);
+        $item = $queue->moveToHead($item);
+
+        $nextSelector = $stateMachine->nextSelector($member->club_id);
+        if ($nextSelector && $nextSelector->id === $member->id) {
+            $stateMachine->makeQueueItemCandidate($item);
+        }
+
+        return new MemberBookQueueItemResource($item->refresh()->load('book.genre'));
     }
 
     private function authorizeOwner(MemberBookQueueItem $item, int $memberId): void

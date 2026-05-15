@@ -13,6 +13,7 @@ class BookCandidateResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'queueItemId' => $this->member_book_queue_item_id,
             'book' => new BookResource($this->whenLoaded('book')),
             'proposer' => new MemberResource($this->whenLoaded('proposer')),
             'reason' => $this->reason,

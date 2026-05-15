@@ -22,6 +22,7 @@ final class BookSelectionStateMachine
 {
     public function __construct(
         private readonly TurnOrderService $turnOrder,
+        private readonly MemberBookQueueService $bookQueue,
     ) {
     }
 
@@ -69,7 +70,9 @@ final class BookSelectionStateMachine
 
             if ($responses->contains(fn (BookCandidateResponseEnum $response) => $response === BookCandidateResponseEnum::Read)) {
                 $candidate->update(['status' => BookCandidateStatusEnum::Rejected]);
-                $candidate->queueItem?->update(['status' => MemberBookQueueItemStatusEnum::Rejected]);
+                if ($candidate->queueItem) {
+                    $this->bookQueue->removeFromLiveQueue($candidate->queueItem, MemberBookQueueItemStatusEnum::Rejected);
+                }
                 $next = $this->createCandidateFromNextQueuedItem($candidate->proposer, $candidate->readingCycle);
 
                 if ($next === null) {
@@ -134,7 +137,9 @@ final class BookSelectionStateMachine
                 'reading_cycle_id' => $cycle->id,
                 'status' => BookCandidateStatusEnum::Approved,
             ]);
-            $candidate->queueItem?->update(['status' => MemberBookQueueItemStatusEnum::Approved]);
+            if ($candidate->queueItem) {
+                $this->bookQueue->removeFromLiveQueue($candidate->queueItem, MemberBookQueueItemStatusEnum::Approved);
+            }
 
             ClubMember::query()
                 ->where('club_id', $candidate->proposer->club_id)
@@ -150,6 +155,71 @@ final class BookSelectionStateMachine
         });
     }
 
+    public function syncPendingCandidateWithQueueHead(ClubMember $selector): ?BookCandidate
+    {
+        return DB::transaction(function () use ($selector): ?BookCandidate {
+            $candidate = $this->activeCandidate($selector->club_id);
+            $head = $this->bookQueue->orderedLiveItems($selector)->first();
+
+            if (! $candidate) {
+                if ($this->activeCycle($selector->club_id)) {
+                    return null;
+                }
+
+                return $this->createCandidateFromNextQueuedItem($selector);
+            }
+
+            if ($candidate->proposer_id !== $selector->id) {
+                return $candidate;
+            }
+
+            if ($candidate->status === BookCandidateStatusEnum::AwaitingOwnerConfirmation) {
+                return $candidate;
+            }
+
+            if (! $head || $candidate->member_book_queue_item_id === $head->id) {
+                return $candidate;
+            }
+
+            if ($head->status !== MemberBookQueueItemStatusEnum::Queued) {
+                return $candidate;
+            }
+
+            return $this->replacePendingCandidate($candidate, $head);
+        });
+    }
+
+    public function makeQueueItemCandidate(MemberBookQueueItem $item): BookCandidate
+    {
+        return DB::transaction(function () use ($item): BookCandidate {
+            $item->loadMissing('clubMember');
+            $candidate = $this->activeCandidate($item->clubMember->club_id);
+
+            abort_if(
+                $candidate?->status === BookCandidateStatusEnum::AwaitingOwnerConfirmation,
+                422,
+                'Книгу нельзя заменить после завершения проверки.',
+            );
+
+            if (! $candidate) {
+                abort_if($this->activeCycle($item->clubMember->club_id), 422, 'Новый цикл нельзя начать, пока текущий цикл активен.');
+
+                $created = $this->createCandidateFromNextQueuedItem($item->clubMember);
+                abort_if(! $created, 422, 'Не удалось создать кандидата из очереди.');
+
+                return $created;
+            }
+
+            abort_if($candidate->proposer_id !== $item->club_member_id, 403, 'Нельзя менять чужого кандидата.');
+
+            if ($candidate->member_book_queue_item_id === $item->id) {
+                return $candidate;
+            }
+
+            return $this->replacePendingCandidate($candidate, $item);
+        });
+    }
+
     public function nextSelector(int $clubId): ?ClubMember
     {
         return $this->turnOrder->currentSelector($clubId);
@@ -159,9 +229,7 @@ final class BookSelectionStateMachine
     {
         $selector = $this->nextSelector($clubId);
 
-        return $selector
-            ? $selector->bookQueueItems()->where('status', MemberBookQueueItemStatusEnum::Queued->value)->exists()
-            : false;
+        return $selector ? $this->bookQueue->headQueuedItem($selector) !== null : false;
     }
 
     private function createCandidateFromNextQueuedItem(ClubMember $selector, ?ReadingCycle $cycle = null): ?BookCandidate
@@ -170,11 +238,7 @@ final class BookSelectionStateMachine
             return null;
         }
 
-        $item = MemberBookQueueItem::with('book')
-            ->where('club_member_id', $selector->id)
-            ->where('status', MemberBookQueueItemStatusEnum::Queued->value)
-            ->orderBy('position')
-            ->first();
+        $item = $this->bookQueue->headQueuedItem($selector);
 
         if (! $item) {
             return null;
@@ -219,6 +283,61 @@ final class BookSelectionStateMachine
             ]));
 
         return $candidate;
+    }
+
+    private function replacePendingCandidate(BookCandidate $candidate, MemberBookQueueItem $item): BookCandidate
+    {
+        abort_if($candidate->status !== BookCandidateStatusEnum::Pending, 422, 'Заменить можно только кандидата в проверке.');
+
+        $candidate->loadMissing('proposer', 'queueItem', 'readingCycle');
+        $item->loadMissing('book');
+
+        $candidate->responses()->delete();
+        $candidate->update(['status' => BookCandidateStatusEnum::Rejected]);
+        $candidate->queueItem?->update(['status' => MemberBookQueueItemStatusEnum::Queued]);
+
+        $item->update(['status' => MemberBookQueueItemStatusEnum::InVerification]);
+
+        $cycle = $candidate->readingCycle;
+        if (! $cycle) {
+            $cycle = ReadingCycle::create([
+                'club_id' => $candidate->proposer->club_id,
+                'book_id' => $item->book_id,
+                'proposer_id' => $candidate->proposer_id,
+                'cycle_number' => (int) ReadingCycle::max('cycle_number') + 1,
+                'status' => ReadingCycleStatusEnum::Proposed,
+            ]);
+        }
+
+        $cycle->update([
+            'book_id' => $item->book_id,
+            'proposer_id' => $candidate->proposer_id,
+            'status' => ReadingCycleStatusEnum::Proposed,
+        ]);
+
+        $next = BookCandidate::create([
+            'book_id' => $item->book_id,
+            'proposer_id' => $candidate->proposer_id,
+            'reading_cycle_id' => $cycle->id,
+            'member_book_queue_item_id' => $item->id,
+            'reason' => $item->reason,
+            'description' => $item->description,
+            'status' => BookCandidateStatusEnum::Pending,
+        ]);
+
+        ClubMember::query()
+            ->where('club_id', $candidate->proposer->club_id)
+            ->where('is_active', true)
+            ->get()
+            ->each(fn (ClubMember $member) => BookCandidateResponse::create([
+                'book_candidate_id' => $next->id,
+                'club_member_id'    => $member->id,
+                'response'          => $member->id === $candidate->proposer_id
+                    ? BookCandidateResponseEnum::NotRead
+                    : BookCandidateResponseEnum::Pending,
+            ]));
+
+        return $next;
     }
 
     private function activeResponses(BookCandidate $candidate): Collection

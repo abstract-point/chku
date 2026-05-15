@@ -50,6 +50,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('me/book-queue', [MemberBookQueueController::class, 'store']);
     Route::patch('me/book-queue/{item}', [MemberBookQueueController::class, 'update']);
     Route::delete('me/book-queue/{item}', [MemberBookQueueController::class, 'destroy']);
+    Route::post('me/book-queue/{item}/candidate', [MemberBookQueueController::class, 'makeCandidate']);
     Route::post('me/book-queue/reorder', [MemberBookQueueController::class, 'reorder']);
 
     Route::get('members', [ClubMemberController::class, 'index']);
