@@ -40,6 +40,9 @@ backend-key:
 backend-migrate:
 	$(DEV_DOCKER_COMPOSE) exec backend php artisan migrate
 
+backend-fresh:
+	$(DEV_DOCKER_COMPOSE) exec backend php artisan migrate:fresh --seed
+
 backend-shell:
 	$(DEV_DOCKER_COMPOSE) exec backend sh
 
