@@ -10,17 +10,18 @@ const props = defineProps<{
 }>()
 
 const currentProcessMember = computed(() =>
-  props.members.find((m) => m.isCurrentCycleProposer || m.isChoosingNow),
+  props.members.find((m) => m.isCurrentCycleProposer || m.isChoosingNow || m.active),
 )
 
 const queueMembers = computed(() =>
-  props.members.filter((m) => !m.isCurrentCycleProposer && !m.isChoosingNow),
+  props.members.filter((m) => m !== currentProcessMember.value),
 )
 
 const currentProcessBadge = computed(() => {
   if (!currentProcessMember.value) return null
   if (currentProcessMember.value.isChoosingNow) return 'ВЫБИРАЕТ КНИГУ'
   if (currentProcessMember.value.isCurrentCycleProposer) return 'ВЫБРАЛ КНИГУ'
+  if (currentProcessMember.value.active) return 'ВЫБИРАЕТ КНИГУ'
   return null
 })
 

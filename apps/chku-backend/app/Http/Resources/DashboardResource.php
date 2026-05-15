@@ -74,7 +74,7 @@ class DashboardResource extends JsonResource
                 'nextSelector' => $nextSelector ? new MemberResource($nextSelector) : null,
                 'nextSelectorName' => $nextSelector?->user?->name,
                 'nextSelectorQueueEmpty' => $this->resource->nextSelectorQueueEmpty,
-                'shouldShowChooseBookBanner' => $isNextSelector && $this->resource->nextSelectorQueueEmpty,
+                'shouldShowChooseBookBanner' => $isNextSelector && $this->resource->nextSelectorQueueEmpty && $nextSelector?->id !== $activeCandidateProposerId,
                 'canCompleteCycle' => $currentCycle !== null && $this->resource->missingRatings->isEmpty(),
                 'missingRatings' => MemberResource::collection($this->resource->missingRatings),
             ],
