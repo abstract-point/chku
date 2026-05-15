@@ -53,7 +53,7 @@ class DashboardResource extends JsonResource
                 ]),
             'nextMeeting' => $this->resource->nextMeeting ? new MeetingResource($this->resource->nextMeeting) : null,
             'turnOrder' => $this->resource->turnOrder?->map(fn ($to) => [
-                'name' => $to->position . '. ' . $to->clubMember?->user?->name,
+                'name' => $to->clubMember?->user?->name,
                 'avatarUrl' => MemberAvatar::url($to->clubMember),
                 'status' => $to->is_current ? 'Текущий' : ($to->is_next ? 'Выбирает следующую' : ''),
                 'active' => $to->is_next,
