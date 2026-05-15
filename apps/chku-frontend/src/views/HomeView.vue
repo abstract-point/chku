@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, Calendar, CalendarPlus, Star, Users } from '@lucide/vue'
+import { CalendarPlus } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
 import DashboardBookSelectionCycle from '@/components/dashboard/DashboardBookSelectionCycle.vue'
 import DashboardCurrentCycle from '@/components/dashboard/DashboardCurrentCycle.vue'
@@ -10,7 +10,6 @@ import { useDashboardQuery } from '@/queries/dashboardQueries'
 
 const dashboardQuery = useDashboardQuery()
 const { isAdmin } = useAuthSession()
-const statIcons = [BookOpen, Star, Users, Calendar]
 </script>
 
 <template lang="pug">
@@ -51,15 +50,6 @@ main.dashboard.container
           :members="dashboardQuery.data.value.turnOrder"
           :cycle-status="dashboardQuery.data.value.lifecycle?.currentCycleStatus"
         )
-        section.panel.panel--filled.dashboard-stats(aria-labelledby="club-stats-title")
-          .section-header.section-header--compact
-            span#club-stats-title.label-text Клубная сводка
-          .dashboard-stats__grid
-            .dashboard-stats__item(v-for="(stat, index) in dashboardQuery.data.value.clubStats" :key="stat.label")
-              .dashboard-stats__primary
-                component.dashboard-stats__icon(:is="statIcons[index % statIcons.length]" :size="26" aria-hidden="true")
-                span.dashboard-stats__value {{ stat.value }}
-              span.label-text {{ stat.label }}
 </template>
 
 <style scoped>
@@ -74,50 +64,6 @@ main.dashboard.container
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
-}
-
-.dashboard-stats__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
-  overflow: hidden;
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-inner);
-}
-
-.dashboard-stats__item {
-  display: grid;
-  min-height: 7rem;
-  align-content: center;
-  gap: var(--space-sm);
-  padding: var(--space-md);
-  border-right: var(--border-width) solid var(--border);
-  border-bottom: var(--border-width) solid var(--border);
-}
-
-.dashboard-stats__item:nth-child(2n) {
-  border-right: 0;
-}
-
-.dashboard-stats__item:nth-last-child(-n + 2) {
-  border-bottom: 0;
-}
-
-.dashboard-stats__primary {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-.dashboard-stats__icon {
-  color: var(--warn);
-}
-
-.dashboard-stats__value {
-  color: var(--text-main);
-  font-size: 1.4rem;
-  font-weight: 700;
-  line-height: 1;
 }
 
 .dashboard-card__no-meeting {

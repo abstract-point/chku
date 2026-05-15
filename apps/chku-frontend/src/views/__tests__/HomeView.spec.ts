@@ -29,7 +29,6 @@ describe('HomeView', () => {
     expect(wrapper.text()).toContain('Серебро')
     expect(wrapper.text()).toContain('Бронза')
     expect(wrapper.text()).toContain('Очередь выбора')
-    expect(wrapper.text()).toContain('Клубная сводка')
     expect(wrapper.text()).not.toContain('Проверка книги ожидает ответа')
     expect(wrapper.text()).not.toContain('Базовое Vue-приложение')
   })
