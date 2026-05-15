@@ -7,6 +7,7 @@ import { members } from '@/data/members'
 
 export const activeCandidate = {
   id: 1,
+  queueItemId: 1,
   book: {
     id: 1,
     slug: 'taynaya-istoriya',
@@ -244,7 +245,10 @@ vi.mock('@/queries/bookQueueQueries', () => ({
     ...queryResult([
       {
         id: 1,
-        position: 1,
+        nextQueueItemId: null,
+        isHead: true,
+        isCurrentCandidate: false,
+        canBecomeCandidate: true,
         status: 'queued',
         title: 'Шум времени',
         author: 'Джулиан Барнс',
@@ -254,7 +258,10 @@ vi.mock('@/queries/bookQueueQueries', () => ({
     items: computed(() => [
       {
         id: 1,
-        position: 1,
+        nextQueueItemId: null,
+        isHead: true,
+        isCurrentCandidate: false,
+        canBecomeCandidate: true,
         status: 'queued',
         title: 'Шум времени',
         author: 'Джулиан Барнс',
@@ -264,6 +271,7 @@ vi.mock('@/queries/bookQueueQueries', () => ({
   }),
   useCreateBookQueueItemMutation: () => mutationResult(),
   useRemoveBookQueueItemMutation: () => mutationResult(),
+  useMakeBookQueueItemCandidateMutation: () => mutationResult(),
   useReorderBookQueueMutation: () => mutationResult(),
 }))
 

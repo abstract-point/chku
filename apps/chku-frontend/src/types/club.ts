@@ -28,7 +28,10 @@ export type BookProposalForm = {
 
 export type BookQueueItem = {
   id: number
-  position: number
+  nextQueueItemId?: number | null
+  isHead?: boolean
+  isCurrentCandidate?: boolean
+  canBecomeCandidate?: boolean
   status: 'queued' | 'in_verification' | 'approved' | 'rejected' | 'removed'
   title: string
   author: string

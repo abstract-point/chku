@@ -25,6 +25,10 @@ export const bookQueueApi = {
     return http.delete<unknown, ApiMemberBookQueueItem>(`/me/book-queue/${id}`)
   },
 
+  async makeCandidate(id: number) {
+    return http.post<unknown, ApiMemberBookQueueItem>(`/me/book-queue/${id}/candidate`)
+  },
+
   async reorder(itemIds: number[]) {
     return http.post<unknown, ApiMemberBookQueueItem[]>('/me/book-queue/reorder', { itemIds })
   },

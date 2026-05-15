@@ -8,7 +8,10 @@ import type { BookQueueItem } from '@/types/club'
 function mapQueueItem(item: ApiMemberBookQueueItem): BookQueueItem {
   return {
     id: item.id,
-    position: item.position,
+    nextQueueItemId: item.nextQueueItemId,
+    isHead: item.isHead,
+    isCurrentCandidate: item.isCurrentCandidate,
+    canBecomeCandidate: item.canBecomeCandidate,
     status: item.status,
     title: item.book.title,
     author: item.book.author,
@@ -48,6 +51,17 @@ export function useRemoveBookQueueItemMutation() {
   return useMutation({
     mutationFn: (id: number) => bookQueueApi.remove(id),
     onSuccess: () => invalidateQueue(client),
+  })
+}
+
+export function useMakeBookQueueItemCandidateMutation() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => bookQueueApi.makeCandidate(id),
+    onSuccess: () => {
+      invalidateQueue(client)
+      client.invalidateQueries({ queryKey: queryKeys.activeCandidate })
+    },
   })
 }
 

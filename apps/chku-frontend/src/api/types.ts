@@ -56,6 +56,7 @@ export type ApiCandidateResponseValue = 'not_read' | 'read' | 'pending'
 
 export type ApiBookCandidate = {
   id: number
+  queueItemId?: number | null
   book: ApiBook
   proposer: ApiMember
   reason: string
@@ -116,7 +117,10 @@ export type ApiMeetingReschedule = {
 
 export type ApiMemberBookQueueItem = {
   id: number
-  position: number
+  nextQueueItemId?: number | null
+  isHead?: boolean
+  isCurrentCandidate?: boolean
+  canBecomeCandidate?: boolean
   status: 'queued' | 'in_verification' | 'approved' | 'rejected' | 'removed'
   reason?: string | null
   description?: string | null
