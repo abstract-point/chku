@@ -55,15 +55,20 @@ class DashboardResource extends JsonResource
                     },
                 ]),
             'nextMeeting' => $this->resource->nextMeeting ? new MeetingResource($this->resource->nextMeeting) : null,
-            'turnOrder' => $this->resource->turnOrder?->map(fn ($to) => [
+            'turnOrder' => $this->resource->turnOrder?->map(function ($to, int $index) use ($activeCandidateProposerId, $currentCycle) {
+                $isCurrentHead = $index === 0;
+                $isUpcoming = $index === 1;
+
+                return [
                 'name' => $to->clubMember?->user?->name,
                 'avatarUrl' => MemberAvatar::url($to->clubMember),
-                'status' => $to->is_current ? 'Текущий' : ($to->is_next ? 'Выбирает следующую' : ''),
-                'active' => $to->is_next,
+                'status' => $isCurrentHead ? 'Текущий' : ($isUpcoming ? 'Выбирает следующую' : ''),
+                'active' => $currentCycle ? $isUpcoming : $isCurrentHead,
                 'isChoosingNow' => $activeCandidateProposerId !== null && $to->club_member_id === $activeCandidateProposerId,
-                'isCurrentCycleProposer' => $to->is_current && $currentCycle !== null,
-                'cycleNumber' => $to->is_current ? ($currentCycle?->cycle_number) : null,
-            ]),
+                'isCurrentCycleProposer' => $isCurrentHead && $currentCycle !== null,
+                'cycleNumber' => $isCurrentHead ? ($currentCycle?->cycle_number) : null,
+                ];
+            }),
             'activeCandidate' => $this->resource->activeCandidate
                 ? new BookCandidateResource($this->resource->activeCandidate)
                 : null,

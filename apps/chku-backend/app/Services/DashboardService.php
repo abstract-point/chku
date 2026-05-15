@@ -11,14 +11,12 @@ use App\Models\ClubMember;
 use App\Models\Meeting;
 use App\Models\Rating;
 use App\Models\ReadingCycle;
-use App\Models\TurnOrder;
-use App\Services\BookSelectionStateMachine;
 
 final class DashboardService
 {
     public function __construct(
         private readonly CurrentMemberService $currentMember,
-        private readonly BookSelectionStateMachine $stateMachine,
+        private readonly TurnOrderService $turnOrderService,
     ) {
     }
 
@@ -47,10 +45,7 @@ final class DashboardService
             ->orderBy('date')
             ->first();
 
-        $turnOrder = TurnOrder::with('clubMember.user')
-            ->where('club_id', $club->id)
-            ->orderBy('position')
-            ->get();
+        $turnOrder = $this->turnOrderService->orderedTurnOrders($club->id);
 
         $activeCandidate = BookCandidate::with([
             'book.genre',
@@ -62,9 +57,11 @@ final class DashboardService
             ->first();
 
         $currentMember = $this->currentMember->get();
-        $nextSelector = $this->stateMachine->nextSelector($club->id);
+        $currentSelector = $this->turnOrderService->currentSelector($club->id);
+        $upcomingSelector = $this->turnOrderService->nextSelector($club->id);
+        $nextSelector = $currentCycle ? $upcomingSelector : $currentSelector;
         $nextSelectorQueueEmpty = $nextSelector
-            ? ! $this->stateMachine->nextSelectorHasQueuedBooks($club->id)
+            ? ! $nextSelector->bookQueueItems()->where('status', 'queued')->exists()
             : false;
 
         $missingRatings = collect();

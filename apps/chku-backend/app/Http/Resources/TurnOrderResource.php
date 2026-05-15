@@ -11,11 +11,8 @@ class TurnOrderResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'position' => $this->position,
+            'nextTurnOrderId' => $this->next_turn_order_id,
             'member' => new MemberResource($this->whenLoaded('clubMember')),
-            'isCurrent' => $this->is_current,
-            'isNext' => $this->is_next,
-            'skippedAt' => $this->skipped_at,
         ];
     }
 }
