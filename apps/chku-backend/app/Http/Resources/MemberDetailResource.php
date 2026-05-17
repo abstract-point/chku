@@ -26,6 +26,9 @@ class MemberDetailResource extends JsonResource
                 'read' => $readingHistory->count(),
                 'proposed' => $this->proposedCycles()->count(),
                 'meetings' => $this->meetingRsvps()->where('status', 'attending')->count(),
+                'goldOwls' => $this->gold_owls_count,
+                'silverOwls' => $this->silver_owls_count,
+                'bronzeOwls' => $this->bronze_owls_count,
             ],
             'readingHistory' => $readingHistory,
         ];

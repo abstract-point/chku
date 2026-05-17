@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['reading_cycle_id', 'club_member_id', 'status', 'progress_percent', 'current_page', 'notes'])]
+#[Fillable(['reading_cycle_id', 'club_member_id', 'status', 'progress_percent', 'current_page', 'notes', 'finished_at'])]
 class ReadingProgress extends Model
 {
     use HasFactory;
@@ -17,6 +17,7 @@ class ReadingProgress extends Model
         'status' => ReadingProgressStatusEnum::class,
         'progress_percent' => 'integer',
         'current_page' => 'integer',
+        'finished_at' => 'datetime',
     ];
 
     public function readingCycle(): BelongsTo

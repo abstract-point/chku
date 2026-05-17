@@ -15,6 +15,9 @@ export function mapMember(member: ApiMember): MemberProfile {
       read: 0,
       proposed: 0,
       meetings: 0,
+      goldOwls: 0,
+      silverOwls: 0,
+      bronzeOwls: 0,
     },
     readingHistory: member.readingHistory ?? [],
   }

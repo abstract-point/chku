@@ -12,6 +12,9 @@ export const members = [
       read: 14,
       proposed: 3,
       meetings: 8,
+      goldOwls: 0,
+      silverOwls: 0,
+      bronzeOwls: 0,
     },
     readingHistory: [
       {
@@ -75,6 +78,9 @@ export const members = [
       read: 16,
       proposed: 4,
       meetings: 9,
+      goldOwls: 0,
+      silverOwls: 0,
+      bronzeOwls: 0,
     },
     readingHistory: [
       {
@@ -138,6 +144,9 @@ export const members = [
       read: 12,
       proposed: 2,
       meetings: 7,
+      goldOwls: 0,
+      silverOwls: 0,
+      bronzeOwls: 0,
     },
     readingHistory: [
       {
@@ -201,6 +210,9 @@ export const members = [
       read: 10,
       proposed: 2,
       meetings: 6,
+      goldOwls: 0,
+      silverOwls: 0,
+      bronzeOwls: 0,
     },
     readingHistory: [
       {
@@ -264,6 +276,9 @@ export const members = [
       read: 11,
       proposed: 2,
       meetings: 5,
+      goldOwls: 0,
+      silverOwls: 0,
+      bronzeOwls: 0,
     },
     readingHistory: [
       {
@@ -327,6 +342,9 @@ export const members = [
       read: 8,
       proposed: 1,
       meetings: 4,
+      goldOwls: 0,
+      silverOwls: 0,
+      bronzeOwls: 0,
     },
     readingHistory: [
       {

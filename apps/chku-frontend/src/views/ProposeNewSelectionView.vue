@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { ArrowDown, ArrowUp, BookMarked, CheckCircle2, GitBranch, Plus, Send, Trash2 } from '@lucide/vue'
+import { ArrowDown, ArrowUp, BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Send, Trash2, X } from '@lucide/vue'
 import AppTabs from '@/components/ui/AppTabs.vue'
 import {
   useBookQueueQuery,
@@ -9,6 +9,7 @@ import {
   useRejectedBookQueueQuery,
   useRemoveBookQueueItemMutation,
   useReorderBookQueueMutation,
+  useUpdateBookQueueItemMutation,
 } from '@/queries/bookQueueQueries'
 import type { BookQueueItem } from '@/types/club'
 
@@ -18,8 +19,11 @@ const createQueueItem = useCreateBookQueueItemMutation()
 const removeQueueItem = useRemoveBookQueueItemMutation()
 const makeCandidate = useMakeBookQueueItemCandidateMutation()
 const reorderQueue = useReorderBookQueueMutation()
+const updateQueueItem = useUpdateBookQueueItemMutation()
 
 const activeTab = ref<'queue' | 'rejected'>('queue')
+const editingId = ref<number | null>(null)
+const editForms = reactive<Record<number, { description: string; reason: string }>>({})
 
 const form = reactive({
   title: '',
@@ -100,6 +104,35 @@ function move(index: number, direction: -1 | 1) {
 function promote(item: BookQueueItem) {
   if (!item.canBecomeCandidate || makeCandidate.isPending.value) return
   makeCandidate.mutate(item.id)
+}
+
+function startEdit(item: BookQueueItem) {
+  editingId.value = item.id
+  editForms[item.id] = {
+    description: item.description ?? '',
+    reason: item.reason ?? '',
+  }
+}
+
+function cancelEdit() {
+  editingId.value = null
+}
+
+function saveEdit(item: BookQueueItem) {
+  const form = editForms[item.id]
+  if (!form) return
+  updateQueueItem.mutate(
+    {
+      id: item.id,
+      description: form.description.trim() || null,
+      reason: form.reason.trim() || null,
+    },
+    { onSuccess: cancelEdit },
+  )
+}
+
+function isEditable(item: BookQueueItem) {
+  return item.status === 'queued' || item.status === 'in_verification'
 }
 
 function formatDate(iso: string): string {
@@ -197,20 +230,56 @@ main.proposal.container
           :key="item.id"
           :class="{ 'proposal__book--active': item.isCurrentCandidate, 'proposal__book--next': nextCandidate?.id === item.id && !item.isCurrentCandidate }"
         )
-          .proposal__book-node(aria-hidden="true")
-            span
           .proposal__book-main
-            .proposal__book-header
-              .proposal__book-title-wrap
-                h3.proposal__book-title {{ item.title }}
-                p.proposal__book-author {{ item.author }}
-              span.badge.badge--sm(:class="itemBadgeClass(item)")
-                | {{ itemBadge(item) }}
-            p.proposal__book-meta(v-if="item.description") {{ item.description }}
-            p.proposal__book-reason(v-if="item.reason")
-              span Почему: {{ item.reason }}
+            template(v-if="editingId === item.id")
+              .proposal__book-header
+                .proposal__book-title-wrap
+                  h3.proposal__book-title {{ item.title }}
+                  p.proposal__book-author {{ item.author }}
+                span.badge.badge--sm(:class="itemBadgeClass(item)")
+                  | {{ itemBadge(item) }}
+              .proposal__field
+                label.label-text(:for="`edit-desc-${item.id}`") Краткое описание
+                textarea.field-control.proposal__textarea(
+                  :id="`edit-desc-${item.id}`"
+                  v-model="editForms[item.id].description"
+                  placeholder="Коротко опиши, о чём книга."
+                )
+              .proposal__field
+                label.label-text(:for="`edit-reason-${item.id}`") Почему эта книга?
+                textarea.field-control.proposal__textarea(
+                  :id="`edit-reason-${item.id}`"
+                  v-model="editForms[item.id].reason"
+                  placeholder="Какие темы она может открыть для клуба?"
+                )
+              .proposal__edit-actions
+                button.button.button--primary.label-text(
+                  type="button"
+                  :disabled="updateQueueItem.isPending.value"
+                  @click="saveEdit(item)"
+                )
+                  | {{ updateQueueItem.isPending.value ? 'Сохраняем...' : 'Сохранить' }}
+                button.button.button--secondary.label-text(
+                  type="button"
+                  :disabled="updateQueueItem.isPending.value"
+                  @click="cancelEdit"
+                )
+                  X.proposal__button-icon
+                  | Отмена
+              p.proposal__error(v-if="updateQueueItem.error.value") Не удалось сохранить изменения.
+            template(v-else)
+              .proposal__book-header
+                .proposal__book-title-wrap
+                  h3.proposal__book-title {{ item.title }}
+                  p.proposal__book-author {{ item.author }}
+                span.badge.badge--sm(:class="itemBadgeClass(item)")
+                  | {{ itemBadge(item) }}
+              p.proposal__book-meta(v-if="item.description") {{ item.description }}
+              p.proposal__book-reason(v-if="item.reason")
+                span Почему: {{ item.reason }}
           .proposal__book-actions
-            button.button.button--primary.label-text(
+            button.button.button--secondary.label-text(
+              v-if="index !== 0"
               type="button"
               :disabled="!item.canBecomeCandidate || makeCandidate.isPending.value"
               @click="promote(item)"
@@ -218,7 +287,15 @@ main.proposal.container
               title="Сделать кандидатом"
             )
               Send.proposal__button-icon
-              span.proposal__action-text Сделать кандидатом
+            button.button.button--secondary.label-text(
+              v-if="isEditable(item)"
+              type="button"
+              :disabled="updateQueueItem.isPending.value"
+              @click="startEdit(item)"
+              aria-label="Редактировать книгу"
+              title="Редактировать"
+            )
+              Pencil.proposal__button-icon
             button.button.button--secondary.label-text(
               type="button"
               :disabled="index === 0 || reorderQueue.isPending.value"
@@ -335,7 +412,7 @@ main.proposal.container
 .proposal__book {
   position: relative;
   display: grid;
-  grid-template-columns: 1.4rem minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-md);
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
@@ -348,7 +425,7 @@ main.proposal.container
 .proposal__book--active {
   border-color: var(--accent-border);
   background:
-    linear-gradient(180deg, rgba(67, 224, 125, 0.08), rgba(67, 224, 125, 0.02)),
+    linear-gradient(180deg, rgba(67, 224, 125, 0.055), rgba(67, 224, 125, 0.018)),
     var(--bg-panel);
 }
 
@@ -361,49 +438,6 @@ main.proposal.container
 
 .proposal__book--rejected {
   grid-template-columns: minmax(0, 1fr);
-}
-
-.proposal__book-node {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  padding-top: 0.25rem;
-}
-
-.proposal__book-node::before {
-  position: absolute;
-  top: 1.2rem;
-  bottom: calc(-1 * var(--space-md) - var(--space-sm));
-  left: 50%;
-  width: 1px;
-  background: var(--border-strong);
-  content: '';
-}
-
-.proposal__book:last-of-type .proposal__book-node::before {
-  display: none;
-}
-
-.proposal__book-node span {
-  position: relative;
-  z-index: 1;
-  width: 0.7rem;
-  height: 0.7rem;
-  border: var(--border-width) solid var(--border-strong);
-  border-radius: 999px;
-  background: var(--bg-surface);
-}
-
-.proposal__book--active .proposal__book-node span {
-  border-color: var(--accent);
-  background: var(--accent);
-  box-shadow: 0 0 0 0.25rem var(--accent-bg);
-}
-
-.proposal__book--next .proposal__book-node span {
-  border-color: var(--warn);
-  background: var(--warn);
-  box-shadow: 0 0 0 0.25rem var(--warn-bg);
 }
 
 .proposal__book-main {
@@ -475,11 +509,13 @@ main.proposal.container
 
 .proposal__book-actions {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-xs);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
-  background: var(--bg-surface);
+  background: var(--bg-panel);
   align-self: start;
 }
 
@@ -493,14 +529,15 @@ main.proposal.container
   touch-action: manipulation;
 }
 
-.proposal__book-actions .button--primary {
-  min-width: auto;
-  padding: 0 var(--space-sm);
-  gap: var(--space-xs);
-}
-
 .proposal__action-text {
   display: none;
+}
+
+.proposal__edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
 }
 
 .proposal__queue-summary {

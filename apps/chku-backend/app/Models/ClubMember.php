@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['club_id', 'user_id', 'is_active', 'joined_at', 'favorite_genre_id'])]
+#[Fillable(['club_id', 'user_id', 'is_active', 'joined_at', 'favorite_genre_id', 'gold_owls_count', 'silver_owls_count', 'bronze_owls_count'])]
 class ClubMember extends Model
 {
     use HasFactory;
@@ -17,6 +17,9 @@ class ClubMember extends Model
         'is_active' => 'boolean',
         'joined_at' => 'date',
         'deactivated_at' => 'datetime',
+        'gold_owls_count' => 'integer',
+        'silver_owls_count' => 'integer',
+        'bronze_owls_count' => 'integer',
     ];
 
     public function club(): BelongsTo

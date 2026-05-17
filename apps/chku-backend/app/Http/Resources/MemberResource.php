@@ -22,6 +22,9 @@ class MemberResource extends JsonResource
                 'read' => $this->readingProgress()->where('status', 'finished')->count(),
                 'proposed' => $this->proposedCycles()->count(),
                 'meetings' => $this->meetingRsvps()->where('status', 'attending')->count(),
+                'goldOwls' => $this->gold_owls_count,
+                'silverOwls' => $this->silver_owls_count,
+                'bronzeOwls' => $this->bronze_owls_count,
             ],
         ];
     }

@@ -78,6 +78,18 @@ export function useMakeBookQueueItemCandidateMutation() {
   })
 }
 
+export function useUpdateBookQueueItemMutation() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: { id: number; description?: string | null; reason?: string | null }) =>
+      bookQueueApi.update(payload.id, {
+        description: payload.description ?? undefined,
+        reason: payload.reason ?? undefined,
+      }),
+    onSuccess: () => invalidateQueue(client),
+  })
+}
+
 export function useReorderBookQueueMutation() {
   const client = useQueryClient()
   return useMutation({

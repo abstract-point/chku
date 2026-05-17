@@ -26,6 +26,7 @@ final class MeetingController extends Controller
 {
     public function __construct(
         private readonly AuditLogService $auditLog,
+        private readonly \App\Services\OwlAwardService $owlAward,
     ) {
     }
 
@@ -241,6 +242,8 @@ final class MeetingController extends Controller
 
             $turnOrder->rotateAfterCompletedCycle($meeting->readingCycle->club_id);
             $stateMachine->createCandidateFromNextSelector($meeting->readingCycle->club_id);
+
+            $this->owlAward->awardForCompletedCycle($meeting->readingCycle, $attendingMemberIds->all());
         });
 
         return new MeetingResource(

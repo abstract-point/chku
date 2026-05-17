@@ -60,6 +60,17 @@ main.profile.container
           h1.profile__name {{ currentMember.name }}
           p.subtitle-italic Участник клуба с {{ currentMember.memberSince }}
 
+      .profile__owls(aria-label="Совы участника")
+        .profile__owl-stat
+          img.profile__owl-icon.profile__owl-icon--gold(src="/favicon.svg" alt="Золотая сова")
+          span.profile__stat-value {{ currentMember.stats.goldOwls }}
+        .profile__owl-stat
+          img.profile__owl-icon.profile__owl-icon--silver(src="/favicon.svg" alt="Серебряная сова")
+          span.profile__stat-value {{ currentMember.stats.silverOwls }}
+        .profile__owl-stat
+          img.profile__owl-icon.profile__owl-icon--bronze(src="/favicon.svg" alt="Бронзовая сова")
+          span.profile__stat-value {{ currentMember.stats.bronzeOwls }}
+
       .profile__stats(aria-label="Статистика участника")
         .profile__stat
           span.profile__stat-value {{ currentMember.stats.read }}
@@ -184,13 +195,47 @@ main.profile.container
   font-size: clamp(2rem, 4vw, 2.5rem);
 }
 
-.profile__stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-md);
-}
+  .profile__owls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+  }
 
-.profile__stat {
+  .profile__owl-stat {
+    display: grid;
+    gap: var(--space-xs);
+    padding: var(--space-md);
+    border: var(--border-width) solid var(--border);
+    border-radius: var(--radius-inner);
+    background: var(--bg-panel);
+    text-align: center;
+  }
+
+  .profile__owl-icon {
+    width: 2rem;
+    height: 2rem;
+    margin: 0 auto;
+  }
+
+  .profile__owl-icon--gold {
+    filter: invert(78%) sepia(35%) saturate(800%) hue-rotate(355deg) brightness(95%) contrast(90%);
+  }
+
+  .profile__owl-icon--silver {
+    filter: invert(82%) sepia(8%) saturate(200%) hue-rotate(170deg) brightness(95%);
+  }
+
+  .profile__owl-icon--bronze {
+    filter: invert(68%) sepia(40%) saturate(600%) hue-rotate(345deg) brightness(90%);
+  }
+
+  .profile__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+  }
+
+  .profile__stat {
   display: grid;
   gap: var(--space-xs);
   padding: var(--space-md);

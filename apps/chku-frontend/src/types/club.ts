@@ -56,6 +56,9 @@ export type MemberProfile = {
     read: number
     proposed: number
     meetings: number
+    goldOwls: number
+    silverOwls: number
+    bronzeOwls: number
   }
   readingHistory: ProfileBook[]
 }

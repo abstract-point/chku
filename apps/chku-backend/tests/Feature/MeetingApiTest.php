@@ -307,7 +307,7 @@ class MeetingApiTest extends TestCase
             'mikhail@example.com',
         ]))->get();
 
-        foreach ($attendees as $member) {
+        foreach ($attendees as $index => $member) {
             MeetingRsvp::updateOrCreate(
                 ['meeting_id' => $meeting->id, 'club_member_id' => $member->id],
                 ['status' => 'attending'],
@@ -317,6 +317,15 @@ class MeetingApiTest extends TestCase
                 'club_member_id' => $member->id,
                 'rating' => 8,
             ]);
+
+            $progress = $member->readingProgress()->where('reading_cycle_id', $cycle->id)->first();
+            if ($progress) {
+                $progress->update([
+                    'progress_percent' => 100,
+                    'status' => \App\Enums\ReadingProgressStatusEnum::Finished,
+                    'finished_at' => now()->subMinutes(2 - $index),
+                ]);
+            }
         }
 
         Review::create([
@@ -350,6 +359,14 @@ class MeetingApiTest extends TestCase
             ['mikhail@example.com', 'anna@example.com', 'pavel@example.com', 'marina@example.com', 'admin@example.com', 'elena@example.com'],
             $this->turnOrderEmails($cycle->club_id),
         );
+
+        // Verify owls were awarded based on finished_at order
+        $first = $attendees->first();
+        $last = $attendees->last();
+        $this->assertEquals(1, $first->refresh()->gold_owls_count);
+        $this->assertEquals(0, $first->silver_owls_count);
+        $this->assertEquals(1, $last->refresh()->silver_owls_count);
+        $this->assertEquals(0, $last->gold_owls_count);
     }
 
     private function turnOrderEmails(int $clubId): array

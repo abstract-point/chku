@@ -27,16 +27,26 @@ final class ReadingProgressController extends Controller
         $member = $currentMember->get();
         $progressPercent = (int) $payload['progressPercent'];
 
-        $progress = ReadingProgress::updateOrCreate(
-            [
-                'reading_cycle_id' => $cycle->id,
-                'club_member_id' => $member->id,
-            ],
-            [
-                'progress_percent' => $progressPercent,
-                'status' => $this->statusForProgress($progressPercent),
-            ],
-        );
+        $status = $this->statusForProgress($progressPercent);
+
+        $attributes = [
+            'reading_cycle_id' => $cycle->id,
+            'club_member_id' => $member->id,
+        ];
+
+        $values = [
+            'progress_percent' => $progressPercent,
+            'status' => $status,
+        ];
+
+        if ($status === ReadingProgressStatusEnum::Finished) {
+            $existing = ReadingProgress::where($attributes)->first();
+            if ($existing === null || $existing->finished_at === null) {
+                $values['finished_at'] = now();
+            }
+        }
+
+        $progress = ReadingProgress::updateOrCreate($attributes, $values);
 
         return new ReadingProgressResource($progress->load('clubMember.user'));
     }
