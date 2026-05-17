@@ -17,6 +17,21 @@ final class MemberBookQueueService
     /**
      * @return Collection<int, MemberBookQueueItem>
      */
+    public function rejectedItems(ClubMember|int $member): Collection
+    {
+        $memberId = $member instanceof ClubMember ? $member->id : $member;
+
+        return MemberBookQueueItem::query()
+            ->with(['book.genre', 'candidates.responses.clubMember'])
+            ->where('club_member_id', $memberId)
+            ->where('status', MemberBookQueueItemStatusEnum::Rejected)
+            ->orderByDesc('updated_at')
+            ->get();
+    }
+
+    /**
+     * @return Collection<int, MemberBookQueueItem>
+     */
     public function orderedLiveItems(ClubMember|int $member): Collection
     {
         return $this->orderedItems($member, [

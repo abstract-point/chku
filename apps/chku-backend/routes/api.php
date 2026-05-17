@@ -47,6 +47,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('genres', [GenreController::class, 'index']);
 
     Route::get('me/book-queue', [MemberBookQueueController::class, 'index']);
+    Route::get('me/book-queue/rejected', [MemberBookQueueController::class, 'rejected']);
     Route::post('me/book-queue', [MemberBookQueueController::class, 'store']);
     Route::patch('me/book-queue/{item}', [MemberBookQueueController::class, 'update']);
     Route::delete('me/book-queue/{item}', [MemberBookQueueController::class, 'destroy']);

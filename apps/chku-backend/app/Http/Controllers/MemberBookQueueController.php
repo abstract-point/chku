@@ -26,6 +26,13 @@ final class MemberBookQueueController extends Controller
         );
     }
 
+    public function rejected(CurrentMemberService $currentMember, MemberBookQueueService $queue): AnonymousResourceCollection
+    {
+        return MemberBookQueueItemResource::collection(
+            $queue->rejectedItems($currentMember->get())
+        );
+    }
+
     public function store(
         Request $request,
         CurrentMemberService $currentMember,

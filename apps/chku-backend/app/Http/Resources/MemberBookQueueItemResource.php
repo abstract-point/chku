@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\BookCandidateResponseEnum;
+use App\Enums\BookCandidateStatusEnum;
 use App\Enums\MemberBookQueueItemStatusEnum;
 use App\Models\MemberBookQueueItem;
 use Illuminate\Http\Request;
@@ -27,6 +29,29 @@ class MemberBookQueueItemResource extends JsonResource
             'status' => $this->status->value,
             'reason' => $this->reason,
             'description' => $this->description,
+            'rejectionInfo' => $this->when(
+                $this->status === MemberBookQueueItemStatusEnum::Rejected,
+                function () {
+                    $candidate = $this->candidates
+                        ->where('status', BookCandidateStatusEnum::Rejected)
+                        ->sortByDesc('updated_at')
+                        ->first();
+
+                    if (! $candidate) {
+                        return null;
+                    }
+
+                    return [
+                        'rejectedAt' => $candidate->updated_at?->toIso8601String(),
+                        'rejectedByMembers' => $candidate->responses
+                            ->where('response', BookCandidateResponseEnum::Read)
+                            ->map(fn ($r) => $r->clubMember?->name)
+                            ->filter()
+                            ->values()
+                            ->all(),
+                    ];
+                }
+            ),
             'book' => new BookResource($this->whenLoaded('book')),
         ];
     }
