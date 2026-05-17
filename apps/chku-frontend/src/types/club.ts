@@ -37,6 +37,10 @@ export type BookQueueItem = {
   author: string
   description?: string | null
   reason?: string | null
+  rejectionInfo?: {
+    rejectedAt: string
+    rejectedByMembers: string[]
+  } | null
 }
 
 export type MemberProfile = {

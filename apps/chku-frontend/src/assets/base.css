@@ -26,6 +26,7 @@
   --warn-border: rgba(168, 102, 30, 0.38);
   --danger: #b94c4c;
   --danger-bg: rgba(185, 76, 76, 0.12);
+  --danger-border: rgba(185, 76, 76, 0.38);
 
   --border: rgba(8, 14, 11, 0.1);
   --border-strong: rgba(8, 14, 11, 0.22);
@@ -77,6 +78,7 @@
   --warn-border: rgba(216, 137, 43, 0.45);
   --danger: #e05f5f;
   --danger-bg: rgba(224, 95, 95, 0.12);
+  --danger-border: rgba(224, 95, 95, 0.45);
 
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);

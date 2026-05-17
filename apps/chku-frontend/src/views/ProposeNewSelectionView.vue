@@ -1,20 +1,25 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { ArrowDown, ArrowUp, BookMarked, CheckCircle2, GitBranch, Plus, Send, Trash2 } from '@lucide/vue'
+import AppTabs from '@/components/ui/AppTabs.vue'
 import {
   useBookQueueQuery,
   useCreateBookQueueItemMutation,
   useMakeBookQueueItemCandidateMutation,
+  useRejectedBookQueueQuery,
   useRemoveBookQueueItemMutation,
   useReorderBookQueueMutation,
 } from '@/queries/bookQueueQueries'
 import type { BookQueueItem } from '@/types/club'
 
 const queueQuery = useBookQueueQuery()
+const rejectedQuery = useRejectedBookQueueQuery()
 const createQueueItem = useCreateBookQueueItemMutation()
 const removeQueueItem = useRemoveBookQueueItemMutation()
 const makeCandidate = useMakeBookQueueItemCandidateMutation()
 const reorderQueue = useReorderBookQueueMutation()
+
+const activeTab = ref<'queue' | 'rejected'>('queue')
 
 const form = reactive({
   title: '',
@@ -24,6 +29,7 @@ const form = reactive({
 })
 const submitAttempted = ref(false)
 const items = computed(() => queueQuery.items.value)
+const rejectedItems = computed(() => rejectedQuery.items.value)
 const currentCandidate = computed(() => items.value.find((item) => item.isCurrentCandidate) ?? null)
 const nextCandidate = computed(() => items.value.find((item) => item.status === 'queued') ?? null)
 
@@ -95,6 +101,10 @@ function promote(item: BookQueueItem) {
   if (!item.canBecomeCandidate || makeCandidate.isPending.value) return
   makeCandidate.mutate(item.id)
 }
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+}
 </script>
 
 <template lang="pug">
@@ -156,15 +166,21 @@ main.proposal.container
         h2#queue-title Очередь
         span.label-text {{ items.length }} книг в цепочке
 
-      section.panel(v-if="queueQuery.isLoading.value")
+      AppTabs(
+        :tabs="[{ id: 'queue', label: 'Очередь' }, { id: 'rejected', label: 'Отклонённые' }]"
+        v-model="activeTab"
+        aria-label="Фильтр книг"
+      )
+
+      section.panel(v-if="activeTab === 'queue' && queueQuery.isLoading.value")
         p.body-text Загружаем очередь...
-      section.panel(v-else-if="queueQuery.error.value")
+      section.panel(v-else-if="activeTab === 'queue' && queueQuery.error.value")
         p.body-text Не удалось загрузить очередь.
-      section.panel.proposal__empty(v-else-if="items.length === 0")
+      section.panel.proposal__empty(v-else-if="activeTab === 'queue' && items.length === 0")
         BookMarked.proposal__empty-icon
         h3 Выберите книгу
         p.body-text Добавь хотя бы одну книгу, чтобы система смогла предложить её, когда подойдёт твоя очередь.
-      .panel.proposal__book-list(v-else)
+      .panel.proposal__book-list(v-else-if="activeTab === 'queue'")
         .proposal__queue-summary(aria-live="polite")
           .proposal__summary-item(v-if="currentCandidate")
             CheckCircle2.proposal__summary-icon
@@ -185,29 +201,73 @@ main.proposal.container
             span
           .proposal__book-main
             .proposal__book-header
-              div
+              .proposal__book-title-wrap
                 h3.proposal__book-title {{ item.title }}
-                p.body-text {{ item.author }}
-              .proposal__badges
-                span.badge.label-text(:class="itemBadgeClass(item)")
-                  | {{ itemBadge(item) }}
-            p.body-text(v-if="item.reason") {{ item.reason }}
+                p.proposal__book-author {{ item.author }}
+              span.badge.badge--sm(:class="itemBadgeClass(item)")
+                | {{ itemBadge(item) }}
+            p.proposal__book-meta(v-if="item.description") {{ item.description }}
+            p.proposal__book-reason(v-if="item.reason")
+              span Почему: {{ item.reason }}
           .proposal__book-actions
             button.button.button--primary.label-text(
               type="button"
               :disabled="!item.canBecomeCandidate || makeCandidate.isPending.value"
               @click="promote(item)"
               aria-label="Сделать книгу кандидатом"
+              title="Сделать кандидатом"
             )
               Send.proposal__button-icon
-              span.proposal__button-text Сделать кандидатом
-            button.button.button--secondary.label-text(type="button" :disabled="index === 0 || reorderQueue.isPending.value" @click="move(index, -1)" aria-label="Поднять книгу")
+              span.proposal__action-text Сделать кандидатом
+            button.button.button--secondary.label-text(
+              type="button"
+              :disabled="index === 0 || reorderQueue.isPending.value"
+              @click="move(index, -1)"
+              aria-label="Поднять книгу"
+              title="Поднять"
+            )
               ArrowUp.proposal__button-icon
-            button.button.button--secondary.label-text(type="button" :disabled="index === items.length - 1 || reorderQueue.isPending.value" @click="move(index, 1)" aria-label="Опустить книгу")
+            button.button.button--secondary.label-text(
+              type="button"
+              :disabled="index === items.length - 1 || reorderQueue.isPending.value"
+              @click="move(index, 1)"
+              aria-label="Опустить книгу"
+              title="Опустить"
+            )
               ArrowDown.proposal__button-icon
-            button.button.button--secondary.label-text(type="button" :disabled="removeQueueItem.isPending.value || item.status === 'in_verification'" @click="removeQueueItem.mutate(item.id)" aria-label="Удалить книгу")
+            button.button.button--secondary.label-text(
+              type="button"
+              :disabled="removeQueueItem.isPending.value || item.status === 'in_verification'"
+              @click="removeQueueItem.mutate(item.id)"
+              aria-label="Удалить книгу"
+              title="Удалить"
+            )
               Trash2.proposal__button-icon
         p.proposal__error(v-if="makeCandidate.error.value") Не удалось сделать книгу кандидатом.
+
+      section.panel(v-if="activeTab === 'rejected' && rejectedQuery.isLoading.value")
+        p.body-text Загружаем список...
+      section.panel(v-else-if="activeTab === 'rejected' && rejectedQuery.error.value")
+        p.body-text Не удалось загрузить список.
+      section.panel.proposal__empty(v-else-if="activeTab === 'rejected' && rejectedItems.length === 0")
+        BookMarked.proposal__empty-icon
+        h3 Пока нет отклонённых книг
+        p.body-text Книги, которые не прошли проверку участников, появятся здесь.
+      .panel.proposal__book-list(v-else-if="activeTab === 'rejected'")
+        article.proposal__book.proposal__book--rejected(v-for="item in rejectedItems" :key="item.id")
+          .proposal__book-main
+            .proposal__book-header
+              .proposal__book-title-wrap
+                h3.proposal__book-title {{ item.title }}
+                p.proposal__book-author {{ item.author }}
+              span.badge.badge--sm.badge--danger Отклонена
+            p.proposal__book-meta(v-if="item.description") {{ item.description }}
+            p.proposal__book-reason(v-if="item.reason")
+              span Почему: {{ item.reason }}
+            .proposal__book-rejection(v-if="item.rejectionInfo")
+              | Отклонена {{ formatDate(item.rejectionInfo.rejectedAt) }}
+              template(v-if="item.rejectionInfo.rejectedByMembers.length")
+                |  · Прочитали: {{ item.rejectionInfo.rejectedByMembers.join(', ') }}
 </template>
 
 <style scoped>
@@ -299,6 +359,10 @@ main.proposal.container
     var(--bg-panel);
 }
 
+.proposal__book--rejected {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .proposal__book-node {
   position: relative;
   display: flex;
@@ -342,43 +406,101 @@ main.proposal.container
   box-shadow: 0 0 0 0.25rem var(--warn-bg);
 }
 
-.proposal__book-header {
+.proposal__book-main {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-md);
-  margin-bottom: var(--space-sm);
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.proposal__book-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-sm);
+  align-items: start;
+  min-width: 0;
+}
+
+.proposal__book-title-wrap {
+  min-width: 0;
 }
 
 .proposal__book-title {
-  margin-bottom: var(--space-xs);
-  font-size: 1.15rem;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+  color: var(--text-main);
 }
 
-.proposal__badges {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-xs);
+.proposal__book-author {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+  overflow-wrap: break-word;
+}
+
+.proposal__book-meta {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  overflow-wrap: break-word;
+}
+
+.proposal__book-reason {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  overflow-wrap: break-word;
+}
+
+.proposal__book-reason span {
+  color: var(--text-secondary);
+}
+
+.proposal__book-rejection {
+  margin: var(--space-xs) 0 0;
+  padding-top: var(--space-xs);
+  border-top: var(--border-width) solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  line-height: 1.4;
+  overflow-wrap: break-word;
 }
 
 .proposal__book-actions {
-  display: grid;
-  grid-template-columns: minmax(9.5rem, auto) repeat(3, 2.25rem);
+  display: flex;
   align-items: center;
   gap: var(--space-xs);
+  padding: var(--space-xs);
+  border-radius: var(--radius-inner);
+  background: var(--bg-surface);
+  align-self: start;
 }
 
 .proposal__book-actions .button {
-  width: 2.25rem;
+  min-height: 2.25rem;
   min-width: 2.25rem;
   padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
 }
 
 .proposal__book-actions .button--primary {
-  width: auto;
-  min-width: 9.5rem;
-  padding: 0 var(--space-md);
+  min-width: auto;
+  padding: 0 var(--space-sm);
+  gap: var(--space-xs);
+}
+
+.proposal__action-text {
+  display: none;
 }
 
 .proposal__queue-summary {
@@ -425,6 +547,16 @@ main.proposal.container
   color: var(--warn);
 }
 
+.badge--sm {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  align-self: start;
+  margin-top: 0.15rem;
+}
+
 @media (max-width: 960px) {
   .proposal__grid {
     grid-template-columns: 1fr;
@@ -440,14 +572,26 @@ main.proposal.container
     grid-template-columns: 1rem minmax(0, 1fr);
   }
 
+  .proposal__book--rejected {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .proposal__book-header {
+    grid-template-columns: 1fr;
+    gap: var(--space-xs);
+  }
+
   .proposal__book-actions {
     grid-column: 2;
+    display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-xs);
     width: 100%;
   }
 
   .proposal__book-actions .button {
     width: 100%;
+    min-height: 2.75rem;
     min-width: 0;
   }
 
@@ -455,7 +599,7 @@ main.proposal.container
     grid-column: 1 / -1;
   }
 
-  .proposal__button-text {
+  .proposal__action-text {
     display: inline;
   }
 }

@@ -269,6 +269,10 @@ vi.mock('@/queries/bookQueueQueries', () => ({
       },
     ]),
   }),
+  useRejectedBookQueueQuery: () => ({
+    ...queryResult([]),
+    items: computed(() => []),
+  }),
   useCreateBookQueueItemMutation: () => mutationResult(),
   useRemoveBookQueueItemMutation: () => mutationResult(),
   useMakeBookQueueItemCandidateMutation: () => mutationResult(),

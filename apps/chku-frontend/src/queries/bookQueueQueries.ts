@@ -38,6 +38,19 @@ export function useBookQueueQuery() {
   }
 }
 
+export function useRejectedBookQueueQuery() {
+  const query = useQuery({
+    queryKey: [...queryKeys.bookQueue, 'rejected'],
+    queryFn: bookQueueApi.listRejected,
+    staleTime: 30_000,
+  })
+
+  return {
+    ...query,
+    items: computed(() => query.data.value?.map(mapQueueItem) ?? []),
+  }
+}
+
 export function useCreateBookQueueItemMutation() {
   const client = useQueryClient()
   return useMutation({

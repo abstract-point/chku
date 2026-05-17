@@ -206,6 +206,12 @@ select:focus-visible {
   color: var(--warn);
 }
 
+.badge--danger {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
 .avatar {
   display: inline-flex;
   align-items: center;

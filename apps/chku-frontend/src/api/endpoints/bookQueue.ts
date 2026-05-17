@@ -13,6 +13,10 @@ export const bookQueueApi = {
     return http.get<unknown, ApiMemberBookQueueItem[]>('/me/book-queue')
   },
 
+  async listRejected() {
+    return http.get<unknown, ApiMemberBookQueueItem[]>('/me/book-queue/rejected')
+  },
+
   async create(payload: BookQueuePayload) {
     return http.post<unknown, ApiMemberBookQueueItem>('/me/book-queue', payload)
   },
