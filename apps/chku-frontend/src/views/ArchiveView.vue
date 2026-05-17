@@ -140,7 +140,7 @@ main.archive.container
     p.body-text Загружаем архив...
   section.panel(v-else-if="archiveQuery.error.value" aria-live="polite")
     p.body-text Не удалось загрузить архив.
-  .archive__grid(v-else-if="paginatedBooks.length")
+  TransitionGroup.archive__grid(name="list" tag="div" v-else-if="paginatedBooks.length")
     RouterLink.archive-card(v-for="book in paginatedBooks" :key="book.slug" :to="`/archive/${book.slug}`")
       .archive-card__cover(:style="{ '--cover-color': book.coverColor }" :aria-label="`Обложка книги ${book.title}`")
         span.archive-card__cover-title {{ book.coverTitle }}
@@ -302,7 +302,7 @@ main.archive.container
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
     var(--bg-panel);
-  transform: translateY(-0.15rem);
+  transform: translateY(-2px);
 }
 
 .archive-card__cover {
