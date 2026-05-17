@@ -136,33 +136,34 @@ main.profile.container
       section.panel(v-else-if="readingHistoryQuery.error.value" aria-live="polite")
         p.body-text Не удалось загрузить историю чтения.
       .panel.profile__book-list(v-else-if="readingHistory.length")
-        component.profile__book(
-          v-for="book in readingHistory"
-          :key="`${book.cycleNumber}-${book.title}`"
-          :is="book.slug ? RouterLink : 'article'"
-          :to="book.slug ? `/archive/${book.slug}` : undefined"
-        )
-          .book-cover.profile__book-cover(:style="{ '--cover-color': book.coverColor ?? undefined }")
-            span.book-cover__content {{ book.coverTitle }}
-          .profile__book-details
-            .profile__book-meta
-              span.label-text {{ book.cycleLabel }}
-              span.label-text Завершено: {{ book.completedLabel }}
-            h3.profile__book-title {{ book.title }}
-            p.body-text.profile__book-author {{ book.author }}
-            .profile__book-stats(aria-label="Статистика цикла")
-              span.profile__book-stat.label-text
-                Star.profile__archive-icon
-                | Моя: {{ ratingLabel(book.myRating) }}
-              span.profile__book-stat.label-text
-                Star.profile__archive-icon
-                | Средняя: {{ ratingLabel(book.clubAverageRating) }}
-              span.profile__book-stat.label-text
-                MessageSquare.profile__archive-icon
-                | Ревью: {{ book.hasReview ? 'есть' : 'нет' }}
-              span.profile__book-stat.label-text
-                CalendarCheck.profile__archive-icon
-                | Встреча: {{ rsvpLabel(book) }}
+        TransitionGroup(name="list" tag="div")
+          component.profile__book(
+            v-for="book in readingHistory"
+            :key="`${book.cycleNumber}-${book.title}`"
+            :is="book.slug ? RouterLink : 'article'"
+            :to="book.slug ? `/archive/${book.slug}` : undefined"
+          )
+            .book-cover.profile__book-cover(:style="{ '--cover-color': book.coverColor ?? undefined }")
+              span.book-cover__content {{ book.coverTitle }}
+            .profile__book-details
+              .profile__book-meta
+                span.label-text {{ book.cycleLabel }}
+                span.label-text Завершено: {{ book.completedLabel }}
+              h3.profile__book-title {{ book.title }}
+              p.body-text.profile__book-author {{ book.author }}
+              .profile__book-stats(aria-label="Статистика цикла")
+                span.profile__book-stat.label-text
+                  Star.profile__archive-icon
+                  | Моя: {{ ratingLabel(book.myRating) }}
+                span.profile__book-stat.label-text
+                  Star.profile__archive-icon
+                  | Средняя: {{ ratingLabel(book.clubAverageRating) }}
+                span.profile__book-stat.label-text
+                  MessageSquare.profile__archive-icon
+                  | Ревью: {{ book.hasReview ? 'есть' : 'нет' }}
+                span.profile__book-stat.label-text
+                  CalendarCheck.profile__archive-icon
+                  | Встреча: {{ rsvpLabel(book) }}
 
       section.panel.profile__empty(v-else aria-live="polite")
         p.body-text История чтения появится после завершённых циклов, где есть оценка, отзыв, прогресс или RSVP.
@@ -335,7 +336,13 @@ main.profile.container
   border-bottom: var(--border-width) solid var(--border);
   color: inherit;
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.profile__book:hover {
+  transform: translateY(-2px);
 }
 
 a.profile__book:hover .profile__book-title {
