@@ -46,4 +46,35 @@ describe('ProposeNewSelectionView', () => {
 
     expect(wrapper.text()).not.toContain('Укажи название книги.')
   })
+
+  it('shows edit buttons for queue items', () => {
+    setActivePinia(createPinia())
+    const wrapper = mountProposal()
+
+    const editButtons = wrapper.findAll('[aria-label="Редактировать книгу"]')
+    expect(editButtons.length).toBeGreaterThan(0)
+  })
+
+  it('opens inline edit form when edit is clicked', async () => {
+    setActivePinia(createPinia())
+    const wrapper = mountProposal()
+
+    const editButton = wrapper.find('[aria-label="Редактировать книгу"]')
+    await editButton.trigger('click')
+
+    expect(wrapper.text()).toContain('Сохранить')
+    expect(wrapper.text()).toContain('Отмена')
+    expect(wrapper.find('textarea').exists()).toBe(true)
+  })
+
+  it('hides promote button on the first queue item', () => {
+    setActivePinia(createPinia())
+    const wrapper = mountProposal()
+
+    const books = wrapper.findAll('.proposal__book')
+    expect(books.length).toBeGreaterThanOrEqual(2)
+
+    expect(books[0]!.find('[aria-label="Сделать книгу кандидатом"]').exists()).toBe(false)
+    expect(books[1]!.find('[aria-label="Сделать книгу кандидатом"]').exists()).toBe(true)
+  })
 })
