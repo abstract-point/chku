@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { ArrowDown, ArrowUp, BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Send, Trash2, X } from '@lucide/vue'
+import { BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Send, Trash2, X } from '@lucide/vue'
 import AppTabs from '@/components/ui/AppTabs.vue'
 import {
   useBookQueueQuery,
@@ -8,7 +8,6 @@ import {
   useMakeBookQueueItemCandidateMutation,
   useRejectedBookQueueQuery,
   useRemoveBookQueueItemMutation,
-  useReorderBookQueueMutation,
   useUpdateBookQueueItemMutation,
 } from '@/queries/bookQueueQueries'
 import type { BookQueueItem } from '@/types/club'
@@ -18,7 +17,6 @@ const rejectedQuery = useRejectedBookQueueQuery()
 const createQueueItem = useCreateBookQueueItemMutation()
 const removeQueueItem = useRemoveBookQueueItemMutation()
 const makeCandidate = useMakeBookQueueItemCandidateMutation()
-const reorderQueue = useReorderBookQueueMutation()
 const updateQueueItem = useUpdateBookQueueItemMutation()
 
 const activeTab = ref<'queue' | 'rejected'>('queue')
@@ -88,17 +86,6 @@ function itemBadgeClass(item: BookQueueItem) {
     'badge--done': item.isCurrentCandidate,
     'badge--action': nextCandidate.value?.id === item.id && !item.isCurrentCandidate,
   }
-}
-
-function move(index: number, direction: -1 | 1) {
-  const nextIndex = index + direction
-  if (nextIndex < 0 || nextIndex >= items.value.length) return
-
-  const ordered = [...items.value]
-  const current = ordered[index]
-  ordered[index] = ordered[nextIndex]
-  ordered[nextIndex] = current
-  reorderQueue.mutate(ordered.map((item) => item.id))
 }
 
 function promote(item: BookQueueItem) {
@@ -213,7 +200,7 @@ main.proposal.container
         BookMarked.proposal__empty-icon
         h3 Выберите книгу
         p.body-text Добавь хотя бы одну книгу, чтобы система смогла предложить её, когда подойдёт твоя очередь.
-      .panel.proposal__book-list(v-else-if="activeTab === 'queue'")
+      .proposal__book-list(v-else-if="activeTab === 'queue'")
         .proposal__queue-summary(aria-live="polite")
           .proposal__summary-item(v-if="currentCandidate")
             CheckCircle2.proposal__summary-icon
@@ -225,101 +212,86 @@ main.proposal.container
             div
               span.label-text Ближайший кандидат
               strong {{ nextCandidate.title }}
-        article.proposal__book(
-          v-for="(item, index) in items"
-          :key="item.id"
-          :class="{ 'proposal__book--active': item.isCurrentCandidate, 'proposal__book--next': nextCandidate?.id === item.id && !item.isCurrentCandidate }"
-        )
-          .proposal__book-main
-            template(v-if="editingId === item.id")
-              .proposal__book-header
-                .proposal__book-title-wrap
-                  h3.proposal__book-title {{ item.title }}
-                  p.proposal__book-author {{ item.author }}
-                span.badge.badge--sm(:class="itemBadgeClass(item)")
-                  | {{ itemBadge(item) }}
-              .proposal__field
-                label.label-text(:for="`edit-desc-${item.id}`") Краткое описание
-                textarea.field-control.proposal__textarea(
-                  :id="`edit-desc-${item.id}`"
-                  v-model="editForms[item.id].description"
-                  placeholder="Коротко опиши, о чём книга."
-                )
-              .proposal__field
-                label.label-text(:for="`edit-reason-${item.id}`") Почему эта книга?
-                textarea.field-control.proposal__textarea(
-                  :id="`edit-reason-${item.id}`"
-                  v-model="editForms[item.id].reason"
-                  placeholder="Какие темы она может открыть для клуба?"
-                )
-              .proposal__edit-actions
-                button.button.button--primary.label-text(
-                  type="button"
-                  :disabled="updateQueueItem.isPending.value"
-                  @click="saveEdit(item)"
-                )
-                  | {{ updateQueueItem.isPending.value ? 'Сохраняем...' : 'Сохранить' }}
-                button.button.button--secondary.label-text(
-                  type="button"
-                  :disabled="updateQueueItem.isPending.value"
-                  @click="cancelEdit"
-                )
-                  X.proposal__button-icon
-                  | Отмена
-              p.proposal__error(v-if="updateQueueItem.error.value") Не удалось сохранить изменения.
-            template(v-else)
-              .proposal__book-header
-                .proposal__book-title-wrap
-                  h3.proposal__book-title {{ item.title }}
-                  p.proposal__book-author {{ item.author }}
-                span.badge.badge--sm(:class="itemBadgeClass(item)")
-                  | {{ itemBadge(item) }}
-              p.proposal__book-meta(v-if="item.description") {{ item.description }}
-              p.proposal__book-reason(v-if="item.reason")
-                span Почему: {{ item.reason }}
-          .proposal__book-actions
-            button.button.button--secondary.label-text(
-              v-if="index !== 0"
-              type="button"
-              :disabled="!item.canBecomeCandidate || makeCandidate.isPending.value"
-              @click="promote(item)"
-              aria-label="Сделать книгу кандидатом"
-              title="Сделать кандидатом"
-            )
-              Send.proposal__button-icon
-            button.button.button--secondary.label-text(
-              v-if="isEditable(item)"
-              type="button"
-              :disabled="updateQueueItem.isPending.value"
-              @click="startEdit(item)"
-              aria-label="Редактировать книгу"
-              title="Редактировать"
-            )
-              Pencil.proposal__button-icon
-            button.button.button--secondary.label-text(
-              type="button"
-              :disabled="index === 0 || reorderQueue.isPending.value"
-              @click="move(index, -1)"
-              aria-label="Поднять книгу"
-              title="Поднять"
-            )
-              ArrowUp.proposal__button-icon
-            button.button.button--secondary.label-text(
-              type="button"
-              :disabled="index === items.length - 1 || reorderQueue.isPending.value"
-              @click="move(index, 1)"
-              aria-label="Опустить книгу"
-              title="Опустить"
-            )
-              ArrowDown.proposal__button-icon
-            button.button.button--secondary.label-text(
-              type="button"
-              :disabled="removeQueueItem.isPending.value || item.status === 'in_verification'"
-              @click="removeQueueItem.mutate(item.id)"
-              aria-label="Удалить книгу"
-              title="Удалить"
-            )
-              Trash2.proposal__button-icon
+        TransitionGroup.proposal__book-items(name="list" tag="div")
+          article.proposal__book(
+            v-for="(item, index) in items"
+            :key="item.id"
+            :class="{ 'proposal__book--active': item.isCurrentCandidate, 'proposal__book--next': nextCandidate?.id === item.id && !item.isCurrentCandidate }"
+          )
+            .proposal__book-main
+              template(v-if="editingId === item.id")
+                .proposal__book-header
+                  .proposal__book-title-wrap
+                    h3.proposal__book-title {{ item.title }}
+                    p.proposal__book-author {{ item.author }}
+                  span.badge.badge--sm(:class="itemBadgeClass(item)")
+                    | {{ itemBadge(item) }}
+                .proposal__field
+                  label.label-text(:for="`edit-desc-${item.id}`") Краткое описание
+                  textarea.field-control.proposal__textarea(
+                    :id="`edit-desc-${item.id}`"
+                    v-model="editForms[item.id].description"
+                    placeholder="Коротко опиши, о чём книга."
+                  )
+                .proposal__field
+                  label.label-text(:for="`edit-reason-${item.id}`") Почему эта книга?
+                  textarea.field-control.proposal__textarea(
+                    :id="`edit-reason-${item.id}`"
+                    v-model="editForms[item.id].reason"
+                    placeholder="Какие темы она может открыть для клуба?"
+                  )
+                .proposal__edit-actions
+                  button.button.button--primary.label-text(
+                    type="button"
+                    :disabled="updateQueueItem.isPending.value"
+                    @click="saveEdit(item)"
+                  )
+                    | {{ updateQueueItem.isPending.value ? 'Сохраняем...' : 'Сохранить' }}
+                  button.button.button--secondary.label-text(
+                    type="button"
+                    :disabled="updateQueueItem.isPending.value"
+                    @click="cancelEdit"
+                  )
+                    X.proposal__button-icon
+                    | Отмена
+                p.proposal__error(v-if="updateQueueItem.error.value") Не удалось сохранить изменения.
+              template(v-else)
+                .proposal__book-header
+                  .proposal__book-title-wrap
+                    h3.proposal__book-title {{ item.title }}
+                    p.proposal__book-author {{ item.author }}
+                  span.badge.badge--sm(:class="itemBadgeClass(item)")
+                    | {{ itemBadge(item) }}
+                p.proposal__book-meta(v-if="item.description") {{ item.description }}
+                p.proposal__book-reason(v-if="item.reason")
+                  span Почему: {{ item.reason }}
+            .proposal__book-actions
+              button.button.button--secondary.label-text(
+                v-if="index !== 0"
+                type="button"
+                :disabled="!item.canBecomeCandidate || makeCandidate.isPending.value"
+                @click="promote(item)"
+                aria-label="Сделать книгу кандидатом"
+                title="Сделать кандидатом"
+              )
+                Send.proposal__button-icon
+              button.button.button--secondary.label-text(
+                v-if="isEditable(item)"
+                type="button"
+                :disabled="updateQueueItem.isPending.value"
+                @click="startEdit(item)"
+                aria-label="Редактировать книгу"
+                title="Редактировать"
+              )
+                Pencil.proposal__button-icon
+              button.button.button--secondary.label-text(
+                type="button"
+                :disabled="removeQueueItem.isPending.value || item.status === 'in_verification'"
+                @click="removeQueueItem.mutate(item.id)"
+                aria-label="Удалить книгу"
+                title="Удалить"
+              )
+                Trash2.proposal__button-icon
         p.proposal__error(v-if="makeCandidate.error.value") Не удалось сделать книгу кандидатом.
 
       section.panel(v-if="activeTab === 'rejected' && rejectedQuery.isLoading.value")
@@ -330,21 +302,22 @@ main.proposal.container
         BookMarked.proposal__empty-icon
         h3 Пока нет отклонённых книг
         p.body-text Книги, которые не прошли проверку участников, появятся здесь.
-      .panel.proposal__book-list(v-else-if="activeTab === 'rejected'")
-        article.proposal__book.proposal__book--rejected(v-for="item in rejectedItems" :key="item.id")
-          .proposal__book-main
-            .proposal__book-header
-              .proposal__book-title-wrap
-                h3.proposal__book-title {{ item.title }}
-                p.proposal__book-author {{ item.author }}
-              span.badge.badge--sm.badge--danger Отклонена
-            p.proposal__book-meta(v-if="item.description") {{ item.description }}
-            p.proposal__book-reason(v-if="item.reason")
-              span Почему: {{ item.reason }}
-            .proposal__book-rejection(v-if="item.rejectionInfo")
-              | Отклонена {{ formatDate(item.rejectionInfo.rejectedAt) }}
-              template(v-if="item.rejectionInfo.rejectedByMembers.length")
-                |  · Прочитали: {{ item.rejectionInfo.rejectedByMembers.join(', ') }}
+      .proposal__book-list(v-else-if="activeTab === 'rejected'")
+        TransitionGroup.proposal__book-items(name="list" tag="div")
+          article.proposal__book.proposal__book--rejected(v-for="item in rejectedItems" :key="item.id")
+            .proposal__book-main
+              .proposal__book-header
+                .proposal__book-title-wrap
+                  h3.proposal__book-title {{ item.title }}
+                  p.proposal__book-author {{ item.author }}
+                span.badge.badge--sm.badge--danger Отклонена
+              p.proposal__book-meta(v-if="item.description") {{ item.description }}
+              p.proposal__book-reason(v-if="item.reason")
+                span Почему: {{ item.reason }}
+              .proposal__book-rejection(v-if="item.rejectionInfo")
+                | Отклонена {{ formatDate(item.rejectionInfo.rejectedAt) }}
+                template(v-if="item.rejectionInfo.rejectedByMembers.length")
+                  |  · Прочитали: {{ item.rejectionInfo.rejectedByMembers.join(', ') }}
 </template>
 
 <style scoped>
@@ -405,6 +378,12 @@ main.proposal.container
 }
 
 .proposal__book-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.proposal__book-items {
   display: grid;
   gap: var(--space-sm);
 }
@@ -420,6 +399,17 @@ main.proposal.container
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.01)),
     var(--bg-panel);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.proposal__book:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-panel), 0 0.5rem 2rem rgba(0, 0, 0, 0.18);
+  border-color: var(--border-strong);
 }
 
 .proposal__book--active {
@@ -606,7 +596,7 @@ main.proposal.container
   }
 
   .proposal__book {
-    grid-template-columns: 1rem minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .proposal__book--rejected {
@@ -619,25 +609,24 @@ main.proposal.container
   }
 
   .proposal__book-actions {
-    grid-column: 2;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-xs);
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     width: 100%;
   }
 
   .proposal__book-actions .button {
-    width: 100%;
     min-height: 2.75rem;
-    min-width: 0;
+    min-width: 2.75rem;
   }
 
-  .proposal__book-actions .button--primary {
-    grid-column: 1 / -1;
+  .proposal__edit-actions {
+    flex-direction: column;
   }
 
-  .proposal__action-text {
-    display: inline;
+  .proposal__edit-actions .button {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>
