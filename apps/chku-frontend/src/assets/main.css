@@ -81,6 +81,7 @@
   border-color: var(--border-strong);
   background: var(--bg-hover);
   color: var(--text-main);
+  transform: translateY(-1px);
 }
 
 .button:active {
@@ -407,6 +408,38 @@ select:focus-visible {
   position: relative;
   z-index: 1;
   white-space: pre-line;
+}
+
+/* List transitions */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.2s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.list-move {
+  transition: transform 0.2s ease;
+}
+
+/* Card hover utility */
+.card-hover {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    var(--shadow-panel),
+    0 0.5rem 2rem rgba(0, 0, 0, 0.18);
 }
 
 @media (max-width: 640px) {
