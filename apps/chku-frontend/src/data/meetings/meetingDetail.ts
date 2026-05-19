@@ -34,4 +34,6 @@ export const meetingDetail = {
     author: 'Карлос Руис Сафон',
     cycleSlug: 'cycle-42',
   },
+  ratings: [],
+  reviews: [],
 } satisfies MeetingDetail
