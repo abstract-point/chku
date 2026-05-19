@@ -14,6 +14,5 @@ class DatabaseSeeder extends Seeder
         $this->call(BookSeeder::class);
         $this->call(ArchiveDataSeeder::class);
         $this->call(CurrentTestCycleSeeder::class);
-        $this->call(TurnOrderSeeder::class);
     }
 }
