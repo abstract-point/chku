@@ -153,6 +153,7 @@ export type ApiDashboard = {
     badge?: string | null
     rank?: number
     medal?: 'gold' | 'silver' | 'bronze' | null
+    finishedAt?: string | null
   }[]
   nextMeeting: ApiMeeting | null
   turnOrder: {

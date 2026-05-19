@@ -18,6 +18,7 @@ export type BookProgressMember = {
   badge?: string
   rank?: number
   medal?: 'gold' | 'silver' | 'bronze' | null
+  finishedAt?: string | null
 }
 
 export type TurnOrderMember = {

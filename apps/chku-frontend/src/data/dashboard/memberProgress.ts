@@ -7,6 +7,7 @@ export const memberProgress = [
     progress: 100,
     rank: 1,
     medal: 'gold',
+    finishedAt: '2024-10-14T09:00:00Z',
   },
   {
     name: 'Михаил Корнев',

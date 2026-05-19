@@ -40,7 +40,16 @@ const nextSelectorLabel = computed(() => {
 const activeProgressCount = computed(() => props.members.length)
 
 const membersWithMedals = computed(() => {
-  const sorted = [...props.members].sort((a, b) => (b.progress ?? 0) - (a.progress ?? 0))
+  const sorted = [...props.members].sort((a, b) => {
+    const progressDiff = (b.progress ?? 0) - (a.progress ?? 0)
+    if (progressDiff !== 0) return progressDiff
+    if (a.finishedAt && b.finishedAt) {
+      return new Date(a.finishedAt).getTime() - new Date(b.finishedAt).getTime()
+    }
+    if (a.finishedAt) return -1
+    if (b.finishedAt) return 1
+    return 0
+  })
   const hasFinished = sorted.some((m) => m.progress === 100)
   if (!hasFinished) {
     return sorted.map((m) => ({ ...m, medal: null as BookProgressMember['medal'] }))
