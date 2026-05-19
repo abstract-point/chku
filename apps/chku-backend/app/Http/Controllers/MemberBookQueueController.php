@@ -12,6 +12,7 @@ use App\Models\MemberBookQueueItem;
 use App\Services\BookSelectionStateMachine;
 use App\Services\CurrentMemberService;
 use App\Services\MemberBookQueueService;
+use App\Services\TurnOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
@@ -38,6 +39,7 @@ final class MemberBookQueueController extends Controller
         CurrentMemberService $currentMember,
         BookSelectionStateMachine $stateMachine,
         MemberBookQueueService $queue,
+        TurnOrderService $turnOrder,
     ): MemberBookQueueItemResource {
         $payload = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -67,8 +69,8 @@ final class MemberBookQueueController extends Controller
         );
 
         $clubId = $member->club_id;
-        $nextSelector = $stateMachine->nextSelector($clubId);
-        if ($nextSelector && $nextSelector->id === $member->id) {
+        $currentSelector = $turnOrder->currentSelector($clubId);
+        if ($currentSelector && $currentSelector->id === $member->id) {
             $stateMachine->syncPendingCandidateWithQueueHead($member);
         }
 
@@ -109,6 +111,7 @@ final class MemberBookQueueController extends Controller
         CurrentMemberService $currentMember,
         MemberBookQueueService $queue,
         BookSelectionStateMachine $stateMachine,
+        TurnOrderService $turnOrder,
     ): AnonymousResourceCollection
     {
         $payload = $request->validate([
@@ -119,8 +122,8 @@ final class MemberBookQueueController extends Controller
         $member = $currentMember->get();
         $queue->reorder($member, array_map('intval', $payload['itemIds']));
 
-        $nextSelector = $stateMachine->nextSelector($member->club_id);
-        if ($nextSelector && $nextSelector->id === $member->id) {
+        $currentSelector = $turnOrder->currentSelector($member->club_id);
+        if ($currentSelector && $currentSelector->id === $member->id) {
             $stateMachine->syncPendingCandidateWithQueueHead($member);
         }
 
@@ -132,6 +135,7 @@ final class MemberBookQueueController extends Controller
         CurrentMemberService $currentMember,
         MemberBookQueueService $queue,
         BookSelectionStateMachine $stateMachine,
+        TurnOrderService $turnOrder,
     ): MemberBookQueueItemResource {
         $member = $currentMember->get();
         $this->authorizeOwner($item, $member->id);
@@ -139,8 +143,8 @@ final class MemberBookQueueController extends Controller
 
         $item = $queue->moveToHead($item);
 
-        $nextSelector = $stateMachine->nextSelector($member->club_id);
-        if ($nextSelector && $nextSelector->id === $member->id) {
+        $currentSelector = $turnOrder->currentSelector($member->club_id);
+        if ($currentSelector && $currentSelector->id === $member->id) {
             $stateMachine->makeQueueItemCandidate($item);
         }
 
