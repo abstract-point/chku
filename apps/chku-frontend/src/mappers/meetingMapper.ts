@@ -39,5 +39,7 @@ export function mapMeetingDetail(meeting: ApiMeeting, currentUserId?: number): M
       author: meeting.book?.author ?? '',
       cycleSlug: meeting.book?.slug,
     },
+    ratings: meeting.ratings ?? [],
+    reviews: meeting.reviews ?? [],
   }
 }
