@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Eye, EyeOff, Lock, Mail } from '@lucide/vue'
 import owlLogo from '@/assets/owl-logo.svg'
+import AppInput from '@/components/ui/AppInput.vue'
+import AppCheckbox from '@/components/ui/AppCheckbox.vue'
 import { useLoginMutation, useTwoFactorChallengeMutation } from '@/queries/authQueries'
 
 const router = useRouter()
@@ -60,7 +62,7 @@ main.login
         label.label-text(for="login-email") Email
         .login__input-wrapper
           Mail.login__input-icon
-          input#login-email.login__input(
+          AppInput#login-email.login__input--with-icon(
             type="email"
             v-model="email"
             required
@@ -71,7 +73,7 @@ main.login
         label.label-text(for="login-password") Пароль
         .login__input-wrapper
           Lock.login__input-icon
-          input#login-password.login__input(
+          AppInput#login-password.login__input--with-icon(
             :type="showPassword ? 'text' : 'password'"
             v-model="password"
             required
@@ -87,9 +89,7 @@ main.login
             Eye(v-else)
 
       .login__options
-        label.login__remember
-          input.login__checkbox(type="checkbox" v-model="remember")
-          span Запомнить меня
+        AppCheckbox(v-model="remember") Запомнить меня
         button.login__forgot(type="button" disabled) Забыли пароль?
 
       p.login__error(v-if="error") {{ error }}
@@ -100,7 +100,7 @@ main.login
     form(v-else @submit.prevent="submitTwoFactor")
       .login__field
         label.label-text(for="login-2fa") Код из приложения-аутентификатора
-        input#login-2fa.login__input(
+        AppInput#login-2fa.login__input--with-icon(
           type="text"
           v-model="twoFactorCode"
           required
@@ -209,30 +209,11 @@ main.login
   height: 1rem;
   color: var(--text-subtle);
   pointer-events: none;
+  z-index: 1;
 }
 
-.login__input {
-  width: 100%;
-  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-inner);
-  background: var(--bg-panel);
-  color: var(--text-main);
-  outline: none;
-  font-size: 0.9rem;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    background-color 0.15s ease;
-}
-
-.login__input::placeholder {
-  color: var(--text-subtle);
-}
-
-.login__input:focus {
-  border-color: var(--accent-border);
-  box-shadow: 0 0 0 3px var(--accent-bg);
+.login__input--with-icon {
+  padding-left: 2.5rem;
 }
 
 .login__toggle-password {
@@ -268,21 +249,6 @@ main.login
   justify-content: space-between;
   margin-bottom: var(--space-lg);
   font-size: 0.85rem;
-}
-
-.login__remember {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.login__checkbox {
-  width: 1rem;
-  height: 1rem;
-  accent-color: var(--accent);
-  cursor: pointer;
 }
 
 .login__forgot {
