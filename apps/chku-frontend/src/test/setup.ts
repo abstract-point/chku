@@ -1,8 +1,27 @@
 import { computed, ref, toValue } from 'vue'
-import { vi } from 'vitest'
+import { beforeEach, vi } from 'vitest'
+
+beforeEach(() => {
+  if (!document.getElementById('modal-portal')) {
+    const portal = document.createElement('div')
+    portal.id = 'modal-portal'
+    document.body.appendChild(portal)
+  }
+})
 import { archiveBooks } from '@/data/club/archiveBooks'
 import { currentBook, memberProgress, nextMeeting, turnOrder } from '@/data/dashboard'
-import { meetingDetail } from '@/data/meetings/meetingDetail'
+import { meetingDetail as baseMeetingDetail } from '@/data/meetings/meetingDetail'
+import type { MeetingDetail } from '@/types/dashboard'
+
+const meetingDetail = ref<MeetingDetail>({ ...baseMeetingDetail })
+
+export function patchMeetingDetail(partial: Partial<MeetingDetail>) {
+  meetingDetail.value = { ...meetingDetail.value, ...partial }
+}
+
+export function resetMeetingDetail() {
+  meetingDetail.value = { ...baseMeetingDetail }
+}
 import { members } from '@/data/members'
 
 export const activeCandidate = {
@@ -216,7 +235,7 @@ vi.mock('@/queries/archiveQueries', () => ({
 vi.mock('@/queries/meetingQueries', () => ({
   useMeetingQuery: (_id: unknown, _currentUserId?: unknown) => {
     const data = computed(() =>
-      String(toValue(_id)) === meetingDetail.id ? meetingDetail : undefined,
+      String(toValue(_id)) === meetingDetail.value.id ? meetingDetail.value : undefined,
     )
     const error = computed(() => (data.value ? null : new Error('Not found')))
 

@@ -3,7 +3,7 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import { ref } from 'vue'
 
 import MeetingDetailView from '../MeetingDetailView.vue'
-import { resetAuthSession, setAuthRoles } from '@/test/setup'
+import { patchMeetingDetail, resetAuthSession, resetMeetingDetail, setAuthRoles } from '@/test/setup'
 
 const route = ref({
   params: {
@@ -27,6 +27,8 @@ function mountMeetingDetail(id = 'october-42') {
     global: {
       stubs: {
         RouterLink: RouterLinkStub,
+        AppModal: true,
+        MeetingFinishModal: true,
       },
     },
   })
@@ -35,6 +37,7 @@ function mountMeetingDetail(id = 'october-42') {
 describe('MeetingDetailView', () => {
   afterEach(() => {
     resetAuthSession()
+    resetMeetingDetail()
   })
 
   it('renders meeting details, topics and attendees', () => {
@@ -79,14 +82,41 @@ describe('MeetingDetailView', () => {
     expect(buttons[1]!.classes()).toContain('button--primary')
   })
 
-  it('shows meeting lifecycle controls for admins', () => {
+  it('shows meeting status block for everyone', () => {
+    const wrapper = mountMeetingDetail()
+
+    expect(wrapper.text()).toContain('Статус встречи')
+    expect(wrapper.text()).toContain('Встреча запланирована')
+  })
+
+  it('shows scheduled admin control with start button', () => {
     setAuthRoles(['admin'])
 
     const wrapper = mountMeetingDetail()
 
     expect(wrapper.text()).toContain('Управление встречей')
     expect(wrapper.text()).toContain('Начать встречу')
-    expect(wrapper.text()).toContain('Закончить встречу')
+    expect(wrapper.text()).not.toContain('Закончить встречу и цикл')
+  })
+
+  it('shows started admin control with finish button', () => {
+    setAuthRoles(['admin'])
+    patchMeetingDetail({ status: 'started', canStart: false, canFinish: true })
+
+    const wrapper = mountMeetingDetail()
+
+    expect(wrapper.text()).toContain('Управление встречей')
+    expect(wrapper.text()).toContain('Закончить встречу и цикл')
+    expect(wrapper.text()).not.toContain('Начать встречу')
+  })
+
+  it('hides admin panel for finished meeting', () => {
+    setAuthRoles(['admin'])
+    patchMeetingDetail({ status: 'finished', canStart: false, canFinish: false })
+
+    const wrapper = mountMeetingDetail()
+
+    expect(wrapper.text()).not.toContain('Управление встречей')
   })
 
   it('renders fallback for unknown meeting id', () => {
