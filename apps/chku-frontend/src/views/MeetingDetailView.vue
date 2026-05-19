@@ -1,8 +1,21 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { BookOpen, CalendarDays, Link as LinkIcon, MapPin, Monitor, Pencil, Send, Users } from '@lucide/vue'
+import {
+  AlertTriangle,
+  BookOpen,
+  CalendarDays,
+  CheckCircle,
+  Link as LinkIcon,
+  MapPin,
+  Monitor,
+  Pencil,
+  Play,
+  Send,
+  Users,
+} from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import MeetingFinishModal from '@/components/meetings/MeetingFinishModal.vue'
 import {
   useAddMeetingTopicMutation,
   useFinishMeetingMutation,
@@ -11,28 +24,31 @@ import {
   useUpdateMeetingRsvpMutation,
 } from '@/queries/meetingQueries'
 import { useAuthSession } from '@/queries/authQueries'
+import { useDashboardQuery } from '@/queries/dashboardQueries'
 import { useSaveRatingReviewMutation } from '@/queries/readingCycleQueries'
 
 const route = useRoute()
 const { user, isAdmin } = useAuthSession()
 const meetingId = computed(() => String(route.params.id ?? ''))
 const meetingQuery = useMeetingQuery(meetingId, computed(() => user.value?.id))
+const dashboardQuery = useDashboardQuery()
 const updateRsvpMutation = useUpdateMeetingRsvpMutation(meetingId)
 const addTopicMutation = useAddMeetingTopicMutation(meetingId)
 const startMeetingMutation = useStartMeetingMutation(meetingId)
 const finishMeetingMutation = useFinishMeetingMutation(meetingId)
 const saveRatingReviewMutation = useSaveRatingReviewMutation()
 const meeting = computed(() => meetingQuery.data.value)
+const memberProgress = computed(() => dashboardQuery.data.value?.memberProgress ?? [])
 const newTopic = ref('')
 const rsvpStatus = ref<'attending' | 'not_attending' | 'pending'>('pending')
 const localTopics = ref<string[]>([])
 const rating = ref<number | null>(null)
 const review = ref('')
 const ratingSubmitted = ref(false)
+const isFinishModalOpen = ref(false)
 
 const missingRatingAttendees = computed(() => {
   if (!meeting.value) return []
-
   return meeting.value.attendees.filter((attendee) =>
     meeting.value!.missingRatingMemberIds.includes(attendee.id),
   )
@@ -77,8 +93,16 @@ function startMeeting() {
   startMeetingMutation.mutate()
 }
 
-function finishMeeting() {
-  finishMeetingMutation.mutate()
+function openFinishModal() {
+  isFinishModalOpen.value = true
+}
+
+function handleFinishConfirm() {
+  finishMeetingMutation.mutate(undefined, {
+    onSuccess: () => {
+      isFinishModalOpen.value = false
+    },
+  })
 }
 </script>
 
@@ -112,6 +136,47 @@ main.meeting-detail.container
 
     .meeting-detail__grid
       .meeting-detail__main
+        .meeting-detail__status.panel
+          .meeting-detail__status-row(v-if="meeting.status === 'finished'")
+            CheckCircle.meeting-detail__status-icon.meeting-detail__status-icon--accent
+            div
+              span.label-text Статус встречи
+              h2.meeting-detail__status-heading Встреча завершена
+          .meeting-detail__status-row(v-else-if="meeting.status === 'started'")
+            Play.meeting-detail__status-icon.meeting-detail__status-icon--accent
+            div
+              span.label-text Статус встречи
+              h2.meeting-detail__status-heading Встреча идёт сейчас
+          .meeting-detail__status-row(v-else)
+            CalendarDays.meeting-detail__status-icon
+            div
+              span.label-text Статус встречи
+              h2.meeting-detail__status-heading Встреча запланирована
+
+        .panel.meeting-detail__admin-panel(v-if="isAdmin && meeting.status !== 'finished'")
+          .section-header.section-header--compact
+            h2 Управление встречей
+            span.label-text Администратор
+          .meeting-detail__admin-body
+            template(v-if="meeting.status === 'scheduled'")
+              button.button.button--secondary.label-text(
+                type="button"
+                :disabled="!meeting.canStart || startMeetingMutation.isPending.value"
+                @click="startMeeting"
+              ) {{ startMeetingMutation.isPending.value ? 'Начинаем...' : 'Начать встречу' }}
+              p.proposal__error(v-if="startMeetingMutation.error.value") Не удалось начать встречу.
+            template(v-else-if="meeting.status === 'started'")
+              button.button.button--primary.label-text(
+                type="button"
+                :disabled="!meeting.canFinish || finishMeetingMutation.isPending.value"
+                @click="openFinishModal"
+              ) {{ finishMeetingMutation.isPending.value ? 'Завершаем...' : 'Закончить встречу и цикл' }}
+              .inline-alert(v-if="missingRatingAttendees.length")
+                AlertTriangle(:size="14")
+                span Нужны оценки:
+                span.meeting-detail__missing-rating(v-for="attendee in missingRatingAttendees" :key="attendee.id") {{ attendee.name }}
+              p.proposal__error(v-if="finishMeetingMutation.error.value") Не удалось завершить встречу.
+
         .panel.meeting-detail__hero
           .meeting-detail__hero-section.meeting-detail__hero-section--primary
             CalendarDays.meeting-detail__hero-icon
@@ -136,27 +201,6 @@ main.meeting-detail.container
               .meeting-detail__link-box
                 LinkIcon
                 span.body-text {{ meeting.meetingLink }}
-
-        .panel.meeting-detail__admin(v-if="isAdmin")
-          .section-header.section-header--compact
-            h2 Управление встречей
-            span.label-text {{ meeting.status === 'finished' ? 'Завершена' : meeting.status === 'started' ? 'Идёт' : 'Запланирована' }}
-          .meeting-detail__admin-actions
-            button.button.button--secondary.label-text(
-              type="button"
-              :disabled="!meeting.canStart || startMeetingMutation.isPending.value"
-              @click="startMeeting"
-            ) {{ startMeetingMutation.isPending.value ? 'Начинаем...' : 'Начать встречу' }}
-            button.button.button--primary.label-text(
-              type="button"
-              :disabled="meeting.status !== 'started' || !meeting.canFinish || finishMeetingMutation.isPending.value"
-              @click="finishMeeting"
-            ) {{ finishMeetingMutation.isPending.value ? 'Завершаем...' : 'Закончить встречу' }}
-          .inline-alert(v-if="meeting.status === 'started' && missingRatingAttendees.length")
-            | Нужны оценки:
-            span.meeting-detail__missing-rating(v-for="attendee in missingRatingAttendees" :key="attendee.id") {{ attendee.name }}
-          p.proposal__error(v-if="startMeetingMutation.error.value") Не удалось начать встречу.
-          p.proposal__error(v-if="finishMeetingMutation.error.value") Не удалось завершить встречу.
 
         .section-header.meeting-detail__topics-header
           h2 Темы для обсуждения
@@ -243,6 +287,14 @@ main.meeting-detail.container
             :to="`/archive/${meeting.book.cycleSlug}`"
           ) Подробности о цикле
 
+    MeetingFinishModal(
+      :is-open="isFinishModalOpen"
+      :meeting="meeting"
+      :member-progress="memberProgress"
+      @close="isFinishModalOpen = false"
+      @confirm="handleFinishConfirm"
+    )
+
   section.panel.meeting-detail__missing(v-else)
     .section-header.section-header--compact
       h1 Встреча не найдена
@@ -281,6 +333,62 @@ main.meeting-detail.container
   grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
   gap: var(--space-xl);
   align-items: start;
+}
+
+.meeting-detail__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-panel);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)),
+    var(--bg-panel);
+}
+
+.meeting-detail__status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.meeting-detail__status-icon {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-subtle);
+}
+
+.meeting-detail__status-icon--accent {
+  color: var(--accent);
+}
+
+.meeting-detail__status-heading {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.meeting-detail__admin-panel {
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border: var(--border-width) solid var(--warn-border);
+  border-radius: var(--radius-panel);
+  background:
+    linear-gradient(180deg, rgba(216, 137, 43, 0.08), rgba(216, 137, 43, 0.018)),
+    var(--bg-panel);
+}
+
+.meeting-detail__admin-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.meeting-detail__admin-body .button {
+  align-self: flex-start;
 }
 
 .meeting-detail__hero {
@@ -343,18 +451,6 @@ main.meeting-detail.container
 
 .meeting-detail__topics-header {
   margin-top: var(--space-xl);
-}
-
-.meeting-detail__admin {
-  display: grid;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
-}
-
-.meeting-detail__admin-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-sm);
 }
 
 .meeting-detail__missing-rating {
@@ -465,8 +561,9 @@ main.meeting-detail.container
 }
 
 @media (max-width: 640px) {
-  .meeting-detail__admin-actions {
-    grid-template-columns: 1fr;
+  .meeting-detail__admin-body .button {
+    align-self: stretch;
+    width: 100%;
   }
 }
 </style>
