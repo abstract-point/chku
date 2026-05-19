@@ -245,6 +245,38 @@ class MeetingApiTest extends TestCase
         $response->assertJsonPath('data.cycleId', $cycle->id);
     }
 
+    public function test_meeting_show_returns_ratings_and_reviews(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+
+        $cycle = ReadingCycle::where('status', 'active')->first();
+        $meeting = $cycle->meeting()->first();
+
+        $member = ClubMember::whereHas('user', fn ($query) => $query->where('email', 'mikhail@example.com'))->firstOrFail();
+
+        Rating::create([
+            'reading_cycle_id' => $cycle->id,
+            'club_member_id' => $member->id,
+            'rating' => 9,
+        ]);
+
+        Review::create([
+            'reading_cycle_id' => $cycle->id,
+            'club_member_id' => $member->id,
+            'text' => 'Отличная книга.',
+        ]);
+
+        $response = $this->actingAs($user)->getJson("/api/meetings/{$meeting->id}");
+
+        $response->assertOk();
+        $response->assertJsonPath('data.ratings.0.memberId', $member->id);
+        $response->assertJsonPath('data.ratings.0.value', 9);
+        $response->assertJsonPath('data.reviews.0.memberId', $member->id);
+        $response->assertJsonPath('data.reviews.0.text', 'Отличная книга.');
+    }
+
     public function test_admin_can_start_meeting_for_active_cycle(): void
     {
         $this->seed(DatabaseSeeder::class);
