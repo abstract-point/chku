@@ -87,9 +87,17 @@ const banners = computed<Banner[]>(() => {
 
 <template lang="pug">
 template(v-if="banners.length")
-  .container(v-for="banner in banners" :key="banner.type")
-    BannerChooseBook(v-if="banner.type === 'choose_book'")
-    BannerMeetingAdmin(v-else-if="banner.type === 'meeting_admin' && nextMeeting" :meeting="nextMeeting")
-    BookCandidateVerificationBanner(v-else-if="banner.type === 'book_candidate'" :choice="activeBookChoice")
-    TwoFactorRequiredBanner(v-else-if="banner.type === 'two_factor'")
+  .banner-section.container
+    BannerChooseBook(v-if="banners.some((b) => b.type === 'choose_book')")
+    BannerMeetingAdmin(v-if="banners.some((b) => b.type === 'meeting_admin') && nextMeeting" :meeting="nextMeeting")
+    BookCandidateVerificationBanner(v-if="banners.some((b) => b.type === 'book_candidate')" :choice="activeBookChoice")
+    TwoFactorRequiredBanner(v-if="banners.some((b) => b.type === 'two_factor')")
 </template>
+
+<style scoped>
+.banner-section {
+  display: grid;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+</style>

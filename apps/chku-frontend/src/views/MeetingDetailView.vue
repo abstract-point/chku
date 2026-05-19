@@ -335,6 +335,11 @@ main.meeting-detail.container
   align-items: start;
 }
 
+.meeting-detail__main {
+  display: grid;
+  gap: var(--space-lg);
+}
+
 .meeting-detail__status {
   display: flex;
   align-items: center;
