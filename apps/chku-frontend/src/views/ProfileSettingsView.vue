@@ -2,6 +2,9 @@
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { KeyRound, UserRound } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import AppFormField from '@/components/ui/AppFormField.vue'
+import AppInput from '@/components/ui/AppInput.vue'
+import AppSelect from '@/components/ui/AppSelect.vue'
 import { useUpdateAvatarMutation, useUpdatePasswordMutation, useUpdateProfileMutation } from '@/queries/authQueries'
 import { useGenresQuery } from '@/queries/genreQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
@@ -32,6 +35,11 @@ const profileError = ref('')
 const passwordError = ref('')
 const avatarFile = ref<File | null>(null)
 const avatarPreviewUrl = ref<string | null>(null)
+
+const genreOptions = computed(() => [
+  { label: 'Не выбран', value: null as number | null },
+  ...(genresQuery.data.value?.map((g) => ({ label: g.name, value: g.id })) ?? []),
+])
 
 watch(
   currentMember,
@@ -133,21 +141,12 @@ main.profile-settings.container
           :avatar-url="avatarPreviewUrl ?? currentMember.avatarUrl"
           size="lg"
         )
-        .profile-settings__avatar-control
-          label.label-text(for="settings-avatar") Аватар
-          input#settings-avatar.field-control.profile-settings__input(
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            @change="selectAvatar"
-          )
-      .profile-settings__group
-        label.label-text(for="settings-name") Имя
-        input#settings-name.field-control.profile-settings__input(type="text" v-model="profileForm.name" required autocomplete="name")
-      .profile-settings__group
-        label.label-text(for="settings-genre") Любимый жанр
-        select#settings-genre.field-control.profile-settings__input(v-model="profileForm.favoriteGenreId" :disabled="genresQuery.isLoading.value")
-          option(:value="null") Не выбран
-          option(v-for="genre in genresQuery.data.value ?? []" :key="genre.id" :value="genre.id") {{ genre.name }}
+        AppFormField(label="Аватар" label-for="settings-avatar")
+          AppInput#settings-avatar(type="file" accept="image/jpeg,image/png,image/webp" @change="selectAvatar")
+      AppFormField(label="Имя" label-for="settings-name")
+        AppInput#settings-name(type="text" v-model="profileForm.name" required autocomplete="name")
+      AppFormField(label="Любимый жанр" label-for="settings-genre")
+        AppSelect#settings-genre(v-model="profileForm.favoriteGenreId" :options="genreOptions" :disabled="genresQuery.isLoading.value")
       p.profile-settings__message(v-if="profileMessage") {{ profileMessage }}
       p.profile-settings__error(v-if="profileError") {{ profileError }}
       button.button.button--primary.label-text.profile-settings__submit(
@@ -160,15 +159,12 @@ main.profile-settings.container
       .section-header.section-header--compact
         h2 Пароль
         KeyRound.profile-settings__icon
-      .profile-settings__group
-        label.label-text(for="settings-current-password") Текущий пароль
-        input#settings-current-password.field-control.profile-settings__input(type="password" v-model="passwordForm.currentPassword" required autocomplete="current-password")
-      .profile-settings__group
-        label.label-text(for="settings-password") Новый пароль
-        input#settings-password.field-control.profile-settings__input(type="password" v-model="passwordForm.password" required minlength="8" autocomplete="new-password")
-      .profile-settings__group
-        label.label-text(for="settings-password-confirmation") Повтор нового пароля
-        input#settings-password-confirmation.field-control.profile-settings__input(type="password" v-model="passwordForm.passwordConfirmation" required minlength="8" autocomplete="new-password")
+      AppFormField(label="Текущий пароль" label-for="settings-current-password")
+        AppInput#settings-current-password(type="password" v-model="passwordForm.currentPassword" required autocomplete="current-password")
+      AppFormField(label="Новый пароль" label-for="settings-password")
+        AppInput#settings-password(type="password" v-model="passwordForm.password" required minlength="8" autocomplete="new-password")
+      AppFormField(label="Повтор нового пароля" label-for="settings-password-confirmation")
+        AppInput#settings-password-confirmation(type="password" v-model="passwordForm.passwordConfirmation" required minlength="8" autocomplete="new-password")
       p.profile-settings__message(v-if="passwordMessage") {{ passwordMessage }}
       p.profile-settings__error(v-if="passwordError") {{ passwordError }}
       button.button.button--secondary.label-text.profile-settings__submit(type="submit" :disabled="updatePasswordMutation.isPending.value")
@@ -191,6 +187,7 @@ main.profile-settings.container
 .profile-settings__section {
   display: flex;
   flex-direction: column;
+  gap: var(--space-md);
 }
 
 .profile-settings__icon {
@@ -203,31 +200,10 @@ main.profile-settings.container
   grid-column: 1 / -1;
 }
 
-.profile-settings__group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  margin-bottom: var(--space-md);
-}
-
 .profile-settings__avatar {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  margin-bottom: var(--space-md);
-}
-
-.profile-settings__avatar-control {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--space-xs);
-  min-width: 0;
-}
-
-.profile-settings__input {
-  width: 100%;
-  padding: 0.75rem 0.9rem;
 }
 
 .profile-settings__submit {
@@ -239,7 +215,6 @@ main.profile-settings.container
 .profile-settings__error {
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-inner);
-  margin-bottom: var(--space-md);
   font-size: 0.85rem;
 }
 
