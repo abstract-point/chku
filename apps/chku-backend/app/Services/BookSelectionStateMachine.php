@@ -26,7 +26,7 @@ final class BookSelectionStateMachine
     ) {
     }
 
-    public function createCandidateFromNextSelector(int $clubId): ?BookCandidate
+    public function createCandidateForCurrentSelector(int $clubId): ?BookCandidate
     {
         return DB::transaction(function () use ($clubId): ?BookCandidate {
             if ($this->activeCandidate($clubId)) {
@@ -53,7 +53,7 @@ final class BookSelectionStateMachine
                 $cycle->delete();
             }
 
-            $selector = $this->nextSelector($clubId);
+            $selector = $this->turnOrder->currentSelector($clubId);
             if (! $selector) {
                 return null;
             }
@@ -220,14 +220,9 @@ final class BookSelectionStateMachine
         });
     }
 
-    public function nextSelector(int $clubId): ?ClubMember
-    {
-        return $this->turnOrder->currentSelector($clubId);
-    }
-
     public function nextSelectorHasQueuedBooks(int $clubId): bool
     {
-        $selector = $this->nextSelector($clubId);
+        $selector = $this->turnOrder->nextSelector($clubId);
 
         return $selector ? $this->bookQueue->headQueuedItem($selector) !== null : false;
     }

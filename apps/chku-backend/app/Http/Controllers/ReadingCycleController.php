@@ -85,7 +85,7 @@ final class ReadingCycleController extends Controller
             ]);
 
             $turnOrder->rotateAfterCompletedCycle($cycle->club_id);
-            $stateMachine->createCandidateFromNextSelector($cycle->club_id);
+            $stateMachine->createCandidateForCurrentSelector($cycle->club_id);
         });
 
         return new ReadingCycleResource($cycle->refresh()->load('book.genre', 'proposer.user'));
