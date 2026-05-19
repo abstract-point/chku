@@ -33,11 +33,17 @@ export type TurnOrderMember = {
 
 export type MeetingSummary = {
   id: string
+  title: string
   dateLabel: string
   dayTimeLabel?: string
+  date?: string
+  time?: string
   place?: string
   isOnline: boolean
   link?: string
+  status: 'scheduled' | 'started' | 'finished'
+  canStart: boolean
+  canFinish: boolean
   attendees: MeetingAttendee[]
 }
 
@@ -76,4 +82,6 @@ export type MeetingDetail = {
   rsvpStatus: 'attending' | 'not_attending' | 'pending'
   attendees: MeetingAttendee[]
   book: MeetingBook
+  ratings: { memberId: number; value: number }[]
+  reviews: { memberId: number; text: string }[]
 }
