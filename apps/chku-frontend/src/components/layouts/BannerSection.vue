@@ -9,6 +9,7 @@ import BannerChooseBook from '@/components/banners/BannerChooseBook.vue'
 import BannerMeetingAdmin from '@/components/banners/BannerMeetingAdmin.vue'
 import BookCandidateVerificationBanner from '@/components/dashboard/BookCandidateVerificationBanner.vue'
 import TwoFactorRequiredBanner from '@/components/TwoFactorRequiredBanner.vue'
+import BannerMeetingRating from '@/components/banners/BannerMeetingRating.vue'
 
 const route = useRoute()
 const { isAdmin, isAuthenticated, twoFactorEnabled, user } = useAuthSession()
@@ -48,7 +49,7 @@ const activeBookChoice = computed(() => {
 const nextMeeting = computed(() => dashboardQuery.data.value?.nextMeeting)
 
 interface Banner {
-  type: 'choose_book' | 'meeting_admin' | 'book_candidate' | 'two_factor'
+  type: 'choose_book' | 'meeting_admin' | 'book_candidate' | 'two_factor' | 'meeting_rating'
 }
 
 const banners = computed<Banner[]>(() => {
@@ -77,6 +78,17 @@ const banners = computed<Banner[]>(() => {
     result.push({ type: 'book_candidate' })
   }
 
+  const missingRatings = data.lifecycle?.missingRatings ?? []
+  if (
+    meeting &&
+    meeting.status === 'started' &&
+    !isMeetingPage.value &&
+    user.value &&
+    missingRatings.some((m) => m.id === user.value!.id)
+  ) {
+    result.push({ type: 'meeting_rating' })
+  }
+
   if (isAdmin.value && !twoFactorEnabled.value) {
     result.push({ type: 'two_factor' })
   }
@@ -91,6 +103,7 @@ template(v-if="banners.length")
     BannerChooseBook(v-if="banners.some((b) => b.type === 'choose_book')")
     BannerMeetingAdmin(v-if="banners.some((b) => b.type === 'meeting_admin') && nextMeeting" :meeting="nextMeeting")
     BookCandidateVerificationBanner(v-if="banners.some((b) => b.type === 'book_candidate')" :choice="activeBookChoice")
+    BannerMeetingRating(v-if="banners.some((b) => b.type === 'meeting_rating') && nextMeeting" :meeting-id="nextMeeting.id")
     TwoFactorRequiredBanner(v-if="banners.some((b) => b.type === 'two_factor')")
 </template>
 
