@@ -9,11 +9,17 @@ export function mapMeetingSummary(meeting: ApiMeeting): MeetingSummary {
 
   return {
     id: String(meeting.id),
+    title: meeting.title,
     dateLabel: formatDateLabel(meeting.date),
     dayTimeLabel: `${weekday} · ${formatTimeLabel(meeting.time)}`,
+    date: meeting.date,
+    time: meeting.time,
     place: meeting.place,
     isOnline: meeting.isOnline ?? false,
     link: meeting.link,
+    status: meeting.status ?? 'scheduled',
+    canStart: meeting.canStart ?? false,
+    canFinish: meeting.canFinish ?? false,
     attendees:
       meeting.rsvps?.map((rsvp) => ({
         id: rsvp.member.id,
