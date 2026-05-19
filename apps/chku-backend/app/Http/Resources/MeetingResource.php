@@ -56,6 +56,14 @@ class MeetingResource extends JsonResource
             'rsvps' => MeetingRsvpResource::collection($this->whenLoaded('rsvps')),
             'reschedules' => MeetingRescheduleResource::collection($this->whenLoaded('reschedules')),
             'book' => $this->whenLoaded('readingCycle', fn () => new BookResource($this->readingCycle->book)),
+            'ratings' => $this->whenLoaded('readingCycle', fn () => $this->readingCycle->ratings->map(fn ($rating) => [
+                'memberId' => $rating->club_member_id,
+                'value' => $rating->rating,
+            ])),
+            'reviews' => $this->whenLoaded('readingCycle', fn () => $this->readingCycle->reviews->map(fn ($review) => [
+                'memberId' => $review->club_member_id,
+                'text' => $review->text,
+            ])),
         ];
     }
 }
