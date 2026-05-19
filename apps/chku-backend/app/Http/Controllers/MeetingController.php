@@ -35,7 +35,7 @@ final class MeetingController extends Controller
         $this->authorize('view', $meeting);
 
         return new MeetingResource(
-            $meeting->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
+            $meeting->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
                 ->load('reschedules.actor')
         );
     }
@@ -82,7 +82,7 @@ final class MeetingController extends Controller
         }
 
         return new MeetingResource(
-            $meeting->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
+            $meeting->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
                 ->load('reschedules.actor')
         );
     }
@@ -133,7 +133,7 @@ final class MeetingController extends Controller
         }
 
         return new MeetingResource(
-            $meeting->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
+            $meeting->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
                 ->load('reschedules.actor')
         );
     }
@@ -156,7 +156,7 @@ final class MeetingController extends Controller
         );
 
         return new MeetingResource(
-            $meeting->refresh()->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
+            $meeting->refresh()->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
         );
     }
 
@@ -171,7 +171,7 @@ final class MeetingController extends Controller
         $meeting->update(['topics' => $topics]);
 
         return new MeetingResource(
-            $meeting->refresh()->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
+            $meeting->refresh()->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
         );
     }
 
@@ -187,7 +187,7 @@ final class MeetingController extends Controller
         }
 
         return new MeetingResource(
-            $meeting->refresh()->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
+            $meeting->refresh()->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
         );
     }
 
@@ -247,7 +247,7 @@ final class MeetingController extends Controller
         });
 
         return new MeetingResource(
-            $meeting->refresh()->load('readingCycle.book', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
+            $meeting->refresh()->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
         );
     }
 }
