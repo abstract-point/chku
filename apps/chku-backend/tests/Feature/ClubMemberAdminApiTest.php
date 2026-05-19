@@ -85,6 +85,17 @@ class ClubMemberAdminApiTest extends TestCase
         );
     }
 
+    public function test_inactive_members_are_not_in_turn_order_after_seeding(): void
+    {
+        $this->actingAsAdmin();
+
+        $emails = $this->turnOrderEmails();
+
+        $this->assertCount(6, $emails);
+        $this->assertNotContains('igor@example.com', $emails);
+        $this->assertNotContains('maria@example.com', $emails);
+    }
+
     public function test_member_cannot_create_member(): void
     {
         $this->seed(DatabaseSeeder::class);
