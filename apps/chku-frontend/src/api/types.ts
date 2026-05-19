@@ -99,6 +99,8 @@ export type ApiMeeting = {
   rsvps?: ApiMeetingRsvp[]
   reschedules?: ApiMeetingReschedule[]
   book?: ApiBook
+  ratings?: { memberId: number; value: number }[]
+  reviews?: { memberId: number; text: string }[]
 }
 
 export type ApiMeetingRsvp = {
