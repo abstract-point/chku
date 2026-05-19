@@ -105,7 +105,16 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
         | {{ book.description }}
 
       .panel.panel--filled.current-book__progress
-        template(v-if="!isProgressFormOpen")
+        template(v-if="book.progress === 100")
+          .current-book__progress-header
+            span.label-text Мой прогресс
+            span.label-text {{ book.progressLabel }}
+          .progress(:aria-label="`Мой прогресс чтения ${book.progress}%`")
+            .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
+          .current-book__done-message
+            span.label-text Ты молодец, дочитал книгу!
+            p.body-text Ждём остальных участников клуба.
+        template(v-else-if="!isProgressFormOpen")
           .current-book__progress-header
             span.label-text Мой прогресс
             span.label-text {{ book.progressLabel }}
@@ -234,6 +243,27 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 .current-book__progress > .button {
   width: 100%;
   margin-top: var(--space-sm);
+}
+
+.current-book__done-message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: var(--border-width) solid var(--accent-border);
+  border-radius: var(--radius-inner);
+  background: var(--accent-bg);
+}
+
+.current-book__done-message .label-text {
+  color: var(--accent);
+}
+
+.current-book__done-message .body-text {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 .club-progress {
