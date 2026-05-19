@@ -4,12 +4,15 @@ const props = defineProps<{
   labelFor?: string
   hint?: string
   error?: string
+  required?: boolean
 }>()
 </script>
 
 <template lang="pug">
 .app-form-field
-  label.app-form-field__label.label-text(v-if="label" :for="labelFor") {{ label }}
+  label.app-form-field__label.label-text(v-if="label" :for="labelFor")
+    | {{ label }}
+    span.app-form-field__required(v-if="required" aria-hidden="true") *
   .app-form-field__control
     slot
   p.app-form-field__hint(v-if="hint && !error") {{ hint }}
@@ -25,6 +28,11 @@ const props = defineProps<{
 
 .app-form-field__label {
   display: block;
+}
+
+.app-form-field__required {
+  margin-left: 0.15rem;
+  color: var(--danger);
 }
 
 .app-form-field__hint {

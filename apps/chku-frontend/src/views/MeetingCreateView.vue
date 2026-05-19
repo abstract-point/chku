@@ -5,18 +5,25 @@ import MeetingForm from '@/components/meetings/MeetingForm.vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
 import { useCreateMeetingMutation } from '@/queries/meetingQueries'
+import { useFormErrors } from '@/composables/useFormErrors'
+import { ApiError } from '@/api/http'
 
 const router = useRouter()
 const { isAdmin } = useAuthSession()
 const dashboardQuery = useDashboardQuery()
 const createMutation = useCreateMeetingMutation()
+const formErrors = useFormErrors()
 
 const cycleId = computed(() => dashboardQuery.data.value?.lifecycle?.currentCycleId)
 
 function handleSubmit(payload: Record<string, unknown>) {
+  formErrors.clearAllErrors()
   createMutation.mutate(payload as Parameters<typeof createMutation.mutate>[0], {
     onSuccess: (meeting) => {
       router.push(`/meetings/${meeting.id}`)
+    },
+    onError: (error) => {
+      formErrors.setFromApiError(error)
     },
   })
 }
@@ -42,7 +49,9 @@ main.container
     v-else
     :cycle-id="cycleId"
     :is-submitting="createMutation.isPending.value"
+    :errors="formErrors.fieldErrors.value"
     @submit="handleSubmit"
   )
-  p.body-text(v-if="createMutation.error.value") Не удалось создать встречу.
+  p.body-text(v-if="createMutation.error.value && !Object.keys(formErrors.fieldErrors.value).length")
+    | {{ createMutation.error.value instanceof ApiError ? createMutation.error.value.message : 'Не удалось создать встречу.' }}
 </template>

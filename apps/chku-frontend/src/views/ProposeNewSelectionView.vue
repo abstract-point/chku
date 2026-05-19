@@ -2,6 +2,9 @@
 import { computed, reactive, ref } from 'vue'
 import { BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Send, Trash2, X } from '@lucide/vue'
 import AppTabs from '@/components/ui/AppTabs.vue'
+import AppFormField from '@/components/ui/AppFormField.vue'
+import AppInput from '@/components/ui/AppInput.vue'
+import AppTextarea from '@/components/ui/AppTextarea.vue'
 import {
   useBookQueueQuery,
   useCreateBookQueueItemMutation,
@@ -10,6 +13,7 @@ import {
   useRemoveBookQueueItemMutation,
   useUpdateBookQueueItemMutation,
 } from '@/queries/bookQueueQueries'
+import { useFormErrors } from '@/composables/useFormErrors'
 import type { BookQueueItem } from '@/types/club'
 
 const queueQuery = useBookQueueQuery()
@@ -29,28 +33,22 @@ const form = reactive({
   description: '',
   reason: '',
 })
-const submitAttempted = ref(false)
+const formErrors = useFormErrors()
 const items = computed(() => queueQuery.items.value)
 const rejectedItems = computed(() => rejectedQuery.items.value)
 const currentCandidate = computed(() => items.value.find((item) => item.isCurrentCandidate) ?? null)
 const nextCandidate = computed(() => items.value.find((item) => item.status === 'queued') ?? null)
-
-function isFilled(value: string) {
-  return value.trim().length > 0
-}
 
 function resetForm() {
   form.title = ''
   form.author = ''
   form.description = ''
   form.reason = ''
-  submitAttempted.value = false
+  formErrors.clearAllErrors()
 }
 
 function submitBook() {
-  submitAttempted.value = true
-
-  if (!isFilled(form.title) || !isFilled(form.author)) return
+  formErrors.clearAllErrors()
 
   createQueueItem.mutate(
     {
@@ -59,7 +57,12 @@ function submitBook() {
       description: form.description.trim(),
       reason: form.reason.trim(),
     },
-    { onSuccess: resetForm },
+    {
+      onSuccess: resetForm,
+      onError: (error) => {
+        formErrors.setFromApiError(error)
+      },
+    },
   )
 }
 
@@ -106,13 +109,13 @@ function cancelEdit() {
 }
 
 function saveEdit(item: BookQueueItem) {
-  const form = editForms[item.id]
-  if (!form) return
+  const editForm = editForms[item.id]
+  if (!editForm) return
   updateQueueItem.mutate(
     {
       id: item.id,
-      description: form.description.trim() || null,
-      reason: form.reason.trim() || null,
+      description: editForm.description.trim() || null,
+      reason: editForm.reason.trim() || null,
     },
     { onSuccess: cancelEdit },
   )
@@ -141,45 +144,42 @@ main.proposal.container
         h2#queue-form-title Добавить книгу
         Plus.proposal__button-icon
       form(@submit.prevent="submitBook" novalidate)
-        .proposal__field
-          label.label-text(for="book-title") Название книги
-          input#book-title.field-control.proposal__input(
+        AppFormField(label="Название книги" label-for="book-title" required :error="formErrors.getError('title')")
+          AppInput#book-title(
             v-model="form.title"
             type="text"
             placeholder="Например, Мастер и Маргарита"
-            :aria-invalid="submitAttempted && !isFilled(form.title)"
+            :aria-invalid="formErrors.hasError('title')"
           )
-          p.proposal__error(v-if="submitAttempted && !isFilled(form.title)") Укажи название книги.
 
-        .proposal__field
-          label.label-text(for="book-author") Автор
-          input#book-author.field-control.proposal__input(
+        AppFormField(label="Автор" label-for="book-author" required :error="formErrors.getError('author')")
+          AppInput#book-author(
             v-model="form.author"
             type="text"
             placeholder="Например, Михаил Булгаков"
-            :aria-invalid="submitAttempted && !isFilled(form.author)"
+            :aria-invalid="formErrors.hasError('author')"
           )
-          p.proposal__error(v-if="submitAttempted && !isFilled(form.author)") Укажи автора.
 
-        .proposal__field
-          label.label-text(for="book-description") Краткое описание
-          textarea#book-description.field-control.proposal__input.proposal__textarea(
+        AppFormField(label="Краткое описание" label-for="book-description" :error="formErrors.getError('description')")
+          AppTextarea#book-description(
             v-model="form.description"
             placeholder="Коротко опиши, о чём книга."
+            :aria-invalid="formErrors.hasError('description')"
           )
 
-        .proposal__field
-          label.label-text(for="book-reason") Почему эта книга?
-          textarea#book-reason.field-control.proposal__input.proposal__textarea(
+        AppFormField(label="Почему эта книга?" label-for="book-reason" :error="formErrors.getError('reason')")
+          AppTextarea#book-reason(
             v-model="form.reason"
             placeholder="Какие темы она может открыть для клуба?"
+            :aria-invalid="formErrors.hasError('reason')"
           )
 
         .proposal__actions
           button.button.button--primary.label-text(type="submit" :disabled="createQueueItem.isPending.value")
             Plus.proposal__button-icon(v-if="!createQueueItem.isPending.value")
             | {{ createQueueItem.isPending.value ? 'Добавляем...' : 'Добавить в очередь' }}
-          p.proposal__error(v-if="createQueueItem.error.value") Не удалось добавить книгу.
+          p.proposal__error(v-if="createQueueItem.error.value && !Object.keys(formErrors.fieldErrors.value).length")
+            | {{ createQueueItem.error.value.message }}
 
     section.proposal__queue(aria-labelledby="queue-title")
       .section-header

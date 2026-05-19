@@ -12,6 +12,7 @@ const props = defineProps<{
   meeting?: MeetingDetail
   cycleId: number
   isSubmitting: boolean
+  errors?: Record<string, string>
 }>()
 
 const emit = defineEmits<{
@@ -118,6 +119,14 @@ function onSubmit() {
 
   emit('submit', payload)
 }
+
+function fieldError(field: string): string | undefined {
+  return props.errors?.[field]
+}
+
+function isInvalid(field: string): boolean {
+  return !!fieldError(field)
+}
 </script>
 
 <template lang="pug">
@@ -127,34 +136,63 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
     span.label-text Цикл #{{ cycleId }}
 
   .meeting-form__fields
-    AppFormField(label="Название" label-for="meeting-title")
-      AppInput#meeting-title(v-model="title" required placeholder="Ноябрьская встреча")
+    AppFormField(label="Название" label-for="meeting-title" required :error="fieldError('title')")
+      AppInput#meeting-title(
+        v-model="title"
+        required
+        placeholder="Ноябрьская встреча"
+        :aria-invalid="isInvalid('title')"
+      )
 
     .meeting-form__datetime-row
-      AppFormField(label="Дата" label-for="meeting-day")
+      AppFormField(label="Дата" label-for="meeting-day" required :error="fieldError('date')")
         .meeting-form__date-selects
           AppSelect#meeting-day(v-model.number="day" :options="dayOptions")
           AppSelect(v-model.number="month" :options="monthOptions" required)
           AppSelect(v-model.number="year" :options="yearOptions" required)
-      AppFormField(label="Время" label-for="meeting-time")
-        AppInput#meeting-time(type="time" v-model="time" required)
+      AppFormField(label="Время" label-for="meeting-time" required :error="fieldError('time')")
+        AppInput#meeting-time(type="time" v-model="time" required :aria-invalid="isInvalid('time')")
 
     AppFormField(label="Формат встречи")
       AppRadioGroup(name="meeting-format" v-model="isOnline" :options="formatOptions")
 
     template(v-if="!isOnline")
-      AppFormField(label="Место" label-for="meeting-place")
-        AppInput#meeting-place(v-model="place" required placeholder="Библиотека имени Некрасова")
-      AppFormField(label="Адрес" label-for="meeting-address")
-        AppInput#meeting-address(v-model="address" placeholder="ул. Бауманская, 58/25с14")
-      AppFormField(label="Бронь" label-for="meeting-reservation")
-        AppInput#meeting-reservation(v-model="reservation" placeholder="Зал «Сад», стол у окна")
+      AppFormField(label="Место" label-for="meeting-place" required :error="fieldError('place')")
+        AppInput#meeting-place(
+          v-model="place"
+          required
+          placeholder="Библиотека имени Некрасова"
+          :aria-invalid="isInvalid('place')"
+        )
+      AppFormField(label="Адрес" label-for="meeting-address" :error="fieldError('address')")
+        AppInput#meeting-address(
+          v-model="address"
+          placeholder="ул. Бауманская, 58/25с14"
+          :aria-invalid="isInvalid('address')"
+        )
+      AppFormField(label="Бронь" label-for="meeting-reservation" :error="fieldError('reservation')")
+        AppInput#meeting-reservation(
+          v-model="reservation"
+          placeholder="Зал «Сад», стол у окна"
+          :aria-invalid="isInvalid('reservation')"
+        )
 
-    AppFormField(v-if="isOnline" label="Ссылка" label-for="meeting-link")
-      AppInput#meeting-link(type="url" v-model="link" placeholder="https://zoom.us/j/..." :required="isOnline")
+    AppFormField(v-if="isOnline" label="Ссылка" label-for="meeting-link" required :error="fieldError('link')")
+      AppInput#meeting-link(
+        type="url"
+        v-model="link"
+        placeholder="https://zoom.us/j/..."
+        :required="isOnline"
+        :aria-invalid="isInvalid('link')"
+      )
 
-    AppFormField(v-if="!isOnline" label="Ссылка (дополнительно)" label-for="meeting-link-optional")
-      AppInput#meeting-link-optional(type="url" v-model="link" placeholder="https://...")
+    AppFormField(v-if="!isOnline" label="Ссылка (дополнительно)" label-for="meeting-link-optional" :error="fieldError('link')")
+      AppInput#meeting-link-optional(
+        type="url"
+        v-model="link"
+        placeholder="https://..."
+        :aria-invalid="isInvalid('link')"
+      )
 
     AppFormField(label="Темы для обсуждения")
       .meeting-form__topics-list(v-if="topics.length")
@@ -168,8 +206,12 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
           Plus(:size="16")
           | Добавить
 
-    AppFormField(label="Заметки" label-for="meeting-notes")
-      AppTextarea#meeting-notes(v-model="notes" placeholder="Дополнительная информация о встрече...")
+    AppFormField(label="Заметки" label-for="meeting-notes" :error="fieldError('notes')")
+      AppTextarea#meeting-notes(
+        v-model="notes"
+        placeholder="Дополнительная информация о встрече..."
+        :aria-invalid="isInvalid('notes')"
+      )
 
   button.button.button--primary.label-text.meeting-form__submit(type="submit" :disabled="isSubmitting")
     | {{ isSubmitting ? 'Сохраняем...' : (isEdit ? 'Сохранить изменения' : 'Создать встречу') }}

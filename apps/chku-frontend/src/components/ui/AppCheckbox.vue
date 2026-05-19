@@ -4,6 +4,7 @@ const props = defineProps<{
   id?: string
   name?: string
   disabled?: boolean
+  ariaInvalid?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -26,6 +27,7 @@ label.app-checkbox
     :name="name"
     :checked="modelValue"
     :disabled="disabled"
+    :aria-invalid="ariaInvalid || undefined"
     @change="onChange"
   )
   span.app-checkbox__check
@@ -79,6 +81,11 @@ label.app-checkbox
 .app-checkbox__input:checked + .app-checkbox__check {
   border-color: var(--accent);
   background: var(--accent);
+}
+
+.app-checkbox__input[aria-invalid='true'] + .app-checkbox__check {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-bg);
 }
 
 .app-checkbox__check::after {

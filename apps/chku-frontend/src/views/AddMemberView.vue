@@ -4,10 +4,15 @@ import { RouterLink, useRouter } from 'vue-router'
 import { ShieldCheck, UserPlus } from '@lucide/vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useCreateMemberMutation } from '@/queries/memberQueries'
+import { useFormErrors } from '@/composables/useFormErrors'
+import AppFormField from '@/components/ui/AppFormField.vue'
+import AppInput from '@/components/ui/AppInput.vue'
+import AppSelect from '@/components/ui/AppSelect.vue'
 
 const router = useRouter()
 const { isAdmin, twoFactorEnabled } = useAuthSession()
 const createMemberMutation = useCreateMemberMutation()
+const formErrors = useFormErrors()
 const canManageMembers = computed(() => isAdmin.value && twoFactorEnabled.value)
 
 const form = ref({
@@ -20,15 +25,13 @@ const form = ref({
   role: 'member' as 'member' | 'admin' | 'developer',
 })
 
-const error = ref('')
-
 async function submit() {
-  error.value = ''
+  formErrors.clearAllErrors()
   try {
     await createMemberMutation.mutateAsync(form.value)
     router.push('/members')
   } catch (e: unknown) {
-    error.value = (e as Error).message || 'Ошибка создания участника'
+    formErrors.setFromApiError(e)
   }
 }
 
@@ -36,6 +39,12 @@ function selectAvatar(event: Event) {
   const input = event.target as HTMLInputElement
   form.value.avatar = input.files?.[0] ?? null
 }
+
+const roleOptions = [
+  { label: 'Участник', value: 'member' },
+  { label: 'Администратор', value: 'admin' },
+  { label: 'Разработчик', value: 'developer' },
+]
 </script>
 
 <template lang="pug">
@@ -61,32 +70,49 @@ main.add-member.container
         UserPlus.add-member__intro-icon
         p.body-text Новый участник получит доступ к клубному дашборду, архиву и прогрессу текущего цикла.
       .add-member__fields
-        .add-member__group
-          label.label-text(for="am-name") Имя
-          input#am-name.field-control.add-member__input(type="text" v-model="form.name" required autocomplete="name")
-        .add-member__group
-          label.label-text(for="am-email") Email
-          input#am-email.field-control.add-member__input(type="email" v-model="form.email" required autocomplete="email")
-        .add-member__group
-          label.label-text(for="am-password") Пароль
-          input#am-password.field-control.add-member__input(type="password" v-model="form.password" required minlength="8" autocomplete="new-password")
-        .add-member__group
-          label.label-text(for="am-avatar") Аватар
-          input#am-avatar.field-control.add-member__input(
+        AppFormField(label="Имя" label-for="am-name" required :error="formErrors.getError('name')")
+          AppInput#am-name(
+            type="text"
+            v-model="form.name"
+            required
+            autocomplete="name"
+            :aria-invalid="formErrors.hasError('name')"
+          )
+        AppFormField(label="Email" label-for="am-email" required :error="formErrors.getError('email')")
+          AppInput#am-email(
+            type="email"
+            v-model="form.email"
+            required
+            autocomplete="email"
+            :aria-invalid="formErrors.hasError('email')"
+          )
+        AppFormField(label="Пароль" label-for="am-password" required :error="formErrors.getError('password')")
+          AppInput#am-password(
+            type="password"
+            v-model="form.password"
+            required
+            minlength="8"
+            autocomplete="new-password"
+            :aria-invalid="formErrors.hasError('password')"
+          )
+        AppFormField(label="Аватар" label-for="am-avatar" :error="formErrors.getError('avatar')")
+          AppInput#am-avatar(
             type="file"
             accept="image/jpeg,image/png,image/webp"
             @change="selectAvatar"
+            :aria-invalid="formErrors.hasError('avatar')"
           )
-        .add-member__group
-          label.label-text(for="am-joined") Дата вступления
-          input#am-joined.field-control.add-member__input(type="date" v-model="form.joined_at" required)
-        .add-member__group
-          label.label-text(for="am-role") Роль
-          select#am-role.field-control.add-member__input(v-model="form.role" required)
-            option(value="member") Участник
-            option(value="admin") Администратор
-            option(value="developer") Разработчик
-      p.add-member__error(v-if="error") {{ error }}
+        AppFormField(label="Дата вступления" label-for="am-joined" required :error="formErrors.getError('joined_at')")
+          AppInput#am-joined(
+            type="date"
+            v-model="form.joined_at"
+            required
+            :aria-invalid="formErrors.hasError('joined_at')"
+          )
+        AppFormField(label="Роль" label-for="am-role" required :error="formErrors.getError('role')")
+          AppSelect#am-role(v-model="form.role" :options="roleOptions" required :aria-invalid="formErrors.hasError('role')")
+      p.add-member__error(v-if="createMemberMutation.error.value && !Object.keys(formErrors.fieldErrors.value).length")
+        | {{ createMemberMutation.error.value.message }}
       .add-member__actions
         button.button.button--secondary.label-text(type="button" @click="router.back()") Отмена
         button.button.button--primary.label-text(type="submit" :disabled="createMemberMutation.isPending.value")
@@ -134,17 +160,6 @@ main.add-member.container
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-md);
-}
-
-.add-member__group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-}
-
-.add-member__input {
-  width: 100%;
-  padding: 0.75rem 0.9rem;
 }
 
 .add-member__error {

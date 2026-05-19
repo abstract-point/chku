@@ -8,6 +8,7 @@ import AppSelect from '@/components/ui/AppSelect.vue'
 import { useUpdateAvatarMutation, useUpdatePasswordMutation, useUpdateProfileMutation } from '@/queries/authQueries'
 import { useGenresQuery } from '@/queries/genreQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
+import { useFormErrors } from '@/composables/useFormErrors'
 import TwoFactorSetup from '@/components/TwoFactorSetup.vue'
 
 const currentUserQuery = useCurrentUserQuery()
@@ -31,8 +32,8 @@ const passwordForm = reactive({
 
 const profileMessage = ref('')
 const passwordMessage = ref('')
-const profileError = ref('')
-const passwordError = ref('')
+const profileErrors = useFormErrors()
+const passwordErrors = useFormErrors()
 const avatarFile = ref<File | null>(null)
 const avatarPreviewUrl = ref<string | null>(null)
 
@@ -69,12 +70,8 @@ onBeforeUnmount(() => {
   }
 })
 
-function errorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback
-}
-
 async function saveProfile() {
-  profileError.value = ''
+  profileErrors.clearAllErrors()
   profileMessage.value = ''
 
   try {
@@ -91,12 +88,12 @@ async function saveProfile() {
 
     profileMessage.value = 'Профиль обновлён.'
   } catch (error) {
-    profileError.value = errorMessage(error, 'Не удалось сохранить профиль.')
+    profileErrors.setFromApiError(error)
   }
 }
 
 async function savePassword() {
-  passwordError.value = ''
+  passwordErrors.clearAllErrors()
   passwordMessage.value = ''
 
   try {
@@ -110,7 +107,7 @@ async function savePassword() {
     passwordForm.passwordConfirmation = ''
     passwordMessage.value = 'Пароль обновлён.'
   } catch (error) {
-    passwordError.value = errorMessage(error, 'Не удалось обновить пароль.')
+    passwordErrors.setFromApiError(error)
   }
 }
 
@@ -141,14 +138,31 @@ main.profile-settings.container
           :avatar-url="avatarPreviewUrl ?? currentMember.avatarUrl"
           size="lg"
         )
-        AppFormField(label="Аватар" label-for="settings-avatar")
-          AppInput#settings-avatar(type="file" accept="image/jpeg,image/png,image/webp" @change="selectAvatar")
-      AppFormField(label="Имя" label-for="settings-name")
-        AppInput#settings-name(type="text" v-model="profileForm.name" required autocomplete="name")
-      AppFormField(label="Любимый жанр" label-for="settings-genre")
-        AppSelect#settings-genre(v-model="profileForm.favoriteGenreId" :options="genreOptions" :disabled="genresQuery.isLoading.value")
+        AppFormField(label="Аватар" label-for="settings-avatar" :error="profileErrors.getError('avatar')")
+          AppInput#settings-avatar(
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            @change="selectAvatar"
+            :aria-invalid="profileErrors.hasError('avatar')"
+          )
+      AppFormField(label="Имя" label-for="settings-name" required :error="profileErrors.getError('name')")
+        AppInput#settings-name(
+          type="text"
+          v-model="profileForm.name"
+          required
+          autocomplete="name"
+          :aria-invalid="profileErrors.hasError('name')"
+        )
+      AppFormField(label="Любимый жанр" label-for="settings-genre" :error="profileErrors.getError('favorite_genre_id')")
+        AppSelect#settings-genre(
+          v-model="profileForm.favoriteGenreId"
+          :options="genreOptions"
+          :disabled="genresQuery.isLoading.value"
+          :aria-invalid="profileErrors.hasError('favorite_genre_id')"
+        )
       p.profile-settings__message(v-if="profileMessage") {{ profileMessage }}
-      p.profile-settings__error(v-if="profileError") {{ profileError }}
+      p.profile-settings__error(v-if="updateProfileMutation.error.value && !Object.keys(profileErrors.fieldErrors.value).length")
+        | {{ updateProfileMutation.error.value.message }}
       button.button.button--primary.label-text.profile-settings__submit(
         type="submit"
         :disabled="updateProfileMutation.isPending.value || updateAvatarMutation.isPending.value"
@@ -159,14 +173,35 @@ main.profile-settings.container
       .section-header.section-header--compact
         h2 Пароль
         KeyRound.profile-settings__icon
-      AppFormField(label="Текущий пароль" label-for="settings-current-password")
-        AppInput#settings-current-password(type="password" v-model="passwordForm.currentPassword" required autocomplete="current-password")
-      AppFormField(label="Новый пароль" label-for="settings-password")
-        AppInput#settings-password(type="password" v-model="passwordForm.password" required minlength="8" autocomplete="new-password")
-      AppFormField(label="Повтор нового пароля" label-for="settings-password-confirmation")
-        AppInput#settings-password-confirmation(type="password" v-model="passwordForm.passwordConfirmation" required minlength="8" autocomplete="new-password")
+      AppFormField(label="Текущий пароль" label-for="settings-current-password" required :error="passwordErrors.getError('current_password')")
+        AppInput#settings-current-password(
+          type="password"
+          v-model="passwordForm.currentPassword"
+          required
+          autocomplete="current-password"
+          :aria-invalid="passwordErrors.hasError('current_password')"
+        )
+      AppFormField(label="Новый пароль" label-for="settings-password" required :error="passwordErrors.getError('password')")
+        AppInput#settings-password(
+          type="password"
+          v-model="passwordForm.password"
+          required
+          minlength="8"
+          autocomplete="new-password"
+          :aria-invalid="passwordErrors.hasError('password')"
+        )
+      AppFormField(label="Повтор нового пароля" label-for="settings-password-confirmation" required :error="passwordErrors.getError('password_confirmation')")
+        AppInput#settings-password-confirmation(
+          type="password"
+          v-model="passwordForm.passwordConfirmation"
+          required
+          minlength="8"
+          autocomplete="new-password"
+          :aria-invalid="passwordErrors.hasError('password_confirmation')"
+        )
       p.profile-settings__message(v-if="passwordMessage") {{ passwordMessage }}
-      p.profile-settings__error(v-if="passwordError") {{ passwordError }}
+      p.profile-settings__error(v-if="updatePasswordMutation.error.value && !Object.keys(passwordErrors.fieldErrors.value).length")
+        | {{ updatePasswordMutation.error.value.message }}
       button.button.button--secondary.label-text.profile-settings__submit(type="submit" :disabled="updatePasswordMutation.isPending.value")
         | {{ updatePasswordMutation.isPending.value ? 'Обновление...' : 'Обновить пароль' }}
 

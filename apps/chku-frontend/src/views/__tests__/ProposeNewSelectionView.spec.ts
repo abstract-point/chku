@@ -20,14 +20,13 @@ describe('ProposeNewSelectionView', () => {
     expect(wrapper.text()).toContain('Почему эта книга?')
   })
 
-  it('validates required fields before submitting', async () => {
+  it('marks required fields with an asterisk', () => {
     setActivePinia(createPinia())
 
     const wrapper = mountProposal()
 
-    await wrapper.find('form').trigger('submit')
-
-    expect(wrapper.text()).toContain('Укажи название книги.')
+    expect(wrapper.text()).toContain('Название книги*')
+    expect(wrapper.text()).toContain('Автор*')
   })
 
   it('adds a book queue item and keeps the user on the queue page', async () => {
@@ -44,7 +43,7 @@ describe('ProposeNewSelectionView', () => {
       .setValue('Подойдёт для разговора о времени, вине и милосердии.')
     await wrapper.find('form').trigger('submit')
 
-    expect(wrapper.text()).not.toContain('Укажи название книги.')
+    expect(wrapper.text()).toContain('Название книги*')
   })
 
   it('shows edit buttons for queue items', () => {
