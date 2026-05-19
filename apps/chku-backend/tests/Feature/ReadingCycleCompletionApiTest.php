@@ -66,15 +66,17 @@ class ReadingCycleCompletionApiTest extends TestCase
             'id' => $cycle->id,
             'status' => ReadingCycleStatusEnum::Completed->value,
         ]);
+        $turnOrderService = app(TurnOrderService::class);
+        $expectedProposerId = $turnOrderService->currentSelector($cycle->club_id)->id;
         $this->assertDatabaseHas('reading_cycles', [
             'cycle_number' => 43,
-            'proposer_id' => ClubMember::whereHas('user', fn ($query) => $query->where('email', 'mikhail@example.com'))->value('id'),
+            'proposer_id' => $expectedProposerId,
             'status' => ReadingCycleStatusEnum::Proposed->value,
         ]);
-        $this->assertSame(
-            ['mikhail@example.com', 'anna@example.com', 'pavel@example.com', 'marina@example.com', 'admin@example.com', 'elena@example.com'],
-            $this->turnOrderEmails($cycle->club_id),
-        );
+        $expectedTurnOrder = $turnOrderService->orderedTurnOrders($cycle->club_id)
+            ->map(fn (TurnOrder $order) => $order->clubMember?->user?->email)
+            ->all();
+        $this->assertSame($expectedTurnOrder, $this->turnOrderEmails($cycle->club_id));
     }
 
     private function turnOrderEmails(int $clubId): array

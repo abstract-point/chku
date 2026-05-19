@@ -78,10 +78,10 @@ class ClubMemberAdminApiTest extends TestCase
         $response->assertOk();
         $members = collect($response->json('data'));
 
-        $this->assertTrue($members->take(6)->every(fn (array $member) => $member['isActive'] === true));
+        $this->assertTrue($members->take(3)->every(fn (array $member) => $member['isActive'] === true));
         $this->assertSame(
-            ['Игорь Фомин', 'Мария Лебедева'],
-            $members->slice(6)->pluck('name')->all(),
+            ['Анна Соколова', 'Игорь Фомин', 'Марина Светлова', 'Мария Лебедева', 'Павел Иванов'],
+            $members->slice(3)->pluck('name')->all(),
         );
     }
 
@@ -91,7 +91,10 @@ class ClubMemberAdminApiTest extends TestCase
 
         $emails = $this->turnOrderEmails();
 
-        $this->assertCount(6, $emails);
+        $this->assertCount(3, $emails);
+        $this->assertNotContains('anna@example.com', $emails);
+        $this->assertNotContains('pavel@example.com', $emails);
+        $this->assertNotContains('marina@example.com', $emails);
         $this->assertNotContains('igor@example.com', $emails);
         $this->assertNotContains('maria@example.com', $emails);
     }

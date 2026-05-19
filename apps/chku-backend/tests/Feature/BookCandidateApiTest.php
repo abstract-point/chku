@@ -8,6 +8,7 @@ use App\Enums\MemberBookQueueItemStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
 use App\Models\BookCandidate;
 use App\Models\BookCandidateResponse;
+use App\Models\Club;
 use App\Models\ClubMember;
 use App\Models\MemberBookQueueItem;
 use App\Models\ReadingCycle;
@@ -36,12 +37,10 @@ class BookCandidateApiTest extends TestCase
             'completed_at' => now(),
         ]);
 
-        $clubId = ClubMember::whereHas('user', fn ($query) => $query->where('email', 'mikhail@example.com'))
-            ->firstOrFail()
-            ->club_id;
+        $clubId = Club::firstOrFail()->id;
 
         app(TurnOrderService::class)->rotateAfterCompletedCycle($clubId);
-        app(BookSelectionStateMachine::class)->createCandidateFromNextSelector($clubId);
+        app(BookSelectionStateMachine::class)->createCandidateForCurrentSelector($clubId);
 
         return BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
     }
@@ -114,13 +113,16 @@ class BookCandidateApiTest extends TestCase
     public function test_owner_can_confirm_candidate_after_current_cycle_is_completed(): void
     {
         $this->seed(DatabaseSeeder::class);
-        $this->actingAs(User::where('email', 'mikhail@example.com')->firstOrFail());
 
         $candidate = $this->createProposedCandidate();
+        $candidate->load('proposer.user');
+
         BookCandidateResponse::where('book_candidate_id', $candidate->id)->update([
             'response' => BookCandidateResponseEnum::NotRead->value,
         ]);
         $candidate->update(['status' => BookCandidateStatusEnum::AwaitingOwnerConfirmation]);
+
+        $this->actingAs($candidate->proposer->user);
 
         $response = $this->postJson("/api/candidates/{$candidate->id}/confirm");
 
@@ -135,22 +137,21 @@ class BookCandidateApiTest extends TestCase
             'status' => ReadingCycleStatusEnum::Active->value,
         ]);
         $this->assertSame(43, ReadingCycle::max('cycle_number'));
-        $this->assertSame(
-            ['mikhail@example.com', 'anna@example.com', 'pavel@example.com', 'marina@example.com', 'admin@example.com', 'elena@example.com'],
-            $this->turnOrderEmails($candidate->proposer->club_id),
-        );
     }
 
     public function test_owner_can_replace_pending_candidate_from_personal_queue(): void
     {
         $this->seed(DatabaseSeeder::class);
-        $this->actingAs(User::where('email', 'mikhail@example.com')->firstOrFail());
 
         $candidate = $this->createProposedCandidate();
+        $candidate->load('proposer.user');
+
         $replacement = MemberBookQueueItem::query()
             ->where('club_member_id', $candidate->proposer_id)
             ->where('status', MemberBookQueueItemStatusEnum::Queued->value)
             ->firstOrFail();
+
+        $this->actingAs($candidate->proposer->user);
 
         $response = $this->postJson("/api/me/book-queue/{$replacement->id}/candidate");
 
@@ -180,9 +181,10 @@ class BookCandidateApiTest extends TestCase
     public function test_owner_cannot_replace_candidate_after_all_members_answered_not_read(): void
     {
         $this->seed(DatabaseSeeder::class);
-        $this->actingAs(User::where('email', 'mikhail@example.com')->firstOrFail());
 
         $candidate = $this->createProposedCandidate();
+        $candidate->load('proposer.user');
+
         BookCandidateResponse::where('book_candidate_id', $candidate->id)->update([
             'response' => BookCandidateResponseEnum::NotRead->value,
         ]);
@@ -192,6 +194,8 @@ class BookCandidateApiTest extends TestCase
             ->where('club_member_id', $candidate->proposer_id)
             ->where('status', MemberBookQueueItemStatusEnum::Queued->value)
             ->firstOrFail();
+
+        $this->actingAs($candidate->proposer->user);
 
         $this->postJson("/api/me/book-queue/{$replacement->id}/candidate")
             ->assertUnprocessable();

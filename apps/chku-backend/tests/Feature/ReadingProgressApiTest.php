@@ -75,8 +75,10 @@ class ReadingProgressApiTest extends TestCase
             'status' => ReadingProgressStatusEnum::Finished->value,
         ]);
 
+        $elenaMemberId = \App\Models\ClubMember::whereHas('user', fn ($q) => $q->where('email', 'elena@example.com'))->value('id');
         $progress = \App\Models\ReadingProgress::where([
             'reading_cycle_id' => $currentCycle->id,
+            'club_member_id' => $elenaMemberId,
         ])->first();
 
         $this->assertNotNull($progress?->finished_at);
@@ -92,7 +94,11 @@ class ReadingProgressApiTest extends TestCase
         ]);
 
         $currentCycle = ReadingCycle::where('status', 'active')->firstOrFail();
-        $firstFinishedAt = \App\Models\ReadingProgress::where('reading_cycle_id', $currentCycle->id)->value('finished_at');
+        $elenaMemberId = \App\Models\ClubMember::whereHas('user', fn ($q) => $q->where('email', 'elena@example.com'))->value('id');
+        $firstFinishedAt = \App\Models\ReadingProgress::where([
+            'reading_cycle_id' => $currentCycle->id,
+            'club_member_id' => $elenaMemberId,
+        ])->value('finished_at');
 
         sleep(1);
 
@@ -100,7 +106,10 @@ class ReadingProgressApiTest extends TestCase
             'progressPercent' => 100,
         ]);
 
-        $secondFinishedAt = \App\Models\ReadingProgress::where('reading_cycle_id', $currentCycle->id)->value('finished_at');
+        $secondFinishedAt = \App\Models\ReadingProgress::where([
+            'reading_cycle_id' => $currentCycle->id,
+            'club_member_id' => $elenaMemberId,
+        ])->value('finished_at');
 
         $this->assertEquals($firstFinishedAt, $secondFinishedAt);
     }
