@@ -39,6 +39,22 @@ const nextSelectorLabel = computed(() => {
 
 const activeProgressCount = computed(() => props.members.length)
 
+const membersWithMedals = computed(() => {
+  const sorted = [...props.members].sort((a, b) => (b.progress ?? 0) - (a.progress ?? 0))
+  const hasFinished = sorted.some((m) => m.progress === 100)
+  if (!hasFinished) {
+    return sorted.map((m) => ({ ...m, medal: null as BookProgressMember['medal'] }))
+  }
+  const medals: NonNullable<BookProgressMember['medal']>[] = ['gold', 'silver', 'bronze']
+  let medalIndex = 0
+  return sorted.map((m) => {
+    if (m.progress === 100 && medalIndex < medals.length) {
+      return { ...m, medal: medals[medalIndex++] }
+    }
+    return { ...m, medal: null }
+  })
+})
+
 function openProgressForm() {
   updateProgressMutation.reset()
   isProgressFormOpen.value = true
@@ -138,7 +154,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
     span.label-text {{ activeProgressCount }} участников
 
   ul.data-list.club-progress(role="list")
-    li.data-list__item.club-progress__item(v-for="member in members" :key="member.name")
+    li.data-list__item.club-progress__item(v-for="member in membersWithMedals" :key="member.name")
       .member-status
         UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" size="sm")
         span.member-status__name {{ member.name }}

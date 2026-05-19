@@ -12,13 +12,13 @@ export const memberProgress = [
     name: 'Михаил Корнев',
     progress: 80,
     rank: 2,
-    medal: 'silver',
+    medal: null,
   },
   {
     name: 'Анна Соколова',
     progress: 48,
     badge: 'Читает',
     rank: 3,
-    medal: 'bronze',
+    medal: null,
   },
 ] satisfies BookProgressMember[]
