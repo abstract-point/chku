@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { Plus, Trash2 } from '@lucide/vue'
+import AppFormField from '@/components/ui/AppFormField.vue'
+import AppInput from '@/components/ui/AppInput.vue'
+import AppSelect from '@/components/ui/AppSelect.vue'
+import AppTextarea from '@/components/ui/AppTextarea.vue'
+import AppRadioGroup from '@/components/ui/AppRadioGroup.vue'
 import type { MeetingDetail } from '@/types/dashboard'
 
 const props = defineProps<{
@@ -32,10 +37,28 @@ const months = [
   'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
 ]
 
+const dayOptions = computed(() => [
+  { label: '—', value: null as number | null },
+  ...Array.from({ length: 31 }, (_, i) => ({ label: String(i + 1), value: i + 1 })),
+])
+
+const monthOptions = computed(() =>
+  months.map((name, i) => ({ label: name, value: i + 1 })),
+)
+
 const years = computed(() => {
   const current = new Date().getFullYear()
   return [current - 1, current, current + 1]
 })
+
+const yearOptions = computed(() =>
+  years.value.map((y) => ({ label: String(y), value: y })),
+)
+
+const formatOptions = computed(() => [
+  { label: 'Очно', value: false },
+  { label: 'Онлайн', value: true },
+])
 
 const isEdit = computed(() => props.meeting !== undefined)
 
@@ -104,70 +127,49 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
     span.label-text Цикл #{{ cycleId }}
 
   .meeting-form__fields
-    fieldset.meeting-form__field
-      label.label-text(for="meeting-title") Название
-      input#meeting-title.field-control(type="text" v-model="title" placeholder="Ноябрьская встреча" required)
+    AppFormField(label="Название" label-for="meeting-title")
+      AppInput#meeting-title(v-model="title" required placeholder="Ноябрьская встреча")
 
-    fieldset.meeting-form__field
-      legend.label-text Дата
-      .meeting-form__date-row
-        select.field-control(v-model.number="day")
-          option(:value="null") —
-          option(v-for="d in 31" :key="d" :value="d") {{ d }}
-        select.field-control(v-model.number="month" required)
-          option(v-for="(name, i) in months" :key="i + 1" :value="i + 1") {{ name }}
-        select.field-control(v-model.number="year" required)
-          option(v-for="y in years" :key="y" :value="y") {{ y }}
+    .meeting-form__datetime-row
+      AppFormField(label="Дата" label-for="meeting-day")
+        .meeting-form__date-selects
+          AppSelect#meeting-day(v-model.number="day" :options="dayOptions")
+          AppSelect(v-model.number="month" :options="monthOptions" required)
+          AppSelect(v-model.number="year" :options="yearOptions" required)
+      AppFormField(label="Время" label-for="meeting-time")
+        AppInput#meeting-time(type="time" v-model="time" required)
 
-    fieldset.meeting-form__field
-      label.label-text(for="meeting-time") Время
-      input#meeting-time.field-control(type="time" v-model="time" required)
-
-    fieldset.meeting-form__field
-      legend.label-text Формат встречи
-      .meeting-form__radio-group
-        label.meeting-form__radio
-          input(type="radio" name="meeting-format" :value="false" v-model="isOnline")
-          span Очно
-        label.meeting-form__radio
-          input(type="radio" name="meeting-format" :value="true" v-model="isOnline")
-          span Онлайн
+    AppFormField(label="Формат встречи")
+      AppRadioGroup(name="meeting-format" v-model="isOnline" :options="formatOptions")
 
     template(v-if="!isOnline")
-      fieldset.meeting-form__field
-        label.label-text(for="meeting-place") Место
-        input#meeting-place.field-control(type="text" v-model="place" placeholder="Библиотека имени Некрасова" required)
-      fieldset.meeting-form__field
-        label.label-text(for="meeting-address") Адрес
-        input#meeting-address.field-control(type="text" v-model="address" placeholder="ул. Бауманская, 58/25с14")
-      fieldset.meeting-form__field
-        label.label-text(for="meeting-reservation") Бронь
-        input#meeting-reservation.field-control(type="text" v-model="reservation" placeholder="Зал «Сад», стол у окна")
+      AppFormField(label="Место" label-for="meeting-place")
+        AppInput#meeting-place(v-model="place" required placeholder="Библиотека имени Некрасова")
+      AppFormField(label="Адрес" label-for="meeting-address")
+        AppInput#meeting-address(v-model="address" placeholder="ул. Бауманская, 58/25с14")
+      AppFormField(label="Бронь" label-for="meeting-reservation")
+        AppInput#meeting-reservation(v-model="reservation" placeholder="Зал «Сад», стол у окна")
 
-    fieldset.meeting-form__field(v-if="isOnline")
-      label.label-text(for="meeting-link") Ссылка
-      input#meeting-link.field-control(type="url" v-model="link" placeholder="https://zoom.us/j/..." :required="isOnline")
+    AppFormField(v-if="isOnline" label="Ссылка" label-for="meeting-link")
+      AppInput#meeting-link(type="url" v-model="link" placeholder="https://zoom.us/j/..." :required="isOnline")
 
-    fieldset.meeting-form__field
-      label.label-text(for="meeting-link-optional") Ссылка (дополнительно)
-      input#meeting-link-optional.field-control(type="url" v-model="link" placeholder="https://..." :required="false" v-if="!isOnline")
+    AppFormField(v-if="!isOnline" label="Ссылка (дополнительно)" label-for="meeting-link-optional")
+      AppInput#meeting-link-optional(type="url" v-model="link" placeholder="https://...")
 
-    fieldset.meeting-form__field
-      legend.label-text Темы для обсуждения
+    AppFormField(label="Темы для обсуждения")
       .meeting-form__topics-list(v-if="topics.length")
         .meeting-form__topic(v-for="(topic, index) in topics" :key="index")
           span.meeting-form__topic-text {{ topic }}
           button.meeting-form__topic-remove(type="button" @click="removeTopic(index)" :title="'Удалить тему'")
             Trash2(:size="14")
       .meeting-form__add-topic
-        input.field-control(type="text" v-model="newTopic" placeholder="Предложить тему..." @keydown.enter.prevent="addTopic")
+        AppInput(v-model="newTopic" placeholder="Предложить тему..." @keydown.enter.prevent="addTopic")
         button.button.button--secondary.label-text(type="button" @click="addTopic")
           Plus(:size="16")
           | Добавить
 
-    fieldset.meeting-form__field
-      label.label-text(for="meeting-notes") Заметки
-      textarea#meeting-notes.field-control.meeting-form__textarea(v-model="notes" placeholder="Дополнительная информация о встрече...")
+    AppFormField(label="Заметки" label-for="meeting-notes")
+      AppTextarea#meeting-notes(v-model="notes" placeholder="Дополнительная информация о встрече...")
 
   button.button.button--primary.label-text.meeting-form__submit(type="submit" :disabled="isSubmitting")
     | {{ isSubmitting ? 'Сохраняем...' : (isEdit ? 'Сохранить изменения' : 'Создать встречу') }}
@@ -184,37 +186,16 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
   gap: var(--space-lg);
 }
 
-.meeting-form__field {
-  border: 0;
-  padding: 0;
+.meeting-form__datetime-row {
   display: grid;
-  gap: var(--space-sm);
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-md);
 }
 
-.meeting-form__date-row {
+.meeting-form__date-selects {
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: var(--space-sm);
-}
-
-.meeting-form__radio-group {
-  display: flex;
-  gap: var(--space-lg);
-}
-
-.meeting-form__radio {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  cursor: pointer;
-  font-size: 0.95rem;
-  color: var(--text-main);
-}
-
-.meeting-form__radio input[type="radio"] {
-  accent-color: var(--accent);
-  width: 1rem;
-  height: 1rem;
 }
 
 .meeting-form__topics-list {
@@ -257,15 +238,21 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
   gap: var(--space-sm);
 }
 
-.meeting-form__add-topic .field-control {
+.meeting-form__add-topic .app-input {
   flex: 1;
-}
-
-.meeting-form__textarea {
-  min-height: 6rem;
 }
 
 .meeting-form__submit {
   justify-self: start;
+}
+
+@media (max-width: 640px) {
+  .meeting-form__datetime-row {
+    grid-template-columns: 1fr;
+  }
+
+  .meeting-form__date-selects {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 </style>
