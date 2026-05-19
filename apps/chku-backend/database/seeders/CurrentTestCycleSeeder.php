@@ -12,6 +12,8 @@ use App\Models\Meeting;
 use App\Models\MemberBookQueueItem;
 use App\Models\ReadingCycle;
 use App\Models\ReadingProgress;
+use App\Models\TurnOrder;
+use App\Services\TurnOrderService;
 use Illuminate\Database\Seeder;
 
 class CurrentTestCycleSeeder extends Seeder
@@ -19,13 +21,21 @@ class CurrentTestCycleSeeder extends Seeder
     public function run(): void
     {
         $club = Club::first();
+
+        // 1. Создаём рандомную очередь из активных участников
+        $this->seedTurnOrder($club);
+
         $members = $this->getMembers();
         $books = $this->getBooks();
+
+        // Первый в очереди (head) — выбирает текущую книгу
+        $ordered = app(TurnOrderService::class)->orderedTurnOrders($club->id);
+        $proposer = $ordered->first()?->clubMember ?? $members->first();
 
         $currentCycle = ReadingCycle::create([
             'club_id' => $club->id,
             'book_id' => $books['cvety-dlya-elzherona']->id,
-            'proposer_id' => $members['elena@example.com']->id,
+            'proposer_id' => $proposer->id,
             'cycle_number' => 42,
             'status' => ReadingCycleStatusEnum::Active,
             'discussion_prompt' => 'Что важнее: интеллект или способность чувствовать?',
@@ -40,26 +50,29 @@ class CurrentTestCycleSeeder extends Seeder
             'topics' => ['Обсуждение книги', 'Выводы и впечатления'],
         ]);
 
-        $progress = [
-            'elena@example.com' => [ReadingProgressStatusEnum::Reading, 72],
-            'mikhail@example.com' => [ReadingProgressStatusEnum::Reading, 94],
-            'anna@example.com' => [ReadingProgressStatusEnum::Reading, 88],
-            'pavel@example.com' => [ReadingProgressStatusEnum::Reading, 63],
-            'marina@example.com' => [ReadingProgressStatusEnum::Finished, 100],
-            'admin@example.com' => [ReadingProgressStatusEnum::NotStarted, 0],
-        ];
+        // Прогресс только для активных участников
+        foreach ($members as $member) {
+            $email = $member->user->email;
+            $progressData = match ($email) {
+                'elena@example.com' => [ReadingProgressStatusEnum::Reading, 72],
+                'mikhail@example.com' => [ReadingProgressStatusEnum::Reading, 94],
+                'admin@example.com' => [ReadingProgressStatusEnum::NotStarted, 0],
+                default => null,
+            };
 
-        foreach ($progress as $email => [$status, $percent]) {
-            ReadingProgress::create([
-                'reading_cycle_id' => $currentCycle->id,
-                'club_member_id' => $members[$email]->id,
-                'status' => $status,
-                'progress_percent' => $percent,
-            ]);
+            if ($progressData) {
+                ReadingProgress::create([
+                    'reading_cycle_id' => $currentCycle->id,
+                    'club_member_id' => $member->id,
+                    'status' => $progressData[0],
+                    'progress_percent' => $progressData[1],
+                ]);
+            }
         }
 
+        // Очередь книг только для активных участников
         MemberBookQueueItem::create([
-            'club_member_id' => $members['elena@example.com']->id,
+            'club_member_id' => $members->firstWhere('user.email', 'elena@example.com')?->id,
             'book_id' => $books['cvety-dlya-elzherona']->id,
             'reason' => 'Книга поднимает вечный вопрос о цене знаний и о том, что делает нас людьми.',
             'description' => $books['cvety-dlya-elzherona']->description,
@@ -67,15 +80,15 @@ class CurrentTestCycleSeeder extends Seeder
         ]);
 
         $elenaFirst = MemberBookQueueItem::create([
-            'club_member_id' => $members['elena@example.com']->id,
+            'club_member_id' => $members->firstWhere('user.email', 'elena@example.com')?->id,
             'book_id' => $books['shum-vremeni']->id,
-            'reason' => 'Роман о компромиссе и достоинстве в эпоху террора — хороший материал для дискуссии.',
+            'reason' => 'Роман о компромиссе и достоинстве в эпохе террора — хороший материал для дискуссии.',
             'description' => $books['shum-vremeni']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
 
         $elenaSecond = MemberBookQueueItem::create([
-            'club_member_id' => $members['elena@example.com']->id,
+            'club_member_id' => $members->firstWhere('user.email', 'elena@example.com')?->id,
             'book_id' => $books['oblachnyj-atlas']->id,
             'reason' => 'Шесть переплетённых историй из разных эпох — интересно обсудить связи между ними.',
             'description' => $books['oblachnyj-atlas']->description,
@@ -84,7 +97,7 @@ class CurrentTestCycleSeeder extends Seeder
         $elenaFirst->update(['next_queue_item_id' => $elenaSecond->id]);
 
         $mikhailFirst = MemberBookQueueItem::create([
-            'club_member_id' => $members['mikhail@example.com']->id,
+            'club_member_id' => $members->firstWhere('user.email', 'mikhail@example.com')?->id,
             'book_id' => $books['piknik-na-obochine']->id,
             'reason' => 'Хочется обсудить тему непостижимого и человеческую жадность перед лицом неизвестного.',
             'description' => $books['piknik-na-obochine']->description,
@@ -92,7 +105,7 @@ class CurrentTestCycleSeeder extends Seeder
         ]);
 
         $mikhailSecond = MemberBookQueueItem::create([
-            'club_member_id' => $members['mikhail@example.com']->id,
+            'club_member_id' => $members->firstWhere('user.email', 'mikhail@example.com')?->id,
             'book_id' => $books['kratkaya-istoriya-vremeni']->id,
             'reason' => 'Научпоп, который меняет взгляд на мир. Хороший контраст после художественной прозы.',
             'description' => $books['kratkaya-istoriya-vremeni']->description,
@@ -100,22 +113,51 @@ class CurrentTestCycleSeeder extends Seeder
         ]);
         $mikhailFirst->update(['next_queue_item_id' => $mikhailSecond->id]);
 
-        MemberBookQueueItem::create([
-            'club_member_id' => $members['admin@example.com']->id,
+        $adminFirst = MemberBookQueueItem::create([
+            'club_member_id' => $members->firstWhere('user.email', 'admin@example.com')?->id,
             'book_id' => $books['piknik-na-obochine']->id,
             'reason' => 'Хочется обсудить тему непостижимого и человеческую жадность перед лицом неизвестного.',
             'description' => $books['piknik-na-obochine']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
+
+        $adminSecond = MemberBookQueueItem::create([
+            'club_member_id' => $members->firstWhere('user.email', 'admin@example.com')?->id,
+            'book_id' => $books['1984']->id,
+            'reason' => 'Классика антиутопии, отличный повод поговорить о свободе и контроле.',
+            'description' => $books['1984']->description,
+            'status' => MemberBookQueueItemStatusEnum::Queued,
+        ]);
+        $adminFirst->update(['next_queue_item_id' => $adminSecond->id]);
     }
 
-    private function getMembers(): array
+    private function seedTurnOrder(Club $club): void
     {
-        $members = [];
-        foreach (ClubMember::with('user')->get() as $member) {
-            $members[$member->user->email] = $member;
+        $members = ClubMember::with('user')
+            ->where('club_id', $club->id)
+            ->where('is_active', true)
+            ->get()
+            ->shuffle();
+
+        $previous = null;
+
+        foreach ($members as $member) {
+            $order = TurnOrder::create([
+                'club_id' => $club->id,
+                'club_member_id' => $member->id,
+                'next_turn_order_id' => null,
+            ]);
+
+            $previous?->update(['next_turn_order_id' => $order->id]);
+            $previous = $order;
         }
-        return $members;
+    }
+
+    private function getMembers(): \Illuminate\Database\Eloquent\Collection
+    {
+        return ClubMember::with('user')
+            ->where('is_active', true)
+            ->get();
     }
 
     private function getBooks(): array

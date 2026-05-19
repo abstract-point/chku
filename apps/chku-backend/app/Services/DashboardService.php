@@ -31,6 +31,9 @@ final class DashboardService
         $currentCycle = ReadingCycle::with([
             'book.genre',
             'proposer.user',
+            'readingProgress' => function ($query) {
+                $query->whereHas('clubMember', fn ($q) => $q->where('is_active', true));
+            },
             'readingProgress.clubMember.user',
         ])
             ->where('status', 'active')

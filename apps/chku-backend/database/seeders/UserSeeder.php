@@ -15,12 +15,12 @@ class UserSeeder extends Seeder
         $club = Club::first();
 
         $membersData = [
+            ['name' => 'Алексей Дмитриев', 'email' => 'admin@example.com', 'joined' => '2024-06-01', 'active' => true, 'genre' => 'scifi', 'role' => 'admin'],
             ['name' => 'Елена Воронцова', 'email' => 'elena@example.com', 'joined' => '2024-01-10', 'active' => true, 'genre' => 'fiction', 'role' => 'admin'],
             ['name' => 'Михаил Корнев', 'email' => 'mikhail@example.com', 'joined' => '2024-02-15', 'active' => true, 'genre' => 'nonfiction', 'role' => 'member'],
-            ['name' => 'Анна Соколова', 'email' => 'anna@example.com', 'joined' => '2024-03-01', 'active' => true, 'genre' => 'fiction', 'role' => 'member'],
-            ['name' => 'Павел Иванов', 'email' => 'pavel@example.com', 'joined' => '2024-04-10', 'active' => true, 'genre' => 'fiction', 'role' => 'member'],
-            ['name' => 'Марина Светлова', 'email' => 'marina@example.com', 'joined' => '2024-05-15', 'active' => true, 'genre' => 'nonfiction', 'role' => 'member'],
-            ['name' => 'Алексей Дмитриев', 'email' => 'admin@example.com', 'joined' => '2024-06-01', 'active' => true, 'genre' => 'scifi', 'role' => 'admin'],
+            ['name' => 'Анна Соколова', 'email' => 'anna@example.com', 'joined' => '2024-03-01', 'active' => false, 'genre' => 'fiction', 'role' => 'member'],
+            ['name' => 'Павел Иванов', 'email' => 'pavel@example.com', 'joined' => '2024-04-10', 'active' => false, 'genre' => 'fiction', 'role' => 'member'],
+            ['name' => 'Марина Светлова', 'email' => 'marina@example.com', 'joined' => '2024-05-15', 'active' => false, 'genre' => 'nonfiction', 'role' => 'member'],
             ['name' => 'Игорь Фомин', 'email' => 'igor@example.com', 'joined' => '2023-06-01', 'active' => false, 'genre' => 'fiction', 'role' => 'member'],
             ['name' => 'Мария Лебедева', 'email' => 'maria@example.com', 'joined' => '2023-08-15', 'active' => false, 'genre' => 'scifi', 'role' => 'member'],
         ];
