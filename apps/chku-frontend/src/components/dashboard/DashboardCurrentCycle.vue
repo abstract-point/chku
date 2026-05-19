@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import AppModal from '@/components/ui/AppModal.vue'
 import DashboardReadingProgressForm from '@/components/dashboard/DashboardReadingProgressForm.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useUpdateReadingProgressMutation } from '@/queries/dashboardQueries'
@@ -14,6 +15,8 @@ const props = defineProps<{
 
 const coverTitleLines = computed(() => props.book.coverTitle.split('\n'))
 const isProgressFormOpen = ref(false)
+const isConfirmModalOpen = ref(false)
+const pendingProgressPercent = ref(0)
 const updateProgressMutation = useUpdateReadingProgressMutation()
 
 const progressErrorMessage = computed(() =>
@@ -47,14 +50,28 @@ function closeProgressForm() {
 }
 
 function saveProgress(progressPercent: number) {
+  if (progressPercent >= 100) {
+    pendingProgressPercent.value = progressPercent
+    isConfirmModalOpen.value = true
+    return
+  }
+  sendProgress(progressPercent)
+}
+
+function sendProgress(progressPercent: number) {
   updateProgressMutation.mutate(
     { progressPercent },
     {
       onSuccess: () => {
         isProgressFormOpen.value = false
+        isConfirmModalOpen.value = false
       },
     },
   )
+}
+
+function confirmProgress() {
+  sendProgress(pendingProgressPercent.value)
 }
 
 function medalLabel(medal: BookProgressMember['medal']) {
@@ -130,6 +147,18 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
         span.label-text {{ member.progress }}%
       span.label-text(v-else) Не начал
   RouterLink.button.button--ghost.label-text.club-progress__link(to="/members") Все участники клуба
+
+  AppModal(
+    :is-open="isConfirmModalOpen"
+    title="Подтверждение прочтения"
+    @close="isConfirmModalOpen = false"
+  )
+    template(#default)
+      p.body-text Ты уверен, что дочитал книгу?
+      p.body-text Это фиксирует время завершения и влияет на раздачу сов. Отменить будет нельзя.
+    template(#footer)
+      button.button.button--secondary.label-text(type="button" @click="isConfirmModalOpen = false") Отмена
+      button.button.button--primary.label-text(type="button" @click="confirmProgress") Да, я дочитал
 </template>
 
 <style scoped>
