@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { AlertTriangle, CheckCircle2, X } from '@lucide/vue'
+import { AlertTriangle, CheckCircle2 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import AppModal from '@/components/ui/AppModal.vue'
+import AppCheckbox from '@/components/ui/AppCheckbox.vue'
 import type { BookProgressMember, MeetingDetail } from '@/types/dashboard'
 
 const props = defineProps<{
@@ -101,8 +102,7 @@ AppModal(:is-open="isOpen" title="Завершение встречи и цик�
       AlertTriangle(:size="18")
       p.body-text Невозможно завершить: не все участники поставили оценки.
 
-    label.finish-modal__honesty
-      input(type="checkbox" v-model="confirmed")
+    AppCheckbox(v-model="confirmed")
       span.body-text Я подтверждаю, что данные о прочтении участников достоверны
 
   template(#footer)
@@ -203,21 +203,6 @@ AppModal(:is-open="isOpen" title="Завершение встречи и цик�
   background: rgba(224, 67, 67, 0.08);
   color: var(--danger);
   margin-bottom: var(--space-lg);
-}
-
-.finish-modal__honesty {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-sm);
-  cursor: pointer;
-}
-
-.finish-modal__honesty input {
-  flex-shrink: 0;
-  width: 1.1rem;
-  height: 1.1rem;
-  margin-top: 0.15rem;
-  accent-color: var(--accent);
 }
 
 .button:disabled {
