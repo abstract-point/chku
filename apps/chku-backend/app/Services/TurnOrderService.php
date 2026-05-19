@@ -17,6 +17,7 @@ final class TurnOrderService
         $orders = TurnOrder::query()
             ->with('clubMember.user')
             ->where('club_id', $clubId)
+            ->whereHas('clubMember', fn ($query) => $query->where('is_active', true))
             ->get();
 
         return $this->buildOrderedList($orders);
@@ -37,6 +38,7 @@ final class TurnOrderService
         DB::transaction(function () use ($clubId): void {
             $orders = TurnOrder::query()
                 ->where('club_id', $clubId)
+                ->whereHas('clubMember', fn ($query) => $query->where('is_active', true))
                 ->lockForUpdate()
                 ->get();
 
