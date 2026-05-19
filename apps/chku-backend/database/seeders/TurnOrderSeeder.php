@@ -38,7 +38,7 @@ class TurnOrderSeeder extends Seeder
     private function getMembers(): array
     {
         $members = [];
-        foreach (ClubMember::with('user')->get() as $member) {
+        foreach (ClubMember::with('user')->where('is_active', true)->get() as $member) {
             $members[$member->user->email] = $member;
         }
         return $members;
