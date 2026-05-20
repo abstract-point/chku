@@ -1,11 +1,12 @@
 import type { ApiDashboard, ApiMeeting } from '@/api/types'
+import i18n from '@/i18n'
 import { formatDateLabel, formatTimeLabel } from '@/mappers/date'
 import type { MeetingSummary } from '@/types/dashboard'
 
 export function mapMeetingSummary(meeting: ApiMeeting): MeetingSummary {
   const weekday = meeting.date
     ? new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(new Date(`${meeting.date}T00:00:00`))
-    : 'день уточняется'
+    : i18n.global.t('dates.unknownDay')
 
   return {
     id: String(meeting.id),

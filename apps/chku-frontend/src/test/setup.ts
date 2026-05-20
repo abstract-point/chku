@@ -1,5 +1,17 @@
 import { computed, ref, toValue } from 'vue'
 import { beforeEach, vi } from 'vitest'
+import { config } from '@vue/test-utils'
+import { createI18n } from 'vue-i18n'
+import ru from '@/i18n/ru'
+
+const i18n = createI18n({
+  legacy: false,
+  locale: 'ru',
+  fallbackLocale: 'ru',
+  messages: { ru },
+})
+
+config.global.plugins = [i18n]
 
 beforeEach(() => {
   if (!document.getElementById('modal-portal')) {

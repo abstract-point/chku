@@ -1,4 +1,5 @@
 import type { ApiMeeting } from '@/api/types'
+import i18n from '@/i18n'
 import { formatDateLabel, formatTimeLabel } from '@/mappers/date'
 import type { MeetingDetail } from '@/types/dashboard'
 
@@ -17,7 +18,7 @@ export function mapMeetingDetail(meeting: ApiMeeting, currentUserId?: number): M
   return {
     id: String(meeting.id),
     title: meeting.title,
-    cycleLabel: meeting.cycleLabel ?? 'Цикл',
+    cycleLabel: meeting.cycleLabel ?? i18n.global.t('dates.fallbackCycle'),
     cycleId: meeting.cycleId ?? 0,
     dateLabel: formatDateLabel(meeting.date),
     timeLabel: formatTimeLabel(meeting.time),
@@ -39,7 +40,7 @@ export function mapMeetingDetail(meeting: ApiMeeting, currentUserId?: number): M
       : 'pending',
     attendees: allRsvps.filter((a) => a.status === 'attending'),
     book: {
-      title: meeting.book?.title ?? 'Книга встречи',
+      title: meeting.book?.title ?? i18n.global.t('dates.fallbackBook'),
       author: meeting.book?.author ?? '',
       cycleSlug: meeting.book?.slug,
     },

@@ -7,6 +7,7 @@ import { VueQueryPlugin } from '@tanstack/vue-query'
 import App from './App.vue'
 import router from './router'
 import { queryClient } from './queries/client'
+import i18n from './i18n'
 
 const storedTheme = localStorage.getItem('chku-theme')
 document.documentElement.setAttribute(
@@ -19,6 +20,7 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(VueQueryPlugin, { queryClient })
 app.use(router)
+app.use(i18n)
 
 router.isReady().then(() => {
   app.mount('#app')
