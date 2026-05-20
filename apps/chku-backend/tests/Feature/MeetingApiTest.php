@@ -284,12 +284,91 @@ class MeetingApiTest extends TestCase
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', 'active')->first();
         $meeting = $cycle->meeting()->first();
+        $attendees = ClubMember::whereHas('user', fn ($query) => $query->whereIn('email', [
+            'elena@example.com',
+            'mikhail@example.com',
+        ]))->get();
+
+        $meeting->rsvps()->delete();
+        foreach ($attendees as $member) {
+            MeetingRsvp::create([
+                'meeting_id' => $meeting->id,
+                'club_member_id' => $member->id,
+                'status' => 'attending',
+            ]);
+        }
 
         $response = $this->actingAs($admin)->postJson("/api/meetings/{$meeting->id}/start");
 
         $response->assertOk();
         $response->assertJsonPath('data.status', 'started');
         $this->assertNotNull($meeting->refresh()->started_at);
+    }
+
+    public function test_admin_cannot_start_meeting_without_two_attending_members(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $admin = User::where('email', 'elena@example.com')->firstOrFail();
+        $cycle = ReadingCycle::where('status', 'active')->first();
+        $meeting = $cycle->meeting()->first();
+        $member = ClubMember::whereHas('user', fn ($query) => $query->where('email', 'elena@example.com'))->firstOrFail();
+
+        $meeting->rsvps()->delete();
+
+        $this->actingAs($admin)
+            ->postJson("/api/meetings/{$meeting->id}/start")
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Встречу можно начать только если минимум 2 участника отметились «Буду».');
+
+        MeetingRsvp::create([
+            'meeting_id' => $meeting->id,
+            'club_member_id' => $member->id,
+            'status' => 'attending',
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson("/api/meetings/{$meeting->id}/start")
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Встречу можно начать только если минимум 2 участника отметились «Буду».');
+
+        $this->assertNull($meeting->refresh()->started_at);
+    }
+
+    public function test_admin_cannot_finish_meeting_without_two_attending_members(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $admin = User::where('email', 'elena@example.com')->firstOrFail();
+        $cycle = ReadingCycle::where('status', 'active')->first();
+        $meeting = $cycle->meeting()->first();
+        $meeting->update(['started_at' => now()]);
+        $member = ClubMember::whereHas('user', fn ($query) => $query->where('email', 'elena@example.com'))->firstOrFail();
+
+        $meeting->rsvps()->delete();
+
+        $this->actingAs($admin)
+            ->postJson("/api/meetings/{$meeting->id}/finish")
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Встречу можно завершить только если минимум 2 участника отметились «Буду».');
+
+        MeetingRsvp::create([
+            'meeting_id' => $meeting->id,
+            'club_member_id' => $member->id,
+            'status' => 'attending',
+        ]);
+        Rating::create([
+            'reading_cycle_id' => $cycle->id,
+            'club_member_id' => $member->id,
+            'rating' => 9,
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson("/api/meetings/{$meeting->id}/finish")
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Встречу можно завершить только если минимум 2 участника отметились «Буду».');
+
+        $this->assertNull($meeting->refresh()->finished_at);
     }
 
     public function test_admin_cannot_finish_meeting_until_attending_members_rated(): void

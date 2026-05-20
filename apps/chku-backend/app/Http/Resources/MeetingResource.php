@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Enums\MeetingRsvpStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
+use App\Models\Meeting;
 use App\Models\Rating;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -28,6 +29,7 @@ class MeetingResource extends JsonResource
                 ->pluck('club_member_id');
 
         $missingRatingIds = $attendingMemberIds->diff($ratedMemberIds)->values();
+        $hasQuorum = $attendingMemberIds->count() >= Meeting::MIN_ATTENDING_MEMBERS;
         $cycleIsActive = $this->relationLoaded('readingCycle')
             && $this->readingCycle?->status === ReadingCycleStatusEnum::Active;
 
@@ -50,8 +52,8 @@ class MeetingResource extends JsonResource
             'status' => $this->finished_at
                 ? 'finished'
                 : ($this->started_at ? 'started' : 'scheduled'),
-            'canStart' => $cycleIsActive && $this->started_at === null && $this->finished_at === null,
-            'canFinish' => $cycleIsActive && $this->started_at !== null && $this->finished_at === null && $missingRatingIds->isEmpty(),
+            'canStart' => $cycleIsActive && $this->started_at === null && $this->finished_at === null && $hasQuorum,
+            'canFinish' => $cycleIsActive && $this->started_at !== null && $this->finished_at === null && $hasQuorum && $missingRatingIds->isEmpty(),
             'missingRatingMemberIds' => $missingRatingIds,
             'rsvps' => MeetingRsvpResource::collection($this->whenLoaded('rsvps')),
             'reschedules' => MeetingRescheduleResource::collection($this->whenLoaded('reschedules')),

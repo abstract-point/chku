@@ -182,6 +182,16 @@ final class MeetingController extends Controller
         abort_if($meeting->finished_at !== null, 422, 'Завершённую встречу нельзя начать заново.');
         abort_if($meeting->readingCycle?->status !== ReadingCycleStatusEnum::Active, 422, 'Встречу можно начать только в активном цикле.');
 
+        $attendingCount = $meeting->rsvps()
+            ->where('status', MeetingRsvpStatusEnum::Attending->value)
+            ->count();
+
+        abort_if(
+            $attendingCount < Meeting::MIN_ATTENDING_MEMBERS,
+            422,
+            'Встречу можно начать только если минимум 2 участника отметились «Буду».',
+        );
+
         if ($meeting->started_at === null) {
             $meeting->update(['started_at' => now()]);
         }
@@ -208,6 +218,12 @@ final class MeetingController extends Controller
         $attendingMemberIds = $meeting->rsvps()
             ->where('status', MeetingRsvpStatusEnum::Attending->value)
             ->pluck('club_member_id');
+
+        if ($attendingMemberIds->count() < Meeting::MIN_ATTENDING_MEMBERS) {
+            return response()->json([
+                'message' => 'Встречу можно завершить только если минимум 2 участника отметились «Буду».',
+            ], 422);
+        }
 
         $ratedMemberIds = Rating::query()
             ->where('reading_cycle_id', $meeting->reading_cycle_id)

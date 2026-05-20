@@ -13,6 +13,8 @@ class Meeting extends Model
 {
     use HasFactory;
 
+    public const MIN_ATTENDING_MEMBERS = 2;
+
     protected $casts = [
         'date' => 'date',
         'topics' => 'array',
