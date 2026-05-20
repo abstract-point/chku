@@ -13,7 +13,7 @@ class Rating extends Model
     use HasFactory;
 
     protected $casts = [
-        'rating' => 'integer',
+        'rating' => 'float',
     ];
 
     public function readingCycle(): BelongsTo

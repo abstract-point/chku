@@ -23,7 +23,7 @@ final class ReadingCycleController extends Controller
         CurrentMemberService $currentMember,
     ): JsonResponse {
         $payload = $request->validate([
-            'rating' => ['required', 'integer', 'min:1', 'max:10'],
+            'rating' => ['required', 'numeric', 'min:1', 'max:10'],
             'review' => ['nullable', 'string', 'max:2000'],
         ]);
 
