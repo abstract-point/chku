@@ -99,6 +99,43 @@ describe('MeetingDetailView', () => {
     expect(wrapper.text()).not.toContain('Закончить встречу и цикл')
   })
 
+  it('disables start control until meeting has two attendees', () => {
+    setAuthRoles(['admin'])
+    patchMeetingDetail({
+      canStart: false,
+      attendees: [{ id: 1, name: 'Екатерина Л.', status: 'attending' }],
+    })
+
+    const wrapper = mountMeetingDetail()
+    const startButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Начать встречу'))
+
+    expect(startButton).toBeTruthy()
+    expect((startButton!.element as HTMLButtonElement).disabled).toBe(true)
+    expect(wrapper.text()).toContain('Нужно минимум 2 участника со статусом «Буду».')
+  })
+
+  it('allows start control when meeting has two attendees', () => {
+    setAuthRoles(['admin'])
+    patchMeetingDetail({
+      canStart: true,
+      attendees: [
+        { id: 1, name: 'Екатерина Л.', status: 'attending' },
+        { id: 2, name: 'Михаил К.', status: 'attending' },
+      ],
+    })
+
+    const wrapper = mountMeetingDetail()
+    const startButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Начать встречу'))
+
+    expect(startButton).toBeTruthy()
+    expect((startButton!.element as HTMLButtonElement).disabled).toBe(false)
+    expect(wrapper.text()).not.toContain('Нужно минимум 2 участника со статусом «Буду».')
+  })
+
   it('shows started admin control with finish button', () => {
     setAuthRoles(['admin'])
     patchMeetingDetail({ status: 'started', canStart: false, canFinish: true })

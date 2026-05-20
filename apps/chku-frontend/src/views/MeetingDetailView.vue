@@ -46,6 +46,7 @@ const rating = ref<number | null>(null)
 const review = ref('')
 const ratingSubmitted = ref(false)
 const isFinishModalOpen = ref(false)
+const minMeetingAttendees = 2
 
 const missingRatingAttendees = computed(() => {
   if (!meeting.value) return []
@@ -53,6 +54,7 @@ const missingRatingAttendees = computed(() => {
     meeting.value!.missingRatingMemberIds.includes(attendee.id),
   )
 })
+const hasMeetingQuorum = computed(() => (meeting.value?.attendees.length ?? 0) >= minMeetingAttendees)
 
 watchEffect(() => {
   rsvpStatus.value = meeting.value?.rsvpStatus ?? 'pending'
@@ -164,6 +166,9 @@ main.meeting-detail.container
                 :disabled="!meeting.canStart || startMeetingMutation.isPending.value"
                 @click="startMeeting"
               ) {{ startMeetingMutation.isPending.value ? 'Начинаем...' : 'Начать встречу' }}
+              .inline-alert(v-if="!hasMeetingQuorum")
+                AlertTriangle(:size="14")
+                span Нужно минимум 2 участника со статусом «Буду».
               p.proposal__error(v-if="startMeetingMutation.error.value") Не удалось начать встречу.
             template(v-else-if="meeting.status === 'started'")
               button.button.button--primary.label-text(
