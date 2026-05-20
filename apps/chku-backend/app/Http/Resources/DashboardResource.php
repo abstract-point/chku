@@ -115,6 +115,16 @@ class DashboardResource extends JsonResource
             $parts[] = $progress->notes;
         }
 
-        return implode(' · ', $parts) ?: $progress->status->value;
+        if ($parts !== []) {
+            return implode(' · ', $parts);
+        }
+
+        return match ($progress->status->value) {
+            'not_started' => 'Не начал',
+            'reading' => 'Читает',
+            'finished' => 'Закончил',
+            'abandoned' => 'Бросил',
+            default => $progress->status->value,
+        };
     }
 }
