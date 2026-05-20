@@ -199,6 +199,61 @@ describe('MeetingDetailView', () => {
     expect(wrapper.find('#meeting-rating').exists()).toBe(false)
   })
 
+  it('shows saved rating instead of form when user has already rated', () => {
+    patchMeetingDetail({
+      status: 'started',
+      rsvpStatus: 'attending',
+      ratings: [{ memberId: 1, value: 8 }],
+      reviews: [{ memberId: 1, text: 'Отличная книга!' }],
+    })
+
+    const wrapper = mountMeetingDetail()
+
+    expect(wrapper.text()).toContain('Оценка и отзыв')
+    expect(wrapper.text()).toContain('8')
+    expect(wrapper.text()).toContain('из 10')
+    expect(wrapper.text()).toContain('Отличная книга!')
+    expect(wrapper.text()).toContain('Редактировать')
+    expect(wrapper.find('#meeting-rating').exists()).toBe(false)
+  })
+
+  it('hides edit button for finished meeting', () => {
+    patchMeetingDetail({
+      status: 'finished',
+      rsvpStatus: 'attending',
+      ratings: [{ memberId: 1, value: 8 }],
+    })
+
+    const wrapper = mountMeetingDetail()
+
+    expect(wrapper.text()).not.toContain('Редактировать')
+  })
+
+  it('shows rating form when edit button is clicked', async () => {
+    patchMeetingDetail({
+      status: 'started',
+      rsvpStatus: 'attending',
+      ratings: [{ memberId: 1, value: 8 }],
+      reviews: [{ memberId: 1, text: 'Отличная книга!' }],
+    })
+
+    const wrapper = mountMeetingDetail()
+
+    const editButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Редактировать'))
+    expect(editButton).toBeTruthy()
+
+    await editButton!.trigger('click')
+
+    expect(wrapper.find('#meeting-rating').exists()).toBe(true)
+    expect((wrapper.find('#meeting-rating').element as HTMLInputElement).value).toBe('8')
+    expect((wrapper.find('#meeting-review').element as HTMLTextAreaElement).value).toBe(
+      'Отличная книга!',
+    )
+    expect(wrapper.text()).toContain('Отмена')
+  })
+
   it('hides admin panel for finished meeting', () => {
     setAuthRoles(['admin'])
     patchMeetingDetail({ status: 'finished', canStart: false, canFinish: false })

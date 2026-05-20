@@ -13,6 +13,7 @@ import {
   Pencil,
   Play,
   Send,
+  Star,
   UserMinus,
   Users,
   X,
@@ -52,7 +53,20 @@ const rating = ref<number | null>(null)
 const review = ref('')
 const ratingSubmitted = ref(false)
 const isFinishModalOpen = ref(false)
+const isEditingRating = ref(false)
 const minMeetingAttendees = 2
+
+const currentUserRating = computed(() => {
+  if (!meeting.value || !user.value) return undefined
+  return meeting.value.ratings.find((r) => r.memberId === user.value!.id)?.value
+})
+
+const currentUserReview = computed(() => {
+  if (!meeting.value || !user.value) return undefined
+  return meeting.value.reviews.find((r) => r.memberId === user.value!.id)?.text
+})
+
+const hasSubmittedRating = computed(() => currentUserRating.value !== undefined)
 
 const missingRatingAttendees = computed(() => {
   if (!meeting.value) return []
@@ -103,14 +117,27 @@ function submitTopic() {
   })
 }
 
+function editRating() {
+  rating.value = currentUserRating.value ?? null
+  review.value = currentUserReview.value ?? ''
+  isEditingRating.value = true
+}
+
 function submitRatingReview() {
   ratingSubmitted.value = true
   if (!rating.value) return
 
-  saveRatingReviewMutation.mutate({
-    rating: rating.value,
-    review: review.value.trim(),
-  })
+  saveRatingReviewMutation.mutate(
+    {
+      rating: rating.value,
+      review: review.value.trim(),
+    },
+    {
+      onSuccess: () => {
+        isEditingRating.value = false
+      },
+    },
+  )
 }
 
 function startMeeting() {
@@ -155,29 +182,58 @@ main.meeting-detail.container
     .meeting-detail__grid
       .meeting-detail__main
         form.panel.meeting-detail__rating(v-if="shouldShowRatingForm" @submit.prevent="submitRatingReview" novalidate)
-          .section-header.section-header--compact
-            h2 Оценка и отзыв
-          .meeting-detail__rating-row
-            label.label-text(for="meeting-rating") Оценка
-            input#meeting-rating.field-control.meeting-detail__input(
-              v-model.number="rating"
-              type="number"
-              min="1"
-              max="10"
-              placeholder="1-10"
-              :aria-invalid="ratingSubmitted && !rating"
-            )
-          p.proposal__error(v-if="ratingSubmitted && !rating") Укажи оценку от 1 до 10.
-          .meeting-detail__rating-row
-            label.label-text(for="meeting-review") Отзыв
-            textarea#meeting-review.field-control.meeting-detail__input.meeting-detail__review(
-              v-model="review"
-              placeholder="Короткий отзыв, если хочется зафиксировать впечатление."
-            )
-          button.button.button--primary.label-text(type="submit" :disabled="saveRatingReviewMutation.isPending.value")
-            | {{ saveRatingReviewMutation.isPending.value ? 'Сохраняем...' : 'Сохранить оценку' }}
-          p.body-text(v-if="saveRatingReviewMutation.isSuccess.value") Оценка сохранена.
-          p.proposal__error(v-if="saveRatingReviewMutation.error.value") Не удалось сохранить оценку.
+          template(v-if="hasSubmittedRating && !isEditingRating")
+            .section-header.section-header--compact
+              h2 Оценка и отзыв
+            .meeting-detail__rating-submitted
+              .meeting-detail__rating-submitted-value
+                Star.meeting-detail__rating-submitted-icon(:size="20" aria-hidden="true")
+                span.meeting-detail__rating-number {{ currentUserRating }}
+                span.label-text из 10
+              p.meeting-detail__rating-submitted-review(v-if="currentUserReview") {{ currentUserReview }}
+              button.button.button--secondary.label-text(
+                v-if="!isArchived"
+                type="button"
+                @click="editRating"
+              )
+                Pencil.meeting-detail__button-icon
+                | Редактировать
+          template(v-else)
+            .section-header.section-header--compact
+              h2 Оценка и отзыв
+            .meeting-detail__rating-prompt
+              Star.meeting-detail__rating-prompt-icon(:size="22" aria-hidden="true")
+              .meeting-detail__rating-prompt-text
+                span.label-text Требуется действие
+                h2 Поставь оценку книге
+                p.body-text Встреча уже началась. Чтобы завершить цикл, нужна твоя оценка.
+            .meeting-detail__rating-row
+              label.label-text(for="meeting-rating") Оценка
+              input#meeting-rating.field-control.meeting-detail__input(
+                v-model.number="rating"
+                type="number"
+                min="1"
+                max="10"
+                placeholder="1-10"
+                :aria-invalid="ratingSubmitted && !rating"
+              )
+            p.proposal__error(v-if="ratingSubmitted && !rating") Укажи оценку от 1 до 10.
+            .meeting-detail__rating-row
+              label.label-text(for="meeting-review") Отзыв
+              textarea#meeting-review.field-control.meeting-detail__input.meeting-detail__review(
+                v-model="review"
+                placeholder="Короткий отзыв, если хочется зафиксировать впечатление."
+              )
+            .meeting-detail__rating-actions
+              button.button.button--primary.label-text(type="submit" :disabled="saveRatingReviewMutation.isPending.value")
+                | {{ saveRatingReviewMutation.isPending.value ? 'Сохраняем...' : 'Сохранить оценку' }}
+              button.button.button--ghost.label-text(
+                v-if="isEditingRating"
+                type="button"
+                @click="isEditingRating = false"
+              ) Отмена
+            p.body-text(v-if="saveRatingReviewMutation.isSuccess.value") Оценка сохранена.
+            p.proposal__error(v-if="saveRatingReviewMutation.error.value") Не удалось сохранить оценку.
 
         section.panel.meeting-detail__info(aria-labelledby="meeting-info-title")
           .section-header.section-header--compact
@@ -551,6 +607,72 @@ main.meeting-detail.container
   min-height: 6rem;
 }
 
+.meeting-detail__rating-prompt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-lg) var(--space-xl);
+  border: var(--border-width) solid var(--warn-border);
+  border-radius: var(--radius-panel);
+  background:
+    linear-gradient(180deg, rgba(216, 137, 43, 0.08), rgba(216, 137, 43, 0.018)),
+    var(--bg-panel);
+}
+
+.meeting-detail__rating-prompt-icon {
+  flex-shrink: 0;
+  color: var(--warn);
+}
+
+.meeting-detail__rating-prompt-text {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.meeting-detail__rating-prompt-text h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.meeting-detail__rating-prompt-text p {
+  margin: 0;
+}
+
+.meeting-detail__rating-submitted {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.meeting-detail__rating-submitted-value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.meeting-detail__rating-submitted-icon {
+  color: var(--warn);
+}
+
+.meeting-detail__rating-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.meeting-detail__rating-submitted-review {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.meeting-detail__rating-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
 .proposal__error {
   color: var(--danger);
   font-size: 0.8rem;
@@ -672,15 +794,23 @@ main.meeting-detail.container
 
 @media (max-width: 640px) {
   .meeting-detail__admin-actions,
-  .meeting-detail__add-topic-row {
+  .meeting-detail__add-topic-row,
+  .meeting-detail__rating-actions {
     align-items: stretch;
     flex-direction: column;
   }
 
   .meeting-detail__admin-actions .button,
-  .meeting-detail__add-topic-row .button {
+  .meeting-detail__add-topic-row .button,
+  .meeting-detail__rating-actions .button {
     align-self: stretch;
     width: 100%;
+  }
+
+  .meeting-detail__rating-prompt {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: var(--space-lg);
   }
 }
 </style>
