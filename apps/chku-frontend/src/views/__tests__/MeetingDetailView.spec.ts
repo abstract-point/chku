@@ -45,14 +45,17 @@ describe('MeetingDetailView', () => {
 
     expect(wrapper.text()).toContain('Октябрьская встреча')
     expect(wrapper.text()).toContain('Цикл №42 · Завершение')
+    expect(wrapper.text()).toContain('Основная информация о встрече')
     expect(wrapper.text()).toContain('18 октября')
     expect(wrapper.text()).toContain('19:00 — 21:00')
     expect(wrapper.text()).toContain('Библиотека имени Некрасова, зал «Сад»')
     expect(wrapper.text()).toContain('Темы для обсуждения')
     expect(wrapper.text()).toContain('Значение Кладбища забытых книг.')
+    expect(wrapper.text()).toContain('Участники встречи')
     expect(wrapper.text()).toContain('Екатерина Л.')
     expect(wrapper.text()).toContain('Тень ветра')
     expect(wrapper.text()).toContain('Карлос Руис Сафон')
+    expect(wrapper.text()).not.toContain('Ваш RSVP')
   })
 
   it('allows adding a new topic', async () => {
@@ -67,19 +70,47 @@ describe('MeetingDetailView', () => {
     expect((input.element as HTMLInputElement).value).toBe('')
   })
 
-  it('switches RSVP status', async () => {
+  it('shows pending participation state in participants block', () => {
+    patchMeetingDetail({
+      rsvpStatus: 'pending',
+      attendees: [{ id: 2, name: 'Михаил К.', status: 'attending' }],
+    })
+
     const wrapper = mountMeetingDetail()
-    const buttons = wrapper.findAll('.meeting-detail__rsvp button')
 
-    expect(buttons).toHaveLength(2)
+    expect(wrapper.text()).not.toContain('Вы идёте на эту встречу')
+    expect(wrapper.text()).not.toContain('Вы не сможете прийти')
+    expect(wrapper.text()).toContain('Буду на встрече')
+  })
 
-    await buttons[0]!.trigger('click')
-    expect(buttons[0]!.classes()).toContain('button--primary')
-    expect(buttons[1]!.classes()).toContain('button--secondary')
+  it('shows not attending participation state in participants block', () => {
+    patchMeetingDetail({
+      rsvpStatus: 'not_attending',
+      attendees: [{ id: 2, name: 'Михаил К.', status: 'attending' }],
+    })
 
-    await buttons[1]!.trigger('click')
-    expect(buttons[0]!.classes()).toContain('button--secondary')
-    expect(buttons[1]!.classes()).toContain('button--primary')
+    const wrapper = mountMeetingDetail()
+
+    expect(wrapper.text()).toContain('Вы не сможете прийти')
+    expect(wrapper.text()).toContain('Буду на встрече')
+  })
+
+  it('allows current attendee to decline from participants list', async () => {
+    patchMeetingDetail({
+      rsvpStatus: 'attending',
+      attendees: [{ id: 1, name: 'Екатерина Л.', status: 'attending' }],
+    })
+
+    const wrapper = mountMeetingDetail()
+    const declineButton = wrapper.find('.meeting-detail__decline-button')
+
+    expect(wrapper.text()).toContain('Вы идёте на эту встречу')
+    expect(wrapper.text()).not.toContain('Буду на встрече')
+    expect(declineButton.exists()).toBe(true)
+
+    await declineButton.trigger('click')
+
+    expect(wrapper.text()).toContain('Вы не сможете прийти')
   })
 
   it('shows meeting status block for everyone', () => {
@@ -147,6 +178,27 @@ describe('MeetingDetailView', () => {
     expect(wrapper.text()).not.toContain('Начать встречу')
   })
 
+  it('shows rating and review form only when meeting is started and user is attending', () => {
+    const scheduledWrapper = mountMeetingDetail()
+
+    expect(scheduledWrapper.text()).not.toContain('Оценка и отзыв')
+    expect(scheduledWrapper.find('#meeting-rating').exists()).toBe(false)
+
+    patchMeetingDetail({ status: 'started', rsvpStatus: 'attending' })
+    const startedWrapper = mountMeetingDetail()
+
+    expect(startedWrapper.text()).toContain('Оценка и отзыв')
+    expect(startedWrapper.find('#meeting-rating').exists()).toBe(true)
+  })
+
+  it('hides rating form when meeting is started but user is not attending', () => {
+    patchMeetingDetail({ status: 'started', rsvpStatus: 'not_attending' })
+    const wrapper = mountMeetingDetail()
+
+    expect(wrapper.text()).not.toContain('Оценка и отзыв')
+    expect(wrapper.find('#meeting-rating').exists()).toBe(false)
+  })
+
   it('hides admin panel for finished meeting', () => {
     setAuthRoles(['admin'])
     patchMeetingDetail({ status: 'finished', canStart: false, canFinish: false })
@@ -158,7 +210,7 @@ describe('MeetingDetailView', () => {
     expect(wrapper.text()).not.toContain('Редактировать')
     expect(wrapper.text()).not.toContain('Ваш RSVP')
     expect(wrapper.text()).not.toContain('Добавить тему')
-    expect(wrapper.text()).not.toContain('Оценка после встречи')
+    expect(wrapper.text()).not.toContain('Оценка и отзыв')
   })
 
   it('renders fallback for unknown meeting id', () => {

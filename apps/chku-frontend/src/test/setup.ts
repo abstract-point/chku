@@ -246,6 +246,7 @@ vi.mock('@/queries/meetingQueries', () => ({
     }
   },
   useUpdateMeetingRsvpMutation: () => mutationResult(),
+  useRemoveMeetingRsvpMutation: () => mutationResult(),
   useAddMeetingTopicMutation: () => mutationResult(),
   useCreateMeetingMutation: () => mutationResult(),
   useUpdateMeetingMutation: () => mutationResult(),
