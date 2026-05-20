@@ -16,6 +16,9 @@ export const meetingDetail = {
   canStart: true,
   canFinish: false,
   missingRatingMemberIds: [],
+  missingReadingMemberIds: [],
+  date: '2023-10-18',
+  time: '19:00',
   topics: [
     'Значение Кладбища забытых книг.',
     'Прогрессия характера Даниэля и параллели с Хулианом Караксом.',
