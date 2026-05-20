@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { KeyRound, UserRound } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
@@ -11,6 +12,7 @@ import { useCurrentUserQuery } from '@/queries/memberQueries'
 import { useFormErrors } from '@/composables/useFormErrors'
 import TwoFactorSetup from '@/components/TwoFactorSetup.vue'
 
+const { t } = useI18n()
 const currentUserQuery = useCurrentUserQuery()
 const genresQuery = useGenresQuery()
 const updateProfileMutation = useUpdateProfileMutation()
@@ -38,7 +40,7 @@ const avatarFile = ref<File | null>(null)
 const avatarPreviewUrl = ref<string | null>(null)
 
 const genreOptions = computed(() => [
-  { label: 'Не выбран', value: null as number | null },
+  { label: t('settings.notSelected'), value: null as number | null },
   ...(genresQuery.data.value?.map((g) => ({ label: g.name, value: g.id })) ?? []),
 ])
 
@@ -86,7 +88,7 @@ async function saveProfile() {
       avatarPreviewUrl.value = null
     }
 
-    profileMessage.value = 'Профиль обновлён.'
+    profileMessage.value = t('settings.updated')
   } catch (error) {
     profileErrors.setFromApiError(error)
   }
@@ -105,7 +107,7 @@ async function savePassword() {
     passwordForm.currentPassword = ''
     passwordForm.password = ''
     passwordForm.passwordConfirmation = ''
-    passwordMessage.value = 'Пароль обновлён.'
+    passwordMessage.value = t('settings.passwordUpdated')
   } catch (error) {
     passwordErrors.setFromApiError(error)
   }
@@ -120,17 +122,17 @@ function selectAvatar(event: Event) {
 <template lang="pug">
 main.profile-settings.container
   .section-header
-    h1.profile-settings__title Настройки профиля
-    span.label-text Аккаунт и безопасность
+    h1.profile-settings__title {{ $t('settings.title') }}
+    span.label-text {{ $t('settings.subtitle') }}
 
   section.panel(v-if="currentUserQuery.isLoading.value" aria-live="polite")
-    p.body-text Загружаем настройки...
+    p.body-text {{ $t('settings.loading') }}
   section.panel(v-else-if="currentUserQuery.error.value || !currentMember" aria-live="polite")
-    p.body-text Не удалось загрузить профиль.
+    p.body-text {{ $t('settings.error') }}
   .profile-settings__grid(v-else)
     form.panel.profile-settings__section(@submit.prevent="saveProfile")
       .section-header.section-header--compact
-        h2 Данные профиля
+        h2 {{ $t('settings.profileData') }}
         UserRound.profile-settings__icon
       .profile-settings__avatar
         UserAvatar(
@@ -138,14 +140,14 @@ main.profile-settings.container
           :avatar-url="avatarPreviewUrl ?? currentMember.avatarUrl"
           size="lg"
         )
-        AppFormField(label="Аватар" label-for="settings-avatar" :error="profileErrors.getError('avatar')")
+        AppFormField(:label="t('settings.avatar')" label-for="settings-avatar" :error="profileErrors.getError('avatar')")
           AppInput#settings-avatar(
             type="file"
             accept="image/jpeg,image/png,image/webp"
             @change="selectAvatar"
             :aria-invalid="profileErrors.hasError('avatar')"
           )
-      AppFormField(label="Имя" label-for="settings-name" required :error="profileErrors.getError('name')")
+      AppFormField(:label="t('settings.name')" label-for="settings-name" required :error="profileErrors.getError('name')")
         AppInput#settings-name(
           type="text"
           v-model="profileForm.name"
@@ -153,7 +155,7 @@ main.profile-settings.container
           autocomplete="name"
           :aria-invalid="profileErrors.hasError('name')"
         )
-      AppFormField(label="Любимый жанр" label-for="settings-genre" :error="profileErrors.getError('favorite_genre_id')")
+      AppFormField(:label="t('settings.favGenre')" label-for="settings-genre" :error="profileErrors.getError('favorite_genre_id')")
         AppSelect#settings-genre(
           v-model="profileForm.favoriteGenreId"
           :options="genreOptions"
@@ -167,13 +169,13 @@ main.profile-settings.container
         type="submit"
         :disabled="updateProfileMutation.isPending.value || updateAvatarMutation.isPending.value"
       )
-        | {{ updateProfileMutation.isPending.value || updateAvatarMutation.isPending.value ? 'Сохранение...' : 'Сохранить профиль' }}
+        | {{ updateProfileMutation.isPending.value || updateAvatarMutation.isPending.value ? $t('settings.saving') : $t('settings.saveProfile') }}
 
     form.panel.profile-settings__section(@submit.prevent="savePassword")
       .section-header.section-header--compact
-        h2 Пароль
+        h2 {{ $t('settings.passwordSection') }}
         KeyRound.profile-settings__icon
-      AppFormField(label="Текущий пароль" label-for="settings-current-password" required :error="passwordErrors.getError('current_password')")
+      AppFormField(:label="t('settings.currentPassword')" label-for="settings-current-password" required :error="passwordErrors.getError('current_password')")
         AppInput#settings-current-password(
           type="password"
           v-model="passwordForm.currentPassword"
@@ -181,7 +183,7 @@ main.profile-settings.container
           autocomplete="current-password"
           :aria-invalid="passwordErrors.hasError('current_password')"
         )
-      AppFormField(label="Новый пароль" label-for="settings-password" required :error="passwordErrors.getError('password')")
+      AppFormField(:label="t('settings.newPassword')" label-for="settings-password" required :error="passwordErrors.getError('password')")
         AppInput#settings-password(
           type="password"
           v-model="passwordForm.password"
@@ -190,7 +192,7 @@ main.profile-settings.container
           autocomplete="new-password"
           :aria-invalid="passwordErrors.hasError('password')"
         )
-      AppFormField(label="Повтор нового пароля" label-for="settings-password-confirmation" required :error="passwordErrors.getError('password_confirmation')")
+      AppFormField(:label="t('settings.confirmPassword')" label-for="settings-password-confirmation" required :error="passwordErrors.getError('password_confirmation')")
         AppInput#settings-password-confirmation(
           type="password"
           v-model="passwordForm.passwordConfirmation"
@@ -203,7 +205,7 @@ main.profile-settings.container
       p.profile-settings__error(v-if="updatePasswordMutation.error.value && !Object.keys(passwordErrors.fieldErrors.value).length")
         | {{ updatePasswordMutation.error.value.message }}
       button.button.button--secondary.label-text.profile-settings__submit(type="submit" :disabled="updatePasswordMutation.isPending.value")
-        | {{ updatePasswordMutation.isPending.value ? 'Обновление...' : 'Обновить пароль' }}
+        | {{ updatePasswordMutation.isPending.value ? $t('settings.updating') : $t('settings.updatePassword') }}
 
     TwoFactorSetup.profile-settings__section--wide
 </template>

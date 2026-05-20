@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ArrowLeft, CalendarCheck, Mail, MessageSquare, Star } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useMemberQuery } from '@/queries/memberQueries'
 import type { ProfileBook } from '@/types/club'
 
+const { t } = useI18n()
 const route = useRoute()
 const memberId = computed(() => Number(route.params.id))
 const memberQuery = useMemberQuery(memberId)
@@ -16,56 +18,56 @@ function ratingLabel(rating: number | null | undefined) {
 }
 
 function rsvpLabel(book: ProfileBook) {
-  if (book.attendedMeeting) return 'был(а)'
-  if (book.meetingRsvpStatus === 'not_attending') return 'не был(а)'
-  if (book.meetingRsvpStatus === 'pending') return 'без ответа'
-  return 'нет RSVP'
+  if (book.attendedMeeting) return t('memberDetail.attended')
+  if (book.meetingRsvpStatus === 'not_attending') return t('memberDetail.notAttended')
+  if (book.meetingRsvpStatus === 'pending') return t('memberDetail.noResponse')
+  return t('memberDetail.noRsvp')
 }
 </script>
 
 <template lang="pug">
 section.panel.container(v-if="memberQuery.isLoading.value" aria-live="polite")
-  p.body-text Загружаем участника...
+  p.body-text {{ $t('memberDetail.loading') }}
 section.panel.container(v-else-if="memberQuery.error.value" aria-live="polite")
   .section-header.section-header--compact
-    h2 Участник не найден
-  p.body-text Участника с таким идентификатором не существует.
-  RouterLink.button.button--secondary.label-text(to="/members") Вернуться к списку участников
+    h2 {{ $t('memberDetail.notFound') }}
+  p.body-text {{ $t('memberDetail.notFoundText') }}
+  RouterLink.button.button--secondary.label-text(to="/members") {{ $t('memberDetail.backToList') }}
 main.member-detail.container(v-else-if="member")
   .section-header
     RouterLink.button.button--ghost.label-text(to="/members")
       ArrowLeft.member-detail__icon
-      | Назад к списку
+      | {{ $t('memberDetail.backBtn') }}
 
   .member-detail__grid
-    aside.member-detail__sidebar(aria-label="Профиль участника")
+    aside.member-detail__sidebar(:aria-label="t('memberDetail.profileAria')")
       .panel.member-detail__hero
         UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" size="lg")
         div
           h1.member-detail__name {{ member.name }}
-          p.subtitle-italic Участник клуба с {{ member.memberSince }}
+          p.subtitle-italic {{ $t('memberDetail.memberSince', { year: member.memberSince }) }}
 
-      .member-detail__stats(aria-label="Статистика участника")
+      .member-detail__stats(:aria-label="t('memberDetail.statsAria')")
         .member-detail__stat
           span.member-detail__stat-value {{ member.stats.read }}
-          span.label-text Прочитано
+          span.label-text {{ $t('memberDetail.read') }}
         .member-detail__stat
           span.member-detail__stat-value {{ member.stats.proposed }}
-          span.label-text Предложено
+          span.label-text {{ $t('memberDetail.proposed') }}
         .member-detail__stat
           span.member-detail__stat-value {{ member.stats.meetings }}
-          span.label-text Встреч
+          span.label-text {{ $t('memberDetail.meetings') }}
 
       section.panel(aria-labelledby="member-info-title")
         .section-header.section-header--compact
-          span#member-info-title.label-text О участнике
+          span#member-info-title.label-text {{ $t('memberDetail.about') }}
         .member-detail__info-row
-          span.label-text Статус
+          span.label-text {{ $t('memberDetail.status') }}
           span.member-detail__status
             span.status-dot(:class="{ 'status-dot--active': member.isActive }")
-            span.label-text {{ member.isActive ? 'Активен' : 'Неактивен' }}
+            span.label-text {{ member.isActive ? $t('memberDetail.active') : $t('memberDetail.inactive') }}
         .member-detail__info-row
-          span.label-text Любимый жанр
+          span.label-text {{ $t('memberDetail.favGenre') }}
           span.member-detail__info-value
             Star.member-detail__icon
             span.body-text {{ member.favoriteGenre }}
@@ -77,8 +79,8 @@ main.member-detail.container(v-else-if="member")
 
     section.member-detail__history(aria-labelledby="reading-history-title")
       .section-header
-        h2#reading-history-title История чтения
-        span.label-text {{ member.readingHistory.length }} книг
+        h2#reading-history-title {{ $t('memberDetail.history') }}
+        span.label-text {{ $t('memberDetail.booksN', { n: member.readingHistory.length }) }}
 
       .panel.member-detail__book-list(v-if="member.readingHistory.length")
         component.member-detail__book(
@@ -92,31 +94,31 @@ main.member-detail.container(v-else-if="member")
           .member-detail__book-details
             .member-detail__book-meta
               span.label-text {{ book.cycleLabel }}
-              span.label-text Завершено: {{ book.completedLabel }}
+              span.label-text {{ $t('archive.completed', { label: book.completedLabel }) }}
             h3.member-detail__book-title {{ book.title }}
             p.body-text.member-detail__book-author {{ book.author }}
-            .member-detail__book-stats(aria-label="Статистика цикла")
+            .member-detail__book-stats(:aria-label="t('memberDetail.statsAria')")
               span.member-detail__book-stat.label-text
                 Star.member-detail__icon
-                | Оценка: {{ ratingLabel(book.myRating) }}
+                | {{ $t('memberDetail.rating', { rating: ratingLabel(book.myRating) }) }}
               span.member-detail__book-stat.label-text
                 Star.member-detail__icon
-                | Средняя: {{ ratingLabel(book.clubAverageRating) }}
+                | {{ $t('memberDetail.average', { rating: ratingLabel(book.clubAverageRating) }) }}
               span.member-detail__book-stat.label-text
                 MessageSquare.member-detail__icon
-                | Ревью: {{ book.hasReview ? 'есть' : 'нет' }}
+                | {{ $t('memberDetail.reviewLabel', { has: book.hasReview ? $t('memberDetail.reviewYes') : $t('memberDetail.reviewNo') }) }}
               span.member-detail__book-stat.label-text
                 CalendarCheck.member-detail__icon
-                | Встреча: {{ rsvpLabel(book) }}
+                | {{ $t('memberDetail.meetingLabel', { status: rsvpLabel(book) }) }}
 
       section.panel.member-detail__empty(v-else aria-live="polite")
-        p.body-text История появится после завершённых циклов с участием этого участника.
+        p.body-text {{ $t('memberDetail.emptyHistory') }}
 
 section.panel.container(v-else aria-live="polite")
   .section-header.section-header--compact
-    h2 Участник не найден
-  p.body-text Участника с таким идентификатором не существует.
-  RouterLink.button.button--secondary.label-text(to="/members") Вернуться к списку участников
+    h2 {{ $t('memberDetail.notFound') }}
+  p.body-text {{ $t('memberDetail.notFoundText') }}
+  RouterLink.button.button--secondary.label-text(to="/members") {{ $t('memberDetail.backToList') }}
 </template>
 
 <style scoped>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Send, Trash2, X } from '@lucide/vue'
 import AppTabs from '@/components/ui/AppTabs.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
@@ -16,6 +17,7 @@ import {
 import { useFormErrors } from '@/composables/useFormErrors'
 import type { BookQueueItem } from '@/types/club'
 
+const { t } = useI18n()
 const queueQuery = useBookQueueQuery()
 const rejectedQuery = useRejectedBookQueueQuery()
 const createQueueItem = useCreateBookQueueItemMutation()
@@ -69,18 +71,18 @@ function submitBook() {
 function statusLabel(status: string) {
   return (
     {
-      queued: 'В очереди',
-      in_verification: 'На проверке',
-      approved: 'Принята',
-      rejected: 'Отклонена',
-      removed: 'Удалена',
+      queued: t('books.statusQueued'),
+      in_verification: t('books.statusVerification'),
+      approved: t('books.statusApproved'),
+      rejected: t('books.statusRejected'),
+      removed: t('books.statusRemoved'),
     }[status] ?? status
   )
 }
 
 function itemBadge(item: BookQueueItem) {
-  if (item.isCurrentCandidate) return 'Сейчас в предложке'
-  if (nextCandidate.value?.id === item.id) return 'Кандидат на следующий цикл'
+  if (item.isCurrentCandidate) return t('books.inProposal')
+  if (nextCandidate.value?.id === item.id) return t('books.nextCandidate')
   return statusLabel(item.status)
 }
 
@@ -133,84 +135,84 @@ function formatDate(iso: string): string {
 <template lang="pug">
 main.proposal.container
   .proposal__header
-    span.label-text.proposal__eyebrow Личный кабинет
-    h1 Моя очередь книг
+    span.label-text.proposal__eyebrow {{ $t('books.eyebrow') }}
+    h1 {{ $t('books.title') }}
     p.body-text.proposal__intro
-      | Голова списка — ближайший кандидат. Когда твоя очередь уже наступила, текущая предложенная книга остаётся первой в цепочке.
+      | {{ $t('books.intro') }}
 
   .proposal__grid
     section.panel.proposal__form-panel(aria-labelledby="queue-form-title")
       .section-header.section-header--compact
-        h2#queue-form-title Добавить книгу
+        h2#queue-form-title {{ $t('books.addBook') }}
         Plus.proposal__button-icon
       form.proposal__form-fields(@submit.prevent="submitBook" novalidate)
-        AppFormField(label="Название книги" label-for="book-title" required :error="formErrors.getError('title')")
+        AppFormField(:label="t('books.titleLabel')" label-for="book-title" required :error="formErrors.getError('title')")
           AppInput#book-title(
             v-model="form.title"
             type="text"
-            placeholder="Например, Мастер и Маргарита"
+            :placeholder="t('books.titlePlaceholder')"
             :aria-invalid="formErrors.hasError('title')"
           )
 
-        AppFormField(label="Автор" label-for="book-author" required :error="formErrors.getError('author')")
+        AppFormField(:label="t('books.authorLabel')" label-for="book-author" required :error="formErrors.getError('author')")
           AppInput#book-author(
             v-model="form.author"
             type="text"
-            placeholder="Например, Михаил Булгаков"
+            :placeholder="t('books.authorPlaceholder')"
             :aria-invalid="formErrors.hasError('author')"
           )
 
-        AppFormField(label="Краткое описание" label-for="book-description" :error="formErrors.getError('description')")
+        AppFormField(:label="t('books.descLabel')" label-for="book-description" :error="formErrors.getError('description')")
           AppTextarea#book-description(
             v-model="form.description"
-            placeholder="Коротко опиши, о чём книга."
+            :placeholder="t('books.descPlaceholder')"
             :aria-invalid="formErrors.hasError('description')"
           )
 
-        AppFormField(label="Почему эта книга?" label-for="book-reason" :error="formErrors.getError('reason')")
+        AppFormField(:label="t('books.reasonLabel')" label-for="book-reason" :error="formErrors.getError('reason')")
           AppTextarea#book-reason(
             v-model="form.reason"
-            placeholder="Какие темы она может открыть для клуба?"
+            :placeholder="t('books.reasonPlaceholder')"
             :aria-invalid="formErrors.hasError('reason')"
           )
 
         .proposal__actions
           button.button.button--primary.label-text(type="submit" :disabled="createQueueItem.isPending.value")
             Plus.proposal__button-icon(v-if="!createQueueItem.isPending.value")
-            | {{ createQueueItem.isPending.value ? 'Добавляем...' : 'Добавить в очередь' }}
+            | {{ createQueueItem.isPending.value ? $t('books.adding') : $t('books.addToQueue') }}
           p.proposal__error(v-if="createQueueItem.error.value && !Object.keys(formErrors.fieldErrors.value).length")
             | {{ createQueueItem.error.value.message }}
 
     section.proposal__queue(aria-labelledby="queue-title")
       .section-header
-        h2#queue-title Очередь
-        span.label-text {{ items.length }} книг в цепочке
+        h2#queue-title {{ $t('books.queueTitle') }}
+        span.label-text {{ $t('books.queueCount', { n: items.length }) }}
 
       AppTabs(
-        :tabs="[{ id: 'queue', label: 'Очередь' }, { id: 'rejected', label: 'Отклонённые' }]"
+        :tabs="[{ id: 'queue', label: $t('books.tabQueue') }, { id: 'rejected', label: $t('books.tabRejected') }]"
         v-model="activeTab"
-        aria-label="Фильтр книг"
+        :aria-label="t('books.filterAria')"
       )
 
       section.panel(v-if="activeTab === 'queue' && queueQuery.isLoading.value")
-        p.body-text Загружаем очередь...
+        p.body-text {{ $t('common.loadingQueue') }}
       section.panel(v-else-if="activeTab === 'queue' && queueQuery.error.value")
-        p.body-text Не удалось загрузить очередь.
+        p.body-text {{ $t('common.errorQueue') }}
       section.panel.proposal__empty(v-else-if="activeTab === 'queue' && items.length === 0")
         BookMarked.proposal__empty-icon
-        h3 Выберите книгу
-        p.body-text Добавь хотя бы одну книгу, чтобы система смогла предложить её, когда подойдёт твоя очередь.
+        h3 {{ $t('books.emptyTitle') }}
+        p.body-text {{ $t('books.emptyText') }}
       .proposal__book-list(v-else-if="activeTab === 'queue'")
         .proposal__queue-summary(aria-live="polite")
           .proposal__summary-item(v-if="currentCandidate")
             CheckCircle2.proposal__summary-icon
             div
-              span.label-text Сейчас в предложке
+              span.label-text {{ $t('books.inProposal') }}
               strong {{ currentCandidate.title }}
           .proposal__summary-item(v-if="nextCandidate && nextCandidate.id !== currentCandidate?.id")
             GitBranch.proposal__summary-icon
             div
-              span.label-text Ближайший кандидат
+              span.label-text {{ $t('books.nextCandidate') }}
               strong {{ nextCandidate.title }}
         TransitionGroup.proposal__book-items(name="list" tag="div")
           article.proposal__book(
@@ -227,18 +229,18 @@ main.proposal.container
                   span.badge.badge--sm(:class="itemBadgeClass(item)")
                     | {{ itemBadge(item) }}
                 .proposal__field
-                  label.label-text(:for="`edit-desc-${item.id}`") Краткое описание
+                  label.label-text(:for="`edit-desc-${item.id}`") {{ $t('books.descLabel') }}
                   textarea.field-control.proposal__textarea(
                     :id="`edit-desc-${item.id}`"
                     v-model="editForms[item.id].description"
-                    placeholder="Коротко опиши, о чём книга."
+                    :placeholder="t('books.descPlaceholder')"
                   )
                 .proposal__field
-                  label.label-text(:for="`edit-reason-${item.id}`") Почему эта книга?
+                  label.label-text(:for="`edit-reason-${item.id}`") {{ $t('books.reasonLabel') }}
                   textarea.field-control.proposal__textarea(
                     :id="`edit-reason-${item.id}`"
                     v-model="editForms[item.id].reason"
-                    placeholder="Какие темы она может открыть для клуба?"
+                    :placeholder="t('books.reasonPlaceholder')"
                   )
                 .proposal__edit-actions
                   button.button.button--primary.label-text(
@@ -246,15 +248,15 @@ main.proposal.container
                     :disabled="updateQueueItem.isPending.value"
                     @click="saveEdit(item)"
                   )
-                    | {{ updateQueueItem.isPending.value ? 'Сохраняем...' : 'Сохранить' }}
+                    | {{ updateQueueItem.isPending.value ? $t('books.saving') : $t('books.save') }}
                   button.button.button--secondary.label-text(
                     type="button"
                     :disabled="updateQueueItem.isPending.value"
                     @click="cancelEdit"
                   )
                     X.proposal__button-icon
-                    | Отмена
-                p.proposal__error(v-if="updateQueueItem.error.value") Не удалось сохранить изменения.
+                    | {{ $t('books.cancel') }}
+                p.proposal__error(v-if="updateQueueItem.error.value") {{ $t('books.editError') }}
               template(v-else)
                 .proposal__book-header
                   .proposal__book-title-wrap
@@ -264,15 +266,15 @@ main.proposal.container
                     | {{ itemBadge(item) }}
                 p.proposal__book-meta(v-if="item.description") {{ item.description }}
                 p.proposal__book-reason(v-if="item.reason")
-                  span Почему: {{ item.reason }}
+                  span {{ $t('books.whyPrefix', { reason: item.reason }) }}
             .proposal__book-actions
               button.button.button--secondary.label-text(
                 v-if="index !== 0"
                 type="button"
                 :disabled="!item.canBecomeCandidate || makeCandidate.isPending.value"
                 @click="promote(item)"
-                aria-label="Сделать книгу кандидатом"
-                title="Сделать кандидатом"
+                :aria-label="t('books.promoteAria')"
+                :title="t('books.promoteTitle')"
               )
                 Send.proposal__button-icon
               button.button.button--secondary.label-text(
@@ -280,28 +282,28 @@ main.proposal.container
                 type="button"
                 :disabled="updateQueueItem.isPending.value"
                 @click="startEdit(item)"
-                aria-label="Редактировать книгу"
-                title="Редактировать"
+                :aria-label="t('books.editAria')"
+                :title="t('books.editTitle')"
               )
                 Pencil.proposal__button-icon
               button.button.button--secondary.label-text(
                 type="button"
                 :disabled="removeQueueItem.isPending.value || item.status === 'in_verification'"
                 @click="removeQueueItem.mutate(item.id)"
-                aria-label="Удалить книгу"
-                title="Удалить"
+                :aria-label="t('books.deleteAria')"
+                :title="t('books.deleteTitle')"
               )
                 Trash2.proposal__button-icon
-        p.proposal__error(v-if="makeCandidate.error.value") Не удалось сделать книгу кандидатом.
+        p.proposal__error(v-if="makeCandidate.error.value") {{ $t('books.promoteError') }}
 
       section.panel(v-if="activeTab === 'rejected' && rejectedQuery.isLoading.value")
-        p.body-text Загружаем список...
+        p.body-text {{ $t('common.loadingList') }}
       section.panel(v-else-if="activeTab === 'rejected' && rejectedQuery.error.value")
-        p.body-text Не удалось загрузить список.
+        p.body-text {{ $t('common.errorList') }}
       section.panel.proposal__empty(v-else-if="activeTab === 'rejected' && rejectedItems.length === 0")
         BookMarked.proposal__empty-icon
-        h3 Пока нет отклонённых книг
-        p.body-text Книги, которые не прошли проверку участников, появятся здесь.
+        h3 {{ $t('books.rejectedTitle') }}
+        p.body-text {{ $t('books.rejectedText') }}
       .proposal__book-list(v-else-if="activeTab === 'rejected'")
         TransitionGroup.proposal__book-items(name="list" tag="div")
           article.proposal__book.proposal__book--rejected(v-for="item in rejectedItems" :key="item.id")
@@ -310,14 +312,14 @@ main.proposal.container
                 .proposal__book-title-wrap
                   h3.proposal__book-title {{ item.title }}
                   p.proposal__book-author {{ item.author }}
-                span.badge.badge--sm.badge--danger Отклонена
+                span.badge.badge--sm.badge--danger {{ $t('books.rejectedBadge') }}
               p.proposal__book-meta(v-if="item.description") {{ item.description }}
               p.proposal__book-reason(v-if="item.reason")
-                span Почему: {{ item.reason }}
+                span {{ $t('books.whyPrefix', { reason: item.reason }) }}
               .proposal__book-rejection(v-if="item.rejectionInfo")
-                | Отклонена {{ formatDate(item.rejectionInfo.rejectedAt) }}
+                | {{ $t('books.rejectedBy', { date: formatDate(item.rejectionInfo.rejectedAt) }) }}
                 template(v-if="item.rejectionInfo.rejectedByMembers.length")
-                  |  · Прочитали: {{ item.rejectionInfo.rejectedByMembers.join(', ') }}
+                  | · {{ $t('books.readBy', { members: item.rejectionInfo.rejectedByMembers.join(', ') }) }}
 </template>
 
 <style scoped>

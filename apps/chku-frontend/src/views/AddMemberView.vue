@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ShieldCheck, UserPlus } from '@lucide/vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useCreateMemberMutation } from '@/queries/memberQueries'
@@ -10,6 +11,7 @@ import AppInput from '@/components/ui/AppInput.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
 
 const router = useRouter()
+const { t } = useI18n()
 const { isAdmin, twoFactorEnabled } = useAuthSession()
 const createMemberMutation = useCreateMemberMutation()
 const formErrors = useFormErrors()
@@ -41,9 +43,9 @@ function selectAvatar(event: Event) {
 }
 
 const roleOptions = [
-  { label: 'Участник', value: 'member' },
-  { label: 'Администратор', value: 'admin' },
-  { label: 'Разработчик', value: 'developer' },
+  { label: t('nav.roleMember'), value: 'member' },
+  { label: t('nav.roleAdmin'), value: 'admin' },
+  { label: t('nav.roleDev'), value: 'developer' },
 ]
 </script>
 
@@ -51,26 +53,26 @@ const roleOptions = [
 main.add-member.container
   .section-header
     div
-      span.label-text Управление клубом
-      h1.add-member__title Добавить участника
-    RouterLink.button.button--secondary.label-text(to="/members") К списку
+      span.label-text {{ $t('members.title') }}
+      h1.add-member__title {{ $t('members.add') }}
+    RouterLink.button.button--secondary.label-text(to="/members") {{ $t('common.back') }}
 
   form.panel.add-member__panel(@submit.prevent="submit")
     template(v-if="!canManageMembers")
       .inline-alert
         ShieldCheck.add-member__notice-icon
         div
-          h2.add-member__notice-title Требуется двухфакторная защита
-          p.body-text Для добавления участников Админу и Разработчику нужно включить 2FA.
+          h2.add-member__notice-title {{ $t('members.setup2fa') }}
+          p.body-text {{ $t('members.manageDisabled') }}
       .add-member__actions
-        button.button.button--secondary.label-text(type="button" @click="router.back()") Назад
-        RouterLink.button.button--primary.label-text(to="/profile/settings") Настроить 2FA
+        button.button.button--secondary.label-text(type="button" @click="router.back()") {{ $t('common.back') }}
+        RouterLink.button.button--primary.label-text(to="/profile/settings") {{ $t('members.setup2fa') }}
     template(v-else)
       .add-member__intro
         UserPlus.add-member__intro-icon
-        p.body-text Новый участник получит доступ к клубному дашборду, архиву и прогрессу текущего цикла.
+        p.body-text {{ $t('members.add') }}
       .add-member__fields
-        AppFormField(label="Имя" label-for="am-name" required :error="formErrors.getError('name')")
+        AppFormField(:label="t('settings.name')" label-for="am-name" required :error="formErrors.getError('name')")
           AppInput#am-name(
             type="text"
             v-model="form.name"
@@ -78,7 +80,7 @@ main.add-member.container
             autocomplete="name"
             :aria-invalid="formErrors.hasError('name')"
           )
-        AppFormField(label="Email" label-for="am-email" required :error="formErrors.getError('email')")
+        AppFormField(:label="t('auth.email')" label-for="am-email" required :error="formErrors.getError('email')")
           AppInput#am-email(
             type="email"
             v-model="form.email"
@@ -86,7 +88,7 @@ main.add-member.container
             autocomplete="email"
             :aria-invalid="formErrors.hasError('email')"
           )
-        AppFormField(label="Пароль" label-for="am-password" required :error="formErrors.getError('password')")
+        AppFormField(:label="t('auth.password')" label-for="am-password" required :error="formErrors.getError('password')")
           AppInput#am-password(
             type="password"
             v-model="form.password"
@@ -95,7 +97,7 @@ main.add-member.container
             autocomplete="new-password"
             :aria-invalid="formErrors.hasError('password')"
           )
-        AppFormField(label="Аватар" label-for="am-avatar" :error="formErrors.getError('avatar')")
+        AppFormField(:label="t('settings.avatar')" label-for="am-avatar" :error="formErrors.getError('avatar')")
           AppInput#am-avatar(
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -109,14 +111,14 @@ main.add-member.container
             required
             :aria-invalid="formErrors.hasError('joined_at')"
           )
-        AppFormField(label="Роль" label-for="am-role" required :error="formErrors.getError('role')")
+        AppFormField(:label="t('common.role')" label-for="am-role" required :error="formErrors.getError('role')")
           AppSelect#am-role(v-model="form.role" :options="roleOptions" required :aria-invalid="formErrors.hasError('role')")
       p.add-member__error(v-if="createMemberMutation.error.value && !Object.keys(formErrors.fieldErrors.value).length")
         | {{ createMemberMutation.error.value.message }}
       .add-member__actions
-        button.button.button--secondary.label-text(type="button" @click="router.back()") Отмена
+        button.button.button--secondary.label-text(type="button" @click="router.back()") {{ $t('common.cancel') }}
         button.button.button--primary.label-text(type="submit" :disabled="createMemberMutation.isPending.value")
-          | {{ createMemberMutation.isPending.value ? 'Создание...' : 'Создать участника' }}
+          | {{ createMemberMutation.isPending.value ? $t('common.saving') : 'Создать участника' }}
 </template>
 
 <style scoped>

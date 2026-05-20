@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { BookOpen, CalendarCheck, ListOrdered, MessageSquare, Settings, Sparkles, Star } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useBookQueueQuery } from '@/queries/bookQueueQueries'
@@ -9,6 +10,7 @@ import { useCurrentUserQuery } from '@/queries/memberQueries'
 import { useCurrentUserReadingHistoryQuery } from '@/queries/profileQueries'
 import type { ProfileBook } from '@/types/club'
 
+const { t } = useI18n()
 const currentUserQuery = useCurrentUserQuery()
 const dashboardQuery = useDashboardQuery()
 const bookQueueQuery = useBookQueueQuery()
@@ -22,7 +24,7 @@ const nextQueueBook = computed(
     null,
 )
 const nextQueueLabel = computed(() =>
-  nextQueueBook.value?.isCurrentCandidate ? 'Сейчас в предложке' : 'Автоматически пойдёт в предложку',
+  nextQueueBook.value?.isCurrentCandidate ? t('profile.inProposal') : t('profile.autoProposal'),
 )
 const currentMemberFirstName = computed(() => currentMember.value?.name.split(' ')[0] ?? '')
 const canProposeNextBook = computed(() =>
@@ -35,106 +37,106 @@ const canProposeNextBook = computed(() =>
 )
 
 function ratingLabel(rating: number | null | undefined) {
-  return rating ? `${rating.toFixed(1)}/10` : 'нет'
+  return rating ? `${rating.toFixed(1)}/10` : t('profile.ratingNone')
 }
 
 function rsvpLabel(book: ProfileBook) {
-  if (book.attendedMeeting) return 'был(а)'
-  if (book.meetingRsvpStatus === 'not_attending') return 'не был(а)'
-  if (book.meetingRsvpStatus === 'pending') return 'без ответа'
-  return 'нет RSVP'
+  if (book.attendedMeeting) return t('profile.attended')
+  if (book.meetingRsvpStatus === 'not_attending') return t('profile.notAttended')
+  if (book.meetingRsvpStatus === 'pending') return t('profile.noResponse')
+  return t('profile.noRsvp')
 }
 </script>
 
 <template lang="pug">
 main.profile.container
   section.panel(v-if="currentUserQuery.isLoading.value" aria-live="polite")
-    p.body-text Загружаем профиль...
+    p.body-text {{ $t('profile.loading') }}
   section.panel(v-else-if="currentUserQuery.error.value || !currentMember" aria-live="polite")
-    p.body-text Не удалось загрузить профиль.
+    p.body-text {{ $t('profile.error') }}
   .profile__grid(v-else)
-    aside.profile__sidebar(aria-label="Профиль участника")
+    aside.profile__sidebar(:aria-label="t('profile.profileAria')")
       .panel.profile__hero
         UserAvatar(:name="currentMember.name" :avatar-url="currentMember.avatarUrl" size="lg")
         div
           h1.profile__name {{ currentMember.name }}
-          p.subtitle-italic Участник клуба с {{ currentMember.memberSince }}
+          p.subtitle-italic {{ $t('profile.memberSince', { year: currentMember.memberSince }) }}
 
-      .profile__owls(aria-label="Совы участника")
+      .profile__owls(:aria-label="t('profile.owlsAria')")
         .profile__owl-stat
-          img.profile__owl-icon.profile__owl-icon--gold(src="/favicon.svg" alt="Золотая сова")
+          img.profile__owl-icon.profile__owl-icon--gold(src="/favicon.svg" :alt="t('profile.owlGold')")
           span.profile__stat-value {{ currentMember.stats.goldOwls }}
         .profile__owl-stat
-          img.profile__owl-icon.profile__owl-icon--silver(src="/favicon.svg" alt="Серебряная сова")
+          img.profile__owl-icon.profile__owl-icon--silver(src="/favicon.svg" :alt="t('profile.owlSilver')")
           span.profile__stat-value {{ currentMember.stats.silverOwls }}
         .profile__owl-stat
-          img.profile__owl-icon.profile__owl-icon--bronze(src="/favicon.svg" alt="Бронзовая сова")
+          img.profile__owl-icon.profile__owl-icon--bronze(src="/favicon.svg" :alt="t('profile.owlBronze')")
           span.profile__stat-value {{ currentMember.stats.bronzeOwls }}
 
-      .profile__stats(aria-label="Статистика участника")
+      .profile__stats(:aria-label="t('profile.statsAria')")
         .profile__stat
           span.profile__stat-value {{ currentMember.stats.read }}
-          span.label-text Прочитано
+          span.label-text {{ $t('profile.read') }}
         .profile__stat
           span.profile__stat-value {{ currentMember.stats.proposed }}
-          span.label-text Предложено
+          span.label-text {{ $t('profile.proposed') }}
         .profile__stat
           span.profile__stat-value {{ currentMember.stats.meetings }}
-          span.label-text Встреч
+          span.label-text {{ $t('profile.meetings') }}
 
       section.panel.profile__queue(v-if="!canProposeNextBook" aria-labelledby="profile-queue-title")
         .section-header.section-header--compact
-          span#profile-queue-title.label-text Моя очередь книг
+          span#profile-queue-title.label-text {{ $t('profile.myQueue') }}
           ListOrdered.profile__section-icon
         p.body-text
-          | Веди личный список книг для предложки. Первая книга автоматически уйдёт на проверку, когда подойдёт твоя очередь.
+          | {{ $t('profile.queueDesc') }}
         .profile__next-queue(aria-live="polite")
-          p.label-text(v-if="bookQueueQuery.isLoading.value") Загружаем очередь...
-          p.label-text(v-else-if="bookQueueQuery.error.value") Не удалось загрузить очередь.
-          p.label-text(v-else-if="!nextQueueBook") В очереди нет книги для автоматической предложки.
+          p.label-text(v-if="bookQueueQuery.isLoading.value") {{ $t('profile.queueLoading') }}
+          p.label-text(v-else-if="bookQueueQuery.error.value") {{ $t('profile.queueError') }}
+          p.label-text(v-else-if="!nextQueueBook") {{ $t('profile.queueEmpty') }}
           article.profile__next-book(v-else)
             span.profile__next-book-label.label-text {{ nextQueueLabel }}
             strong {{ nextQueueBook.title }}
             small {{ nextQueueBook.author }}
             p.body-text(v-if="nextQueueBook.reason") {{ nextQueueBook.reason }}
         RouterLink.button.button--primary.label-text.profile__turn-action(to="/propose-selection")
-          | Открыть очередь
+          | {{ $t('profile.openQueue') }}
 
       section.panel.profile__turn(v-if="canProposeNextBook" aria-labelledby="profile-turn-title")
         .section-header.section-header--compact
-          span#profile-turn-title.label-text Сейчас твоя очередь
+          span#profile-turn-title.label-text {{ $t('profile.yourTurn') }}
           Sparkles.profile__section-icon
         p.body-text
-          | Проверь личную очередь книг. Первая книга из списка автоматически уйдёт на проверку клуба.
+          | {{ $t('profile.turnDesc') }}
         .profile__next-queue(aria-live="polite")
-          p.label-text(v-if="bookQueueQuery.isLoading.value") Загружаем очередь...
-          p.label-text(v-else-if="bookQueueQuery.error.value") Не удалось загрузить очередь.
-          p.label-text(v-else-if="!nextQueueBook") В очереди нет книги для автоматической предложки.
+          p.label-text(v-if="bookQueueQuery.isLoading.value") {{ $t('profile.queueLoading') }}
+          p.label-text(v-else-if="bookQueueQuery.error.value") {{ $t('profile.queueError') }}
+          p.label-text(v-else-if="!nextQueueBook") {{ $t('profile.queueEmpty') }}
           article.profile__next-book(v-else)
             span.profile__next-book-label.label-text {{ nextQueueLabel }}
             strong {{ nextQueueBook.title }}
             small {{ nextQueueBook.author }}
             p.body-text(v-if="nextQueueBook.reason") {{ nextQueueBook.reason }}
         RouterLink.button.button--primary.label-text.profile__turn-action(to="/propose-selection")
-          | Управлять очередью
+          | {{ $t('profile.manageQueue') }}
 
       section.panel(aria-labelledby="profile-settings-title")
         .section-header.section-header--compact
-          span#profile-settings-title.label-text Настройки профиля
+          span#profile-settings-title.label-text {{ $t('profile.settings') }}
           Settings.profile__section-icon
         p.body-text
-          | Имя, аватар, любимый жанр, пароль и двухфакторная защита настраиваются на отдельной странице.
-        RouterLink.button.button--secondary.label-text.profile__save(to="/profile/settings") Открыть настройки
+          | {{ $t('profile.settingsDesc') }}
+        RouterLink.button.button--secondary.label-text.profile__save(to="/profile/settings") {{ $t('profile.openSettings') }}
 
     section.profile__history(aria-labelledby="reading-history-title")
       .section-header
-        h2#reading-history-title История чтения
-        span.label-text Цикл #28 - сейчас
+        h2#reading-history-title {{ $t('profile.history') }}
+        span.label-text {{ $t('profile.cycleCurrent', { n: 28 }) }}
 
       section.panel(v-if="readingHistoryQuery.isLoading.value" aria-live="polite")
-        p.body-text Загружаем историю чтения...
+        p.body-text {{ $t('profile.historyLoading') }}
       section.panel(v-else-if="readingHistoryQuery.error.value" aria-live="polite")
-        p.body-text Не удалось загрузить историю чтения.
+        p.body-text {{ $t('profile.historyError') }}
       .panel.profile__book-list(v-else-if="readingHistory.length")
         TransitionGroup(name="list" tag="div")
           component.profile__book(
@@ -148,29 +150,29 @@ main.profile.container
             .profile__book-details
               .profile__book-meta
                 span.label-text {{ book.cycleLabel }}
-                span.label-text Завершено: {{ book.completedLabel }}
+                span.label-text {{ $t('profile.completed', { label: book.completedLabel }) }}
               h3.profile__book-title {{ book.title }}
               p.body-text.profile__book-author {{ book.author }}
-              .profile__book-stats(aria-label="Статистика цикла")
+              .profile__book-stats(:aria-label="t('profile.cycleStatsAria')")
                 span.profile__book-stat.label-text
                   Star.profile__archive-icon
-                  | Моя: {{ ratingLabel(book.myRating) }}
+                  | {{ $t('profile.myRating', { rating: ratingLabel(book.myRating) }) }}
                 span.profile__book-stat.label-text
                   Star.profile__archive-icon
-                  | Средняя: {{ ratingLabel(book.clubAverageRating) }}
+                  | {{ $t('profile.avgRating', { rating: ratingLabel(book.clubAverageRating) }) }}
                 span.profile__book-stat.label-text
                   MessageSquare.profile__archive-icon
-                  | Ревью: {{ book.hasReview ? 'есть' : 'нет' }}
+                  | {{ $t('profile.reviewLabel', { has: book.hasReview ? $t('profile.reviewYes') : $t('profile.reviewNo') }) }}
                 span.profile__book-stat.label-text
                   CalendarCheck.profile__archive-icon
-                  | Встреча: {{ rsvpLabel(book) }}
+                  | {{ $t('profile.meetingLabel', { status: rsvpLabel(book) }) }}
 
       section.panel.profile__empty(v-else aria-live="polite")
-        p.body-text История чтения появится после завершённых циклов, где есть оценка, отзыв, прогресс или RSVP.
+        p.body-text {{ $t('profile.emptyHistory') }}
 
       RouterLink.button.button--ghost.label-text.profile__archive-link(to="/archive")
         BookOpen.profile__archive-icon
-        | Смотреть весь архив
+        | {{ $t('profile.viewArchive') }}
 </template>
 
 <style scoped>

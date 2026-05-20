@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { MoreHorizontal, Plus, Search, SlidersHorizontal, UserRoundCheck, UserRoundMinus } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDeactivateMemberMutation, useMembersQuery } from '@/queries/memberQueries'
 
 const { isAdmin, twoFactorEnabled, user } = useAuthSession()
+const { t } = useI18n()
 const membersQuery = useMembersQuery()
 const deactivateMemberMutation = useDeactivateMemberMutation()
 const searchQuery = ref('')
@@ -33,12 +35,12 @@ const filteredMembers = computed(() => {
 })
 
 async function deactivateMember(id: number) {
-  if (!confirm('Деактивировать участника?')) return
+  if (!confirm(t('members.deactivateConfirm'))) return
   actionError.value = ''
   try {
     await deactivateMemberMutation.mutateAsync(id)
   } catch (e: unknown) {
-    actionError.value = (e as Error).message || 'Не удалось деактивировать участника.'
+    actionError.value = (e as Error).message || t('members.deactivateError')
   }
 }
 </script>
@@ -47,37 +49,37 @@ async function deactivateMember(id: number) {
 main.members.container
   .members__header
     .members__heading
-      h1.members__title Участники
-      span.label-text {{ members.length }} человек в клубе
+      h1.members__title {{ $t('members.title') }}
+      span.label-text {{ $t('members.count', { n: members.length }) }}
     .members__toolbar
       label.members__search
         Search.members__search-icon(:size="18" aria-hidden="true")
         input.field-control(
           v-model="searchQuery"
           type="search"
-          placeholder="Поиск участника"
-          aria-label="Поиск участника"
+          :placeholder="t('members.searchPlaceholder')"
+          :aria-label="t('members.searchAria')"
         )
       label.members__filter
         SlidersHorizontal(:size="17" aria-hidden="true")
-        select.field-control(v-model="statusFilter" aria-label="Фильтр участников")
-          option(value="all") Все статусы
-          option(value="active") Активные
-          option(value="inactive") Неактивные
+        select.field-control(v-model="statusFilter" :aria-label="t('members.filterAria')")
+          option(value="all") {{ $t('members.all') }}
+          option(value="active") {{ $t('members.active') }}
+          option(value="inactive") {{ $t('members.inactive') }}
       RouterLink.button.button--primary.label-text(v-if="canManageMembers" to="/members/add")
         Plus(:size="16" aria-hidden="true")
-        span Добавить участника
+        span {{ $t('members.add') }}
 
   section.panel.members__notice(v-if="isAdmin && !twoFactorEnabled")
-    p.body-text Управление участниками станет доступно после включения 2FA.
-    RouterLink.button.button--secondary.label-text(to="/profile/settings") Настроить 2FA
+    p.body-text {{ $t('members.manageDisabled') }}
+    RouterLink.button.button--secondary.label-text(to="/profile/settings") {{ $t('members.setup2fa') }}
   section.panel.members__notice.members__notice--error(v-if="actionError" aria-live="polite")
     p.body-text {{ actionError }}
 
   section.panel(v-if="membersQuery.isLoading.value" aria-live="polite")
-    p.body-text Загружаем участников...
+    p.body-text {{ $t('members.loading') }}
   section.panel(v-else-if="membersQuery.error.value" aria-live="polite")
-    p.body-text Не удалось загрузить список участников.
+    p.body-text {{ $t('members.error') }}
   .members__grid(v-else-if="filteredMembers.length")
     RouterLink.member-card(
       v-for="member in filteredMembers"
@@ -90,29 +92,29 @@ main.members.container
         .member-card__info
           .member-card__name-row
             h2.member-card__name {{ member.name }}
-            span.badge.badge--reading.label-text(v-if="member.id === user?.id") Вы
+            span.badge.badge--reading.label-text(v-if="member.id === user?.id") {{ $t('members.you') }}
           span.member-card__status(:class="{ 'member-card__status--inactive badge--muted': !member.isActive }")
             span.member-card__status-dot(aria-hidden="true")
-            span {{ member.isActive ? 'Активен' : 'Неактивен' }}
-        button.member-card__menu(type="button" aria-label="Действия участника" @click.prevent)
+            span {{ member.isActive ? $t('members.statusActive') : $t('members.statusInactive') }}
+        button.member-card__menu(type="button" :aria-label="t('members.actionsAria')" @click.prevent)
           MoreHorizontal(:size="18")
       .member-card__stats
         .member-card__stat
           span.member-card__stat-value {{ member.stats.read }}
-          span.label-text Прочитано
+          span.label-text {{ $t('members.read') }}
         .member-card__stat
           span.member-card__stat-value {{ member.stats.proposed }}
-          span.label-text Предложено
+          span.label-text {{ $t('members.proposed') }}
         .member-card__stat
           span.member-card__stat-value {{ member.stats.meetings }}
-          span.label-text Встреч
+          span.label-text {{ $t('members.meetings') }}
       button.member-card__deactivate(
         v-if="canManageMembers && member.isActive && member.id !== user?.id"
         type="button"
         @click.prevent="deactivateMember(member.id)"
       )
         UserRoundMinus(:size="16" aria-hidden="true")
-        span Деактивировать
+        span {{ $t('members.deactivate') }}
       button.member-card__activate(
         v-else-if="canManageMembers && !member.isActive"
         type="button"
@@ -120,10 +122,10 @@ main.members.container
         @click.prevent
       )
         UserRoundCheck(:size="16" aria-hidden="true")
-        span Активировать
+        span {{ $t('members.activate') }}
   section.panel.members__empty(v-else aria-live="polite")
-    h2 Ничего не найдено
-    p.body-text Измени поисковый запрос или фильтр статуса.
+    h2 {{ $t('members.noResults') }}
+    p.body-text {{ $t('members.noResultsText') }}
 </template>
 
 <style scoped>
