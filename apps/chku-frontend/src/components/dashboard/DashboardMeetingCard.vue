@@ -24,6 +24,9 @@ const attendingMembers = computed(() =>
 
 const visibleAttendees = computed(() => attendingMembers.value.slice(0, 4))
 const extraCount = computed(() => Math.max(0, attendingMembers.value.length - 4))
+const sectionLabel = computed(() =>
+  props.meeting.status === 'started' ? 'Встреча идёт' : 'Следующая встреча',
+)
 
 function setRsvp(status: 'attending' | 'not_attending') {
   rsvpMutation.mutate(status)
@@ -33,7 +36,7 @@ function setRsvp(status: 'attending' | 'not_attending') {
 <template lang="pug">
 section.panel.dashboard-card(aria-labelledby="meeting-title")
   .section-header.section-header--compact
-    span#meeting-title.label-text Следующая встреча
+    span#meeting-title.label-text {{ sectionLabel }}
   .dashboard-card__meta
     h3.dashboard-card__title {{ meeting.dateLabel }}
     p.dashboard-card__date-extra.body-text {{ meeting.dayTimeLabel }}

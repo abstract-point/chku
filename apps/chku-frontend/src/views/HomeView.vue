@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { CalendarPlus } from '@lucide/vue'
-import { RouterLink } from 'vue-router'
 import DashboardBookSelectionCycle from '@/components/dashboard/DashboardBookSelectionCycle.vue'
 import DashboardCurrentCycle from '@/components/dashboard/DashboardCurrentCycle.vue'
-import DashboardMeetingCard from '@/components/dashboard/DashboardMeetingCard.vue'
+import DashboardMeetingSection from '@/components/dashboard/DashboardMeetingSection.vue'
 import DashboardTurnOrderCard from '@/components/dashboard/DashboardTurnOrderCard.vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
@@ -35,17 +33,11 @@ main.dashboard.container
           h2 Текущий цикл ещё не начат
         p.body-text Когда книга будет утверждена, она появится здесь.
       aside.dashboard__sidebar(aria-label="Сводка клуба")
-        DashboardMeetingCard(v-if="dashboardQuery.data.value.nextMeeting" :meeting="dashboardQuery.data.value.nextMeeting")
-        section.panel.dashboard-card(
-          v-else-if="isAdmin && dashboardQuery.data.value.lifecycle?.currentCycleStatus === 'active'"
+        DashboardMeetingSection(
+          :meeting="dashboardQuery.data.value.nextMeeting"
+          :current-cycle-status="dashboardQuery.data.value.lifecycle?.currentCycleStatus"
+          :is-admin="isAdmin"
         )
-          .section-header.section-header--compact
-            span.label-text Следующая встреча
-          .dashboard-card__no-meeting
-            CalendarPlus.dashboard-card__no-meeting-icon(:size="22")
-            h3 Встреча ещё не назначена
-            p.body-text Начните новый цикл с планирования встречи.
-          RouterLink.button.button--primary.label-text.dashboard-card__button(to="/meetings/create") Назначить встречу
         DashboardTurnOrderCard(
           :members="dashboardQuery.data.value.turnOrder"
           :cycle-status="dashboardQuery.data.value.lifecycle?.currentCycleStatus"
@@ -64,20 +56,6 @@ main.dashboard.container
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
-}
-
-.dashboard-card__no-meeting {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-lg) var(--space-md);
-  text-align: center;
-}
-
-.dashboard-card__no-meeting-icon {
-  color: var(--warn);
-  margin-bottom: var(--space-sm);
 }
 
 @media (max-width: 960px) {
