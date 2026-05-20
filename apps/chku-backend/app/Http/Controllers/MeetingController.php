@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Enums\MeetingRsvpStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
 use App\Http\Resources\MeetingResource;
+use App\Models\ClubMember;
 use App\Models\Meeting;
 use App\Models\MeetingReschedule;
 use App\Models\MeetingRsvp;
@@ -78,6 +79,14 @@ final class MeetingController extends Controller
 
         $actor = $request->user();
         if ($actor) {
+            $currentMember = $actor->clubMember;
+            if ($currentMember) {
+                MeetingRsvp::create([
+                    'meeting_id' => $meeting->id,
+                    'club_member_id' => $currentMember->id,
+                    'status' => MeetingRsvpStatusEnum::Attending,
+                ]);
+            }
             $this->auditLog->logMeetingCreated($meeting, $actor);
         }
 
@@ -265,5 +274,41 @@ final class MeetingController extends Controller
         return new MeetingResource(
             $meeting->refresh()->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
         );
+    }
+
+    public function destroyRsvp(Request $request, Meeting $meeting, ClubMember $member): JsonResponse
+    {
+        $this->authorize('update', $meeting);
+
+        $rsvp = MeetingRsvp::where('meeting_id', $meeting->id)
+            ->where('club_member_id', $member->id)
+            ->first();
+
+        abort_if(! $rsvp, 404, 'Участник не найден среди RSVP встречи.');
+
+        abort_if(
+            $member->user?->hasRole('admin'),
+            403,
+            'Нельзя удалить администратора из участников встречи.',
+        );
+
+        $currentMember = app(CurrentMemberService::class)->get();
+        if ($rsvp->club_member_id === $currentMember->id) {
+            $adminAttendeesCount = $meeting->rsvps()
+                ->whereHas('clubMember.user', function ($q): void {
+                    $q->whereHas('roles', function ($r): void {
+                        $r->where('name', 'admin');
+                    });
+                })
+                ->count();
+
+            if ($adminAttendeesCount <= 1) {
+                abort(403, 'Нельзя удалить себя как единственного администратора встречи.');
+            }
+        }
+
+        $rsvp->delete();
+
+        return response()->json(['message' => 'Участник удалён из встречи.']);
     }
 }
