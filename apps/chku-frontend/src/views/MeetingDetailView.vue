@@ -75,7 +75,24 @@ const missingRatingAttendees = computed(() => {
     meeting.value!.missingRatingMemberIds.includes(attendee.id),
   )
 })
+
+const missingReadingAttendees = computed(() => {
+  if (!meeting.value) return []
+  return meeting.value.attendees.filter((attendee) =>
+    meeting.value!.missingReadingMemberIds.includes(attendee.id),
+  )
+})
+
 const hasMeetingQuorum = computed(() => (meeting.value?.attendees.length ?? 0) >= minMeetingAttendees)
+
+const isMeetingTime = computed(() => {
+  if (!meeting.value?.date || !meeting.value?.time) return false
+  const now = new Date()
+  const [hours, minutes] = meeting.value.time.split(':').map(Number)
+  const meetingDate = new Date(meeting.value.date)
+  meetingDate.setHours(hours, minutes, 0, 0)
+  return now >= meetingDate
+})
 const isCurrentUserAttending = computed(() => rsvpStatus.value === 'attending')
 const currentUserId = computed(() => user.value?.id)
 const shouldShowRatingForm = computed(() => meeting.value?.status === 'started' && rsvpStatus.value === 'attending')
@@ -188,7 +205,7 @@ main.meeting-detail.container
             .meeting-detail__admin-actions
               SecondaryButton(:to="`/meetings/${meeting.id}/edit`" :icon="Pencil") Редактировать
               template(v-if="meeting.status === 'scheduled'")
-                SecondaryButton(
+                button.button.button--primary.label-text(
                   type="button"
                   :disabled="!meeting.canStart || startMeetingMutation.isPending.value"
                   @click="startMeeting"
@@ -204,8 +221,23 @@ main.meeting-detail.container
               .inline-alert(v-if="!hasMeetingQuorum")
                 AlertTriangle(:size="14")
                 span Нужно минимум 2 участника со статусом «Буду».
+              .inline-alert(v-if="missingReadingAttendees.length")
+                AlertTriangle(:size="14")
+                span Нужно дочитать книгу:
+                span.meeting-detail__missing-reading
+                  template(v-for="(attendee, idx) in missingReadingAttendees" :key="attendee.id")
+                    | {{ attendee.name }}{{ idx < missingReadingAttendees.length - 1 ? ', ' : '' }}
+              .inline-alert(v-if="!isMeetingTime")
+                AlertTriangle(:size="14")
+                span Встреча ещё не началась — назначена на {{ meeting.dateLabel }} {{ meeting.timeLabel }}.
+              .inline-alert.inline-alert--success(v-if="meeting.canStart")
+                CheckCircle(:size="14")
+                span Встреча готова к началу.
               p.proposal__error(v-if="startMeetingMutation.error.value") Не удалось начать встречу.
             template(v-else-if="meeting.status === 'started'")
+              .inline-alert.inline-alert--success(v-if="meeting.canFinish")
+                CheckCircle(:size="14")
+                span Встреча готова к завершению.
               .inline-alert(v-if="missingRatingAttendees.length")
                 AlertTriangle(:size="14")
                 span Нужны оценки:
@@ -358,7 +390,7 @@ main.meeting-detail.container
           .meeting-detail__rsvp-status(v-if="!isArchived")
             .inline-alert.inline-alert--success(v-if="rsvpStatus === 'attending'")
               CheckCircle(:size="14" aria-hidden="true")
-              span Вы идёте на эту встречу
+              span Вы участвуете во встрече
               button.meeting-detail__decline-text(type="button" :disabled="updateRsvpMutation.isPending.value" @click="setRsvp('not_attending')")
                 | Не смогу
             .inline-alert(v-else-if="rsvpStatus === 'not_attending'")
@@ -553,7 +585,8 @@ main.meeting-detail.container
   color: var(--accent);
 }
 
-.meeting-detail__missing-rating {
+.meeting-detail__missing-rating,
+.meeting-detail__missing-reading {
   color: var(--text-main);
 }
 
