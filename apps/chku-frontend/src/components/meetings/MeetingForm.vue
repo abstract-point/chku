@@ -34,8 +34,18 @@ const newTopic = ref('')
 const notes = ref('')
 
 const months = [
-  'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-  'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
+  'Январь',
+  'Февраль',
+  'Март',
+  'Апрель',
+  'Май',
+  'Июнь',
+  'Июль',
+  'Август',
+  'Сентябрь',
+  'Октябрь',
+  'Ноябрь',
+  'Декабрь',
 ]
 
 const dayOptions = computed(() => [
@@ -43,18 +53,14 @@ const dayOptions = computed(() => [
   ...Array.from({ length: 31 }, (_, i) => ({ label: String(i + 1), value: i + 1 })),
 ])
 
-const monthOptions = computed(() =>
-  months.map((name, i) => ({ label: name, value: i + 1 })),
-)
+const monthOptions = computed(() => months.map((name, i) => ({ label: name, value: i + 1 })))
 
 const years = computed(() => {
   const current = new Date().getFullYear()
   return [current - 1, current, current + 1]
 })
 
-const yearOptions = computed(() =>
-  years.value.map((y) => ({ label: String(y), value: y })),
-)
+const yearOptions = computed(() => years.value.map((y) => ({ label: String(y), value: y })))
 
 const formatOptions = computed(() => [
   { label: 'Очно', value: false },
@@ -133,7 +139,7 @@ function isInvalid(field: string): boolean {
 form.meeting-form(@submit.prevent="onSubmit" novalidate)
   .section-header
     h1 {{ isEdit ? 'Редактировать встречу' : 'Новая встреча' }}
-    span.label-text Цикл #{{ cycleId }}
+    span.label-text Цикл # {{ cycleId }}
 
   .meeting-form__fields
     AppFormField(label="Название" label-for="meeting-title" required :error="fieldError('title')")
