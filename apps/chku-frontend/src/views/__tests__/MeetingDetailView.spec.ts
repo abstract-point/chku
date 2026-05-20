@@ -78,7 +78,7 @@ describe('MeetingDetailView', () => {
 
     const wrapper = mountMeetingDetail()
 
-    expect(wrapper.text()).not.toContain('Вы идёте на эту встречу')
+    expect(wrapper.text()).not.toContain('Вы участвуете во встрече')
     expect(wrapper.text()).not.toContain('Вы не сможете прийти')
     expect(wrapper.text()).toContain('Буду на встрече')
   })
@@ -104,7 +104,7 @@ describe('MeetingDetailView', () => {
     const wrapper = mountMeetingDetail()
     const declineButton = wrapper.find('.meeting-detail__decline-text')
 
-    expect(wrapper.text()).toContain('Вы идёте на эту встречу')
+    expect(wrapper.text()).toContain('Вы участвуете во встрече')
     expect(wrapper.text()).not.toContain('Буду на встрече')
     expect(declineButton.exists()).toBe(true)
     expect(wrapper.text()).toContain('Не смогу')
