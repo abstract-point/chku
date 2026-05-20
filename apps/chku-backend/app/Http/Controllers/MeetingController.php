@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\MeetingRsvpStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
+use App\Enums\ReadingProgressStatusEnum;
 use App\Http\Resources\MeetingResource;
 use App\Models\ClubMember;
 use App\Models\Meeting;
@@ -13,11 +14,13 @@ use App\Models\MeetingReschedule;
 use App\Models\MeetingRsvp;
 use App\Models\Rating;
 use App\Models\ReadingCycle;
+use App\Models\ReadingProgress;
 use App\Models\Review;
 use App\Services\AuditLogService;
 use App\Services\BookSelectionStateMachine;
 use App\Services\CurrentMemberService;
 use App\Services\TurnOrderService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -184,21 +187,42 @@ final class MeetingController extends Controller
         );
     }
 
-    public function start(Request $request, Meeting $meeting): MeetingResource
+    public function start(Request $request, Meeting $meeting): MeetingResource|JsonResponse
     {
         $this->authorize('update', $meeting);
 
         abort_if($meeting->finished_at !== null, 422, 'Завершённую встречу нельзя начать заново.');
         abort_if($meeting->readingCycle?->status !== ReadingCycleStatusEnum::Active, 422, 'Встречу можно начать только в активном цикле.');
 
-        $attendingCount = $meeting->rsvps()
+        $attendingMemberIds = $meeting->rsvps()
             ->where('status', MeetingRsvpStatusEnum::Attending->value)
-            ->count();
+            ->pluck('club_member_id');
 
         abort_if(
-            $attendingCount < Meeting::MIN_ATTENDING_MEMBERS,
+            $attendingMemberIds->count() < Meeting::MIN_ATTENDING_MEMBERS,
             422,
             'Встречу можно начать только если минимум 2 участника отметились «Буду».',
+        );
+
+        $finishedMemberIds = ReadingProgress::query()
+            ->where('reading_cycle_id', $meeting->reading_cycle_id)
+            ->whereIn('club_member_id', $attendingMemberIds)
+            ->where('status', ReadingProgressStatusEnum::Finished)
+            ->pluck('club_member_id');
+
+        $missing = $attendingMemberIds->diff($finishedMemberIds);
+        if ($missing->isNotEmpty()) {
+            return response()->json([
+                'message' => 'Встречу можно начать только после того, как все участники дочитают книгу.',
+                'missingMemberIds' => $missing->values(),
+            ], 422);
+        }
+
+        $meetingDateTime = Carbon::parse("{$meeting->date->format('Y-m-d')} {$meeting->time}");
+        abort_if(
+            now() < $meetingDateTime,
+            422,
+            'Встречу нельзя начать раньше назначенного времени.',
         );
 
         if ($meeting->started_at === null) {
