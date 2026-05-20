@@ -8,11 +8,14 @@ import {
   CheckCircle,
   Link as LinkIcon,
   MapPin,
+  MessageSquare,
   Monitor,
   Pencil,
   Play,
   Send,
+  UserMinus,
   Users,
+  X,
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import MeetingFinishModal from '@/components/meetings/MeetingFinishModal.vue'
@@ -20,6 +23,7 @@ import {
   useAddMeetingTopicMutation,
   useFinishMeetingMutation,
   useMeetingQuery,
+  useRemoveMeetingRsvpMutation,
   useStartMeetingMutation,
   useUpdateMeetingRsvpMutation,
 } from '@/queries/meetingQueries'
@@ -33,6 +37,7 @@ const meetingId = computed(() => String(route.params.id ?? ''))
 const meetingQuery = useMeetingQuery(meetingId, computed(() => user.value?.id))
 const dashboardQuery = useDashboardQuery()
 const updateRsvpMutation = useUpdateMeetingRsvpMutation(meetingId)
+const removeRsvpMutation = useRemoveMeetingRsvpMutation(meetingId)
 const addTopicMutation = useAddMeetingTopicMutation(meetingId)
 const startMeetingMutation = useStartMeetingMutation(meetingId)
 const finishMeetingMutation = useFinishMeetingMutation(meetingId)
@@ -56,6 +61,22 @@ const missingRatingAttendees = computed(() => {
   )
 })
 const hasMeetingQuorum = computed(() => (meeting.value?.attendees.length ?? 0) >= minMeetingAttendees)
+const isCurrentUserAttending = computed(() => rsvpStatus.value === 'attending')
+const currentUserId = computed(() => user.value?.id)
+const shouldShowRatingForm = computed(() => meeting.value?.status === 'started' && rsvpStatus.value === 'attending')
+const adminAttendeesCount = computed(() => meeting.value?.attendees.filter((a) => a.isAdmin).length ?? 0)
+
+function canRemoveAttendee(attendee: { id: number; isAdmin?: boolean }) {
+  if (attendee.isAdmin) return false
+  if (attendee.id === currentUserId.value) {
+    return adminAttendeesCount.value > 1
+  }
+  return true
+}
+
+function removeAttendee(memberId: number) {
+  removeRsvpMutation.mutate(memberId)
+}
 
 watchEffect(() => {
   rsvpStatus.value = meeting.value?.rsvpStatus ?? 'pending'
@@ -129,109 +150,13 @@ main.meeting-detail.container
     .section-header
       .meeting-detail__header-row
         h1.meeting-detail__title {{ meeting.title }}
-        RouterLink.button.button--ghost.label-text(
-          v-if="isAdmin && !isArchived"
-          :to="`/meetings/${meeting.id}/edit`"
-        )
-          Pencil.meeting-detail__button-icon
-          | Редактировать
       span.label-text {{ meeting.cycleLabel }}
 
     .meeting-detail__grid
       .meeting-detail__main
-        .meeting-detail__status.panel
-          .meeting-detail__status-row(v-if="meeting.status === 'finished'")
-            CheckCircle.meeting-detail__status-icon.meeting-detail__status-icon--accent
-            div
-              span.label-text Статус встречи
-              h2.meeting-detail__status-heading Встреча завершена
-          .meeting-detail__status-row(v-else-if="meeting.status === 'started'")
-            Play.meeting-detail__status-icon.meeting-detail__status-icon--accent
-            div
-              span.label-text Статус встречи
-              h2.meeting-detail__status-heading Встреча идёт сейчас
-          .meeting-detail__status-row(v-else)
-            CalendarDays.meeting-detail__status-icon
-            div
-              span.label-text Статус встречи
-              h2.meeting-detail__status-heading Встреча запланирована
-
-        .panel.meeting-detail__admin-panel(v-if="isAdmin && !isArchived")
+        form.panel.meeting-detail__rating(v-if="shouldShowRatingForm" @submit.prevent="submitRatingReview" novalidate)
           .section-header.section-header--compact
-            h2 Управление встречей
-            span.label-text Администратор
-          .meeting-detail__admin-body
-            template(v-if="meeting.status === 'scheduled'")
-              button.button.button--secondary.label-text(
-                type="button"
-                :disabled="!meeting.canStart || startMeetingMutation.isPending.value"
-                @click="startMeeting"
-              ) {{ startMeetingMutation.isPending.value ? 'Начинаем...' : 'Начать встречу' }}
-              .inline-alert(v-if="!hasMeetingQuorum")
-                AlertTriangle(:size="14")
-                span Нужно минимум 2 участника со статусом «Буду».
-              p.proposal__error(v-if="startMeetingMutation.error.value") Не удалось начать встречу.
-            template(v-else-if="meeting.status === 'started'")
-              button.button.button--primary.label-text(
-                type="button"
-                :disabled="!meeting.canFinish || finishMeetingMutation.isPending.value"
-                @click="openFinishModal"
-              ) {{ finishMeetingMutation.isPending.value ? 'Завершаем...' : 'Закончить встречу и цикл' }}
-              .inline-alert(v-if="missingRatingAttendees.length")
-                AlertTriangle(:size="14")
-                span Нужны оценки:
-                span.meeting-detail__missing-rating(v-for="attendee in missingRatingAttendees" :key="attendee.id") {{ attendee.name }}
-              p.proposal__error(v-if="finishMeetingMutation.error.value") Не удалось завершить встречу.
-
-        .panel.meeting-detail__hero
-          .meeting-detail__hero-section.meeting-detail__hero-section--primary
-            CalendarDays.meeting-detail__hero-icon
-            div
-              span.label-text Дата и время
-              h2.meeting-detail__hero-heading {{ meeting.dateLabel }}
-              p.subtitle-italic {{ meeting.timeLabel }}
-
-          .meeting-detail__hero-section
-            MapPin.meeting-detail__hero-icon(v-if="!meeting.isOnline")
-            Monitor.meeting-detail__hero-icon(v-else)
-            div
-              span.label-text {{ meeting.isOnline ? 'Онлайн' : 'Место' }}
-              h3(v-if="!meeting.isOnline") {{ meeting.place }}
-              p.body-text(v-if="meeting.placeAddress") {{ meeting.placeAddress }}
-              p.body-text(v-if="meeting.placeReservation") {{ meeting.placeReservation }}
-
-          .meeting-detail__hero-section(v-if="meeting.meetingLink")
-            LinkIcon.meeting-detail__hero-icon
-            div
-              span.label-text Ссылка на встречу
-              .meeting-detail__link-box
-                LinkIcon
-                span.body-text {{ meeting.meetingLink }}
-
-        .section-header.meeting-detail__topics-header
-          h2 Темы для обсуждения
-
-        ol.meeting-detail__topics(v-if="localTopics.length")
-          li.meeting-detail__topic(v-for="(topic, index) in localTopics" :key="`${topic}-${index}`") {{ topic }}
-
-        .meeting-detail__add-topic(v-if="!isArchived")
-          span.label-text Добавить тему
-          .meeting-detail__add-topic-row
-            input.meeting-detail__input(
-              class="field-control"
-              v-model="newTopic"
-              type="text"
-              placeholder="Предложить вопрос..."
-              @keydown.enter.prevent="submitTopic"
-            )
-            button.button.button--secondary.label-text(type="button" @click="submitTopic")
-              Send.meeting-detail__button-icon
-              | Отправить
-
-        .section-header.meeting-detail__topics-header(v-if="!isArchived")
-          h2 Оценка после встречи
-
-        form.panel.meeting-detail__rating(v-if="!isArchived" @submit.prevent="submitRatingReview" novalidate)
+            h2 Оценка и отзыв
           .meeting-detail__rating-row
             label.label-text(for="meeting-rating") Оценка
             input#meeting-rating.field-control.meeting-detail__input(
@@ -254,44 +179,149 @@ main.meeting-detail.container
           p.body-text(v-if="saveRatingReviewMutation.isSuccess.value") Оценка сохранена.
           p.proposal__error(v-if="saveRatingReviewMutation.error.value") Не удалось сохранить оценку.
 
-      aside.meeting-detail__sidebar(aria-label="Сводка встречи")
-        .panel(v-if="!isArchived")
+        section.panel.meeting-detail__info(aria-labelledby="meeting-info-title")
           .section-header.section-header--compact
-            span.label-text Ваш RSVP
-          .meeting-detail__rsvp
-            button.button.label-text(
-              type="button"
-              :class="rsvpStatus === 'attending' ? 'button--primary' : 'button--secondary'"
-              :disabled="updateRsvpMutation.isPending.value"
-              @click="setRsvp('attending')"
-            ) Буду
-            button.button.label-text(
-              type="button"
-              :class="rsvpStatus === 'not_attending' ? 'button--primary' : 'button--secondary'"
-              :disabled="updateRsvpMutation.isPending.value"
-              @click="setRsvp('not_attending')"
-            ) Не смогу
+            h2#meeting-info-title Основная информация о встрече
+            span.label-text {{ meeting.status === 'finished' ? 'Завершена' : meeting.status === 'started' ? 'Идёт сейчас' : 'Запланирована' }}
 
-        .panel
+          .meeting-detail__status-row(v-if="meeting.status === 'finished'")
+            CheckCircle.meeting-detail__status-icon.meeting-detail__status-icon--accent
+            div
+              span.label-text Статус встречи
+              h3.meeting-detail__status-heading Встреча завершена
+          .meeting-detail__status-row(v-else-if="meeting.status === 'started'")
+            Play.meeting-detail__status-icon.meeting-detail__status-icon--accent
+            div
+              span.label-text Статус встречи
+              h3.meeting-detail__status-heading Встреча идёт сейчас
+          .meeting-detail__status-row(v-else)
+            CalendarDays.meeting-detail__status-icon
+            div
+              span.label-text Статус встречи
+              h3.meeting-detail__status-heading Встреча запланирована
+
+          .meeting-detail__info-grid
+            .meeting-detail__info-item.meeting-detail__info-item--primary
+              CalendarDays.meeting-detail__hero-icon
+              div
+                span.label-text Дата и время
+                h3.meeting-detail__hero-heading {{ meeting.dateLabel }}
+                p.subtitle-italic {{ meeting.timeLabel }}
+            .meeting-detail__info-item
+              MapPin.meeting-detail__hero-icon(v-if="!meeting.isOnline")
+              Monitor.meeting-detail__hero-icon(v-else)
+              div
+                span.label-text {{ meeting.isOnline ? 'Онлайн' : 'Место' }}
+                h3(v-if="!meeting.isOnline") {{ meeting.place }}
+                p.body-text(v-if="meeting.placeAddress") {{ meeting.placeAddress }}
+                p.body-text(v-if="meeting.placeReservation") {{ meeting.placeReservation }}
+            .meeting-detail__info-item(v-if="meeting.meetingLink")
+              LinkIcon.meeting-detail__hero-icon
+              div
+                span.label-text Ссылка на встречу
+                a.meeting-detail__link.body-text(:href="meeting.meetingLink" target="_blank" rel="noopener noreferrer") {{ meeting.meetingLink }}
+            .meeting-detail__info-item
+              BookOpen.meeting-detail__hero-icon
+              div
+                span.label-text Книга
+                h3.meeting-detail__book-title {{ meeting.book.title }}
+                p.subtitle-italic {{ meeting.book.author }}
+
+          .meeting-detail__admin-panel(v-if="isAdmin && !isArchived")
+            .meeting-detail__admin-head
+              span.label-text Управление встречей
+              .meeting-detail__admin-actions
+                RouterLink.button.button--ghost.label-text(:to="`/meetings/${meeting.id}/edit`")
+                  Pencil.meeting-detail__button-icon
+                  | Редактировать
+                template(v-if="meeting.status === 'scheduled'")
+                  button.button.button--secondary.label-text(
+                    type="button"
+                    :disabled="!meeting.canStart || startMeetingMutation.isPending.value"
+                    @click="startMeeting"
+                  ) {{ startMeetingMutation.isPending.value ? 'Начинаем...' : 'Начать встречу' }}
+                template(v-else-if="meeting.status === 'started'")
+                  button.button.button--primary.label-text(
+                    type="button"
+                    :disabled="!meeting.canFinish || finishMeetingMutation.isPending.value"
+                    @click="openFinishModal"
+                  ) {{ finishMeetingMutation.isPending.value ? 'Завершаем...' : 'Закончить встречу и цикл' }}
+            .meeting-detail__admin-alerts
+              template(v-if="meeting.status === 'scheduled'")
+                .inline-alert(v-if="!hasMeetingQuorum")
+                  AlertTriangle(:size="14")
+                  span Нужно минимум 2 участника со статусом «Буду».
+                p.proposal__error(v-if="startMeetingMutation.error.value") Не удалось начать встречу.
+              template(v-else-if="meeting.status === 'started'")
+                .inline-alert(v-if="missingRatingAttendees.length")
+                  AlertTriangle(:size="14")
+                  span Нужны оценки:
+                  span.meeting-detail__missing-rating
+                    template(v-for="(attendee, idx) in missingRatingAttendees" :key="attendee.id")
+                      | {{ attendee.name }}{{ idx < missingRatingAttendees.length - 1 ? ', ' : '' }}
+                p.proposal__error(v-if="finishMeetingMutation.error.value") Не удалось завершить встречу.
+
+        section.meeting-detail__topics-section(aria-labelledby="meeting-topics-title")
           .section-header.section-header--compact
-            span.label-text Участники ({{ meeting.attendees.length }})
-            Users.meeting-detail__button-icon
+            h2#meeting-topics-title Темы для обсуждения
+          ul.meeting-detail__topics(v-if="localTopics.length")
+            li.meeting-detail__topic(v-for="(topic, index) in localTopics" :key="`${topic}-${index}`")
+              MessageSquare.meeting-detail__topic-icon(:size="16" aria-hidden="true")
+              span {{ topic }}
+          p.body-text(v-else) Тем пока нет.
+          .meeting-detail__add-topic(v-if="!isArchived")
+            span.label-text Добавить тему
+            .meeting-detail__add-topic-row
+              input.meeting-detail__input(
+                class="field-control"
+                v-model="newTopic"
+                type="text"
+                placeholder="Предложить вопрос..."
+                @keydown.enter.prevent="submitTopic"
+              )
+              button.button.button--secondary.label-text(type="button" @click="submitTopic")
+                Send.meeting-detail__button-icon
+                | Отправить
+
+      aside.meeting-detail__sidebar(aria-label="Сводка встречи")
+        section.panel.meeting-detail__participants(aria-labelledby="meeting-participants-title")
+          .section-header.section-header--compact
+            h2#meeting-participants-title Участники встречи
+            .meeting-detail__participant-count
+              span.label-text {{ meeting.attendees.length }}
+              Users(:size="15" aria-hidden="true")
+          .inline-alert.inline-alert--success(v-if="!isArchived && rsvpStatus === 'attending'") Вы идёте на эту встречу
+          .inline-alert(v-else-if="!isArchived && rsvpStatus === 'not_attending'") Вы не сможете прийти
+          button.button.button--primary.label-text(
+            v-if="!isArchived && !isCurrentUserAttending"
+            type="button"
+            :disabled="updateRsvpMutation.isPending.value"
+            @click="setRsvp('attending')"
+          ) Буду на встрече
           ul.data-list
             li.data-list__item(v-for="attendee in meeting.attendees" :key="attendee.id")
               RouterLink.meeting-detail__attendee(:to="`/members/${attendee.id}`")
                 UserAvatar(:name="attendee.name" :avatar-url="attendee.avatarUrl" size="sm")
                 span.body-text {{ attendee.name }}
-
-        .panel
-          .section-header.section-header--compact
-            span.label-text Книга в фокусе
-            BookOpen.meeting-detail__button-icon
-          h3.meeting-detail__book-title {{ meeting.book.title }}
-          p.subtitle-italic {{ meeting.book.author }}
-          RouterLink.button.button--ghost.label-text(
-            v-if="meeting.book.cycleSlug"
-            :to="`/archive/${meeting.book.cycleSlug}`"
-          ) Подробности о цикле
+              button.meeting-detail__decline-button(
+                v-if="!isArchived && attendee.id === currentUserId"
+                type="button"
+                title="Не смогу"
+                aria-label="Не смогу"
+                :disabled="updateRsvpMutation.isPending.value"
+                @click="setRsvp('not_attending')"
+              )
+                X(:size="15" aria-hidden="true")
+              button.meeting-detail__remove-button(
+                v-if="isAdmin && !isArchived && canRemoveAttendee(attendee)"
+                type="button"
+                title="Удалить из участников"
+                aria-label="Удалить из участников"
+                :disabled="removeRsvpMutation.isPending.value"
+                @click="removeAttendee(attendee.id)"
+              )
+                UserMinus(:size="15" aria-hidden="true")
+          p.body-text(v-if="!meeting.attendees.length") Пока никто не подтвердил участие.
 
     MeetingFinishModal(
       v-if="!isArchived"
@@ -347,22 +377,19 @@ main.meeting-detail.container
   gap: var(--space-lg);
 }
 
-.meeting-detail__status {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-panel);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)),
-    var(--bg-panel);
+.meeting-detail__info {
+  display: grid;
+  gap: var(--space-lg);
 }
 
 .meeting-detail__status-row {
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-surface);
 }
 
 .meeting-detail__status-icon {
@@ -385,41 +412,55 @@ main.meeting-detail.container
 .meeting-detail__admin-panel {
   display: grid;
   gap: var(--space-md);
-  padding: var(--space-lg);
-  border: var(--border-width) solid var(--warn-border);
-  border-radius: var(--radius-panel);
-  background:
-    linear-gradient(180deg, rgba(216, 137, 43, 0.08), rgba(216, 137, 43, 0.018)),
-    var(--bg-panel);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-surface);
 }
 
-.meeting-detail__admin-body {
+.meeting-detail__admin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.meeting-detail__admin-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.meeting-detail__admin-alerts {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
 }
 
-.meeting-detail__admin-body .button {
-  align-self: flex-start;
+.meeting-detail__admin-alerts .inline-alert {
+  align-items: center;
 }
 
-.meeting-detail__hero {
-  display: flex;
-  flex-direction: column;
+.meeting-detail__info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-md);
 }
 
-.meeting-detail__hero-section {
+.meeting-detail__info-item {
   display: flex;
   align-items: flex-start;
   gap: var(--space-md);
+  min-width: 0;
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
-  background: var(--bg-panel);
+  background: var(--bg-surface);
 }
 
-.meeting-detail__hero-section--primary {
+.meeting-detail__info-item--primary {
   border-color: var(--accent-border);
   background:
     linear-gradient(180deg, rgba(67, 224, 125, 0.07), rgba(67, 224, 125, 0.018)),
@@ -434,65 +475,66 @@ main.meeting-detail.container
   color: var(--text-subtle);
 }
 
-.meeting-detail__hero-section--primary .meeting-detail__hero-icon {
+.meeting-detail__info-item--primary .meeting-detail__hero-icon {
   color: var(--accent);
 }
 
 .meeting-detail__hero-heading {
   margin-bottom: 0;
-  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-size: 1.5rem;
 }
 
-.meeting-detail__link-box {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-md);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-inner);
-  background: var(--bg-surface);
-  margin-top: var(--space-sm);
-}
-
-.meeting-detail__link-box > svg {
-  flex-shrink: 0;
-  color: var(--accent-dim);
-  width: 1rem;
-  height: 1rem;
-}
-
-.meeting-detail__topics-header {
-  margin-top: var(--space-xl);
+.meeting-detail__link {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--accent);
 }
 
 .meeting-detail__missing-rating {
-  display: inline-block;
-  margin-left: var(--space-xs);
   color: var(--text-main);
+}
+
+.meeting-detail__topics-section {
+  display: grid;
+  gap: var(--space-md);
 }
 
 .meeting-detail__topics {
   display: grid;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-lg);
+  gap: 0;
+  margin-bottom: 0;
   padding-left: 0;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  line-height: 1.6;
   list-style: none;
 }
 
 .meeting-detail__topic {
-  padding: var(--space-md);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-inner);
-  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: var(--border-width) solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.meeting-detail__topic:last-child {
+  border-bottom: 0;
+}
+
+.meeting-detail__topic-icon {
+  flex-shrink: 0;
+  color: var(--text-subtle);
 }
 
 .meeting-detail__add-topic {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: var(--border-width) solid var(--border);
 }
 
 .meeting-detail__rating {
@@ -531,10 +573,16 @@ main.meeting-detail.container
   gap: var(--space-lg);
 }
 
-.meeting-detail__rsvp {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
+.meeting-detail__participants {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.meeting-detail__participant-count {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--text-muted);
 }
 
 .meeting-detail__attendee {
@@ -551,6 +599,52 @@ main.meeting-detail.container
 
 .meeting-detail__attendee:hover .user-avatar {
   border-color: var(--accent-border);
+}
+
+.meeting-detail__decline-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  margin-left: auto;
+  border: var(--border-width) solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-surface);
+  color: var(--text-subtle);
+  cursor: pointer;
+}
+
+.meeting-detail__decline-button:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.meeting-detail__decline-button:disabled {
+  cursor: not-allowed;
+}
+
+.meeting-detail__remove-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  margin-left: auto;
+  border: var(--border-width) solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-surface);
+  color: var(--text-subtle);
+  cursor: pointer;
+}
+
+.meeting-detail__remove-button:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.meeting-detail__remove-button:disabled {
+  cursor: not-allowed;
 }
 
 .meeting-detail__book-title {
@@ -570,10 +664,21 @@ main.meeting-detail.container
   .meeting-detail__grid {
     grid-template-columns: 1fr;
   }
+
+  .meeting-detail__info-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
-  .meeting-detail__admin-body .button {
+  .meeting-detail__admin-actions,
+  .meeting-detail__add-topic-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .meeting-detail__admin-actions .button,
+  .meeting-detail__add-topic-row .button {
     align-self: stretch;
     width: 100%;
   }
