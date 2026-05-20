@@ -278,6 +278,7 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
 .meeting-form__add-topic {
   display: flex;
   gap: var(--space-sm);
+  margin-top: var(--space-md);
 }
 
 .meeting-form__add-topic .app-input {

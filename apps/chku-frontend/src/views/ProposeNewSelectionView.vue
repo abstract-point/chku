@@ -143,7 +143,7 @@ main.proposal.container
       .section-header.section-header--compact
         h2#queue-form-title Добавить книгу
         Plus.proposal__button-icon
-      form(@submit.prevent="submitBook" novalidate)
+      form.proposal__form-fields(@submit.prevent="submitBook" novalidate)
         AppFormField(label="Название книги" label-for="book-title" required :error="formErrors.getError('title')")
           AppInput#book-title(
             v-model="form.title"
@@ -362,6 +362,12 @@ main.proposal.container
   color: var(--danger);
   font-size: 0.8rem;
   line-height: 1.4;
+}
+
+.proposal__form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
 }
 
 .proposal__actions {
