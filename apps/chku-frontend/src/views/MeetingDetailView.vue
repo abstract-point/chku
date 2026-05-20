@@ -16,10 +16,11 @@ import {
   Star,
   UserMinus,
   Users,
-  X,
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import MeetingFinishModal from '@/components/meetings/MeetingFinishModal.vue'
+import AppRangeInput from '@/components/ui/AppRangeInput.vue'
+import SecondaryButton from '@/components/ui/SecondaryButton.vue'
 import {
   useAddMeetingTopicMutation,
   useFinishMeetingMutation,
@@ -181,6 +182,38 @@ main.meeting-detail.container
 
     .meeting-detail__grid
       .meeting-detail__main
+        section.panel.meeting-detail__admin-panel(v-if="isAdmin && !isArchived")
+          .meeting-detail__admin-head
+            span.label-text Управление встречей
+            .meeting-detail__admin-actions
+              SecondaryButton(:to="`/meetings/${meeting.id}/edit`" :icon="Pencil") Редактировать
+              template(v-if="meeting.status === 'scheduled'")
+                SecondaryButton(
+                  type="button"
+                  :disabled="!meeting.canStart || startMeetingMutation.isPending.value"
+                  @click="startMeeting"
+                ) {{ startMeetingMutation.isPending.value ? 'Начинаем...' : 'Начать встречу' }}
+              template(v-else-if="meeting.status === 'started'")
+                button.button.button--primary.label-text(
+                  type="button"
+                  :disabled="!meeting.canFinish || finishMeetingMutation.isPending.value"
+                  @click="openFinishModal"
+                ) {{ finishMeetingMutation.isPending.value ? 'Завершаем...' : 'Закончить встречу и цикл' }}
+          .meeting-detail__admin-alerts
+            template(v-if="meeting.status === 'scheduled'")
+              .inline-alert(v-if="!hasMeetingQuorum")
+                AlertTriangle(:size="14")
+                span Нужно минимум 2 участника со статусом «Буду».
+              p.proposal__error(v-if="startMeetingMutation.error.value") Не удалось начать встречу.
+            template(v-else-if="meeting.status === 'started'")
+              .inline-alert(v-if="missingRatingAttendees.length")
+                AlertTriangle(:size="14")
+                span Нужны оценки:
+                span.meeting-detail__missing-rating
+                  template(v-for="(attendee, idx) in missingRatingAttendees" :key="attendee.id")
+                    | {{ attendee.name }}{{ idx < missingRatingAttendees.length - 1 ? ', ' : '' }}
+              p.proposal__error(v-if="finishMeetingMutation.error.value") Не удалось завершить встречу.
+
         form.panel.meeting-detail__rating(v-if="shouldShowRatingForm" @submit.prevent="submitRatingReview" novalidate)
           template(v-if="hasSubmittedRating && !isEditingRating")
             .section-header.section-header--compact
@@ -191,13 +224,12 @@ main.meeting-detail.container
                 span.meeting-detail__rating-number {{ currentUserRating }}
                 span.label-text из 10
               p.meeting-detail__rating-submitted-review(v-if="currentUserReview") {{ currentUserReview }}
-              button.button.button--secondary.label-text(
+              SecondaryButton(
                 v-if="!isArchived"
                 type="button"
+                :icon="Pencil"
                 @click="editRating"
-              )
-                Pencil.meeting-detail__button-icon
-                | Редактировать
+              ) Редактировать
           template(v-else)
             .section-header.section-header--compact
               h2 Оценка и отзыв
@@ -209,14 +241,25 @@ main.meeting-detail.container
                 p.body-text Встреча уже началась. Чтобы завершить цикл, нужна твоя оценка.
             .meeting-detail__rating-row
               label.label-text(for="meeting-rating") Оценка
-              input#meeting-rating.field-control.meeting-detail__input(
-                v-model.number="rating"
-                type="number"
-                min="1"
-                max="10"
-                placeholder="1-10"
-                :aria-invalid="ratingSubmitted && !rating"
-              )
+              .meeting-detail__rating-input-group
+                AppRangeInput#meeting-rating(
+                  v-model="rating"
+                  :min="1"
+                  :max="10"
+                  :step="0.1"
+                  aria-label="Оценка книги"
+                )
+                .meeting-detail__rating-number-input
+                  input.field-control(
+                    v-model.number="rating"
+                    type="number"
+                    min="1"
+                    max="10"
+                    step="0.1"
+                    placeholder="1-10"
+                    :aria-invalid="ratingSubmitted && !rating"
+                  )
+                  span.label-text из 10
             p.proposal__error(v-if="ratingSubmitted && !rating") Укажи оценку от 1 до 10.
             .meeting-detail__rating-row
               label.label-text(for="meeting-review") Отзыв
@@ -283,40 +326,6 @@ main.meeting-detail.container
                 h3.meeting-detail__book-title {{ meeting.book.title }}
                 p.subtitle-italic {{ meeting.book.author }}
 
-          .meeting-detail__admin-panel(v-if="isAdmin && !isArchived")
-            .meeting-detail__admin-head
-              span.label-text Управление встречей
-              .meeting-detail__admin-actions
-                RouterLink.button.button--ghost.label-text(:to="`/meetings/${meeting.id}/edit`")
-                  Pencil.meeting-detail__button-icon
-                  | Редактировать
-                template(v-if="meeting.status === 'scheduled'")
-                  button.button.button--secondary.label-text(
-                    type="button"
-                    :disabled="!meeting.canStart || startMeetingMutation.isPending.value"
-                    @click="startMeeting"
-                  ) {{ startMeetingMutation.isPending.value ? 'Начинаем...' : 'Начать встречу' }}
-                template(v-else-if="meeting.status === 'started'")
-                  button.button.button--primary.label-text(
-                    type="button"
-                    :disabled="!meeting.canFinish || finishMeetingMutation.isPending.value"
-                    @click="openFinishModal"
-                  ) {{ finishMeetingMutation.isPending.value ? 'Завершаем...' : 'Закончить встречу и цикл' }}
-            .meeting-detail__admin-alerts
-              template(v-if="meeting.status === 'scheduled'")
-                .inline-alert(v-if="!hasMeetingQuorum")
-                  AlertTriangle(:size="14")
-                  span Нужно минимум 2 участника со статусом «Буду».
-                p.proposal__error(v-if="startMeetingMutation.error.value") Не удалось начать встречу.
-              template(v-else-if="meeting.status === 'started'")
-                .inline-alert(v-if="missingRatingAttendees.length")
-                  AlertTriangle(:size="14")
-                  span Нужны оценки:
-                  span.meeting-detail__missing-rating
-                    template(v-for="(attendee, idx) in missingRatingAttendees" :key="attendee.id")
-                      | {{ attendee.name }}{{ idx < missingRatingAttendees.length - 1 ? ', ' : '' }}
-                p.proposal__error(v-if="finishMeetingMutation.error.value") Не удалось завершить встречу.
-
         section.meeting-detail__topics-section(aria-labelledby="meeting-topics-title")
           .section-header.section-header--compact
             h2#meeting-topics-title Темы для обсуждения
@@ -346,28 +355,25 @@ main.meeting-detail.container
             .meeting-detail__participant-count
               span.label-text {{ meeting.attendees.length }}
               Users(:size="15" aria-hidden="true")
-          .inline-alert.inline-alert--success(v-if="!isArchived && rsvpStatus === 'attending'") Вы идёте на эту встречу
-          .inline-alert(v-else-if="!isArchived && rsvpStatus === 'not_attending'") Вы не сможете прийти
-          button.button.button--primary.label-text(
-            v-if="!isArchived && !isCurrentUserAttending"
-            type="button"
-            :disabled="updateRsvpMutation.isPending.value"
-            @click="setRsvp('attending')"
-          ) Буду на встрече
+          .meeting-detail__rsvp-status(v-if="!isArchived")
+            .inline-alert.inline-alert--success(v-if="rsvpStatus === 'attending'")
+              CheckCircle(:size="14" aria-hidden="true")
+              span Вы идёте на эту встречу
+              button.meeting-detail__decline-text(type="button" :disabled="updateRsvpMutation.isPending.value" @click="setRsvp('not_attending')")
+                | Не смогу
+            .inline-alert(v-else-if="rsvpStatus === 'not_attending'")
+              span Вы не сможете прийти
+            button.button.button--primary.label-text(
+              v-if="!isCurrentUserAttending"
+              type="button"
+              :disabled="updateRsvpMutation.isPending.value"
+              @click="setRsvp('attending')"
+            ) Буду на встрече
           ul.data-list
             li.data-list__item(v-for="attendee in meeting.attendees" :key="attendee.id")
               RouterLink.meeting-detail__attendee(:to="`/members/${attendee.id}`")
                 UserAvatar(:name="attendee.name" :avatar-url="attendee.avatarUrl" size="sm")
                 span.body-text {{ attendee.name }}
-              button.meeting-detail__decline-button(
-                v-if="!isArchived && attendee.id === currentUserId"
-                type="button"
-                title="Не смогу"
-                aria-label="Не смогу"
-                :disabled="updateRsvpMutation.isPending.value"
-                @click="setRsvp('not_attending')"
-              )
-                X(:size="15" aria-hidden="true")
               button.meeting-detail__remove-button(
                 v-if="isAdmin && !isArchived && canRemoveAttendee(attendee)"
                 type="button"
@@ -673,6 +679,86 @@ main.meeting-detail.container
   flex-wrap: wrap;
 }
 
+.meeting-detail__rating-input-group {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.meeting-detail__rating-number-input {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: var(--border-width) solid var(--border);
+  border-radius: calc(var(--radius-inner) - 2px);
+  background: var(--bg-surface);
+}
+
+.meeting-detail__rating-number-input input {
+  flex: 1;
+  min-height: 2.5rem;
+  padding: 0 var(--space-sm);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+.meeting-detail__rating-number-input input::-webkit-inner-spin-button,
+.meeting-detail__rating-number-input input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.meeting-detail__rating-number-input input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.meeting-detail__rating-number-input span {
+  display: grid;
+  place-items: center;
+  padding: 0 var(--space-sm);
+  height: 2.5rem;
+  border-left: var(--border-width) solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.meeting-detail__rsvp-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.meeting-detail__rsvp-status .inline-alert {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.meeting-detail__decline-text {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-bottom: var(--border-width) solid transparent;
+  background: transparent;
+  color: var(--text-subtle);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.meeting-detail__decline-text:hover:not(:disabled) {
+  border-bottom-color: var(--danger);
+  color: var(--danger);
+}
+
+.meeting-detail__decline-text:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .proposal__error {
   color: var(--danger);
   font-size: 0.8rem;
@@ -721,29 +807,6 @@ main.meeting-detail.container
 
 .meeting-detail__attendee:hover .user-avatar {
   border-color: var(--accent-border);
-}
-
-.meeting-detail__decline-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
-  margin-left: auto;
-  border: var(--border-width) solid var(--border);
-  border-radius: 50%;
-  background: var(--bg-surface);
-  color: var(--text-subtle);
-  cursor: pointer;
-}
-
-.meeting-detail__decline-button:hover:not(:disabled) {
-  border-color: var(--danger);
-  color: var(--danger);
-}
-
-.meeting-detail__decline-button:disabled {
-  cursor: not-allowed;
 }
 
 .meeting-detail__remove-button {
