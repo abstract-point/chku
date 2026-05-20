@@ -4,8 +4,11 @@ namespace App\Http\Resources;
 
 use App\Enums\MeetingRsvpStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
+use App\Enums\ReadingProgressStatusEnum;
 use App\Models\Meeting;
 use App\Models\Rating;
+use App\Models\ReadingProgress;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -35,6 +38,19 @@ class MeetingResource extends JsonResource
         $cycleIsCompleted = $this->relationLoaded('readingCycle')
             && $this->readingCycle?->status === ReadingCycleStatusEnum::Completed;
 
+        $finishedMemberIds = $attendingMemberIds->isEmpty()
+            ? collect()
+            : ReadingProgress::query()
+                ->where('reading_cycle_id', $this->reading_cycle_id)
+                ->whereIn('club_member_id', $attendingMemberIds)
+                ->where('status', ReadingProgressStatusEnum::Finished)
+                ->pluck('club_member_id');
+
+        $missingReadingIds = $attendingMemberIds->diff($finishedMemberIds)->values();
+        $allAttendeesFinished = $missingReadingIds->isEmpty();
+        $meetingDateTime = $this->date ? Carbon::parse("{$this->date->format('Y-m-d')} {$this->time}") : null;
+        $isMeetingTime = $meetingDateTime ? now() >= $meetingDateTime : false;
+
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -54,9 +70,10 @@ class MeetingResource extends JsonResource
             'status' => $cycleIsCompleted || $this->finished_at
                 ? 'finished'
                 : ($this->started_at ? 'started' : 'scheduled'),
-            'canStart' => $cycleIsActive && $this->started_at === null && $this->finished_at === null && $hasQuorum,
+            'canStart' => $cycleIsActive && $this->started_at === null && $this->finished_at === null && $hasQuorum && $allAttendeesFinished && $isMeetingTime,
             'canFinish' => $cycleIsActive && $this->started_at !== null && $this->finished_at === null && $hasQuorum && $missingRatingIds->isEmpty(),
             'missingRatingMemberIds' => $missingRatingIds,
+            'missingReadingMemberIds' => $missingReadingIds,
             'rsvps' => MeetingRsvpResource::collection($this->whenLoaded('rsvps')),
             'reschedules' => MeetingRescheduleResource::collection($this->whenLoaded('reschedules')),
             'book' => $this->whenLoaded('readingCycle', fn () => new BookResource($this->readingCycle->book)),
