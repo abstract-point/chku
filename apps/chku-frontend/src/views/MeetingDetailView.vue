@@ -38,6 +38,7 @@ const startMeetingMutation = useStartMeetingMutation(meetingId)
 const finishMeetingMutation = useFinishMeetingMutation(meetingId)
 const saveRatingReviewMutation = useSaveRatingReviewMutation()
 const meeting = computed(() => meetingQuery.data.value)
+const isArchived = computed(() => meeting.value?.status === 'finished')
 const memberProgress = computed(() => dashboardQuery.data.value?.memberProgress ?? [])
 const newTopic = ref('')
 const rsvpStatus = ref<'attending' | 'not_attending' | 'pending'>('pending')
@@ -129,7 +130,7 @@ main.meeting-detail.container
       .meeting-detail__header-row
         h1.meeting-detail__title {{ meeting.title }}
         RouterLink.button.button--ghost.label-text(
-          v-if="isAdmin"
+          v-if="isAdmin && !isArchived"
           :to="`/meetings/${meeting.id}/edit`"
         )
           Pencil.meeting-detail__button-icon
@@ -155,7 +156,7 @@ main.meeting-detail.container
               span.label-text Статус встречи
               h2.meeting-detail__status-heading Встреча запланирована
 
-        .panel.meeting-detail__admin-panel(v-if="isAdmin && meeting.status !== 'finished'")
+        .panel.meeting-detail__admin-panel(v-if="isAdmin && !isArchived")
           .section-header.section-header--compact
             h2 Управление встречей
             span.label-text Администратор
@@ -213,7 +214,7 @@ main.meeting-detail.container
         ol.meeting-detail__topics(v-if="localTopics.length")
           li.meeting-detail__topic(v-for="(topic, index) in localTopics" :key="`${topic}-${index}`") {{ topic }}
 
-        .meeting-detail__add-topic
+        .meeting-detail__add-topic(v-if="!isArchived")
           span.label-text Добавить тему
           .meeting-detail__add-topic-row
             input.meeting-detail__input(
@@ -227,10 +228,10 @@ main.meeting-detail.container
               Send.meeting-detail__button-icon
               | Отправить
 
-        .section-header.meeting-detail__topics-header
+        .section-header.meeting-detail__topics-header(v-if="!isArchived")
           h2 Оценка после встречи
 
-        form.panel.meeting-detail__rating(@submit.prevent="submitRatingReview" novalidate)
+        form.panel.meeting-detail__rating(v-if="!isArchived" @submit.prevent="submitRatingReview" novalidate)
           .meeting-detail__rating-row
             label.label-text(for="meeting-rating") Оценка
             input#meeting-rating.field-control.meeting-detail__input(
@@ -254,7 +255,7 @@ main.meeting-detail.container
           p.proposal__error(v-if="saveRatingReviewMutation.error.value") Не удалось сохранить оценку.
 
       aside.meeting-detail__sidebar(aria-label="Сводка встречи")
-        .panel
+        .panel(v-if="!isArchived")
           .section-header.section-header--compact
             span.label-text Ваш RSVP
           .meeting-detail__rsvp
@@ -293,6 +294,7 @@ main.meeting-detail.container
           ) Подробности о цикле
 
     MeetingFinishModal(
+      v-if="!isArchived"
       :is-open="isFinishModalOpen"
       :meeting="meeting"
       :member-progress="memberProgress"

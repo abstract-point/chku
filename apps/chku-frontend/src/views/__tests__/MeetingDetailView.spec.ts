@@ -153,7 +153,12 @@ describe('MeetingDetailView', () => {
 
     const wrapper = mountMeetingDetail()
 
+    expect(wrapper.text()).toContain('Встреча завершена')
     expect(wrapper.text()).not.toContain('Управление встречей')
+    expect(wrapper.text()).not.toContain('Редактировать')
+    expect(wrapper.text()).not.toContain('Ваш RSVP')
+    expect(wrapper.text()).not.toContain('Добавить тему')
+    expect(wrapper.text()).not.toContain('Оценка после встречи')
   })
 
   it('renders fallback for unknown meeting id', () => {
