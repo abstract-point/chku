@@ -277,6 +277,27 @@ class MeetingApiTest extends TestCase
         $response->assertJsonPath('data.reviews.0.text', 'Отличная книга.');
     }
 
+    public function test_completed_cycle_meeting_is_returned_as_finished(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+        $completedCycle = ReadingCycle::where('status', 'completed')->firstOrFail();
+        $meeting = $completedCycle->meeting()->firstOrFail();
+
+        $meeting->update([
+            'started_at' => null,
+            'finished_at' => null,
+        ]);
+
+        $response = $this->actingAs($user)->getJson("/api/meetings/{$meeting->id}");
+
+        $response->assertOk();
+        $response->assertJsonPath('data.status', 'finished');
+        $response->assertJsonPath('data.canStart', false);
+        $response->assertJsonPath('data.canFinish', false);
+    }
+
     public function test_admin_can_start_meeting_for_active_cycle(): void
     {
         $this->seed(DatabaseSeeder::class);

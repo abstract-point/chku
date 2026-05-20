@@ -32,6 +32,8 @@ class MeetingResource extends JsonResource
         $hasQuorum = $attendingMemberIds->count() >= Meeting::MIN_ATTENDING_MEMBERS;
         $cycleIsActive = $this->relationLoaded('readingCycle')
             && $this->readingCycle?->status === ReadingCycleStatusEnum::Active;
+        $cycleIsCompleted = $this->relationLoaded('readingCycle')
+            && $this->readingCycle?->status === ReadingCycleStatusEnum::Completed;
 
         return [
             'id' => $this->id,
@@ -49,7 +51,7 @@ class MeetingResource extends JsonResource
             'notes' => $this->notes,
             'startedAt' => $this->started_at,
             'finishedAt' => $this->finished_at,
-            'status' => $this->finished_at
+            'status' => $cycleIsCompleted || $this->finished_at
                 ? 'finished'
                 : ($this->started_at ? 'started' : 'scheduled'),
             'canStart' => $cycleIsActive && $this->started_at === null && $this->finished_at === null && $hasQuorum,
