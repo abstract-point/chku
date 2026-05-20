@@ -52,7 +52,7 @@ section.panel.dashboard-card(aria-labelledby="meeting-title")
   .dashboard-card__avatars(v-if="attendingMembers.length" aria-label="Участники встречи")
     MemberTooltip(v-for="member in visibleAttendees" :key="member.id" :member="member")
     span.avatar.avatar--more(v-if="extraCount > 0") +{{ extraCount }}
-  .inline-alert.inline-alert--success(v-if="myRsvpStatus === 'attending'") Вы идёте на эту встречу
+  .inline-alert.inline-alert--success(v-if="myRsvpStatus === 'attending'") Вы участвуете во встрече
   .inline-alert(v-else-if="myRsvpStatus === 'not_attending'") Вы не сможете прийти
   button.button.button--primary.dashboard-card__button(
     v-else
