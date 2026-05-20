@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { AlertTriangle, CheckCircle2 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import AppModal from '@/components/ui/AppModal.vue'
@@ -11,6 +12,8 @@ const props = defineProps<{
   meeting: MeetingDetail
   memberProgress: BookProgressMember[]
 }>()
+
+const { t } = useI18n()
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -57,37 +60,37 @@ function handleConfirm() {
 </script>
 
 <template lang="pug">
-AppModal(:is-open="isOpen" title="Завершение встречи и цикла" @close="$emit('close')")
+AppModal(:is-open="isOpen" :title="t('meetings.finishTitle')" @close="$emit('close')")
   template(#default)
     .finish-modal__section
-      h3.finish-modal__subtitle Встреча
+      h3.finish-modal__subtitle {{ $t('meetings.finishMeeting') }}
       p.body-text {{ meeting.title }}
       p.body-text {{ meeting.dateLabel }} · {{ meeting.timeLabel }}
 
     .finish-modal__section
-      h3.finish-modal__subtitle Книга цикла
+      h3.finish-modal__subtitle {{ $t('meetings.finishBook') }}
       p.body-text «{{ meeting.book.title }}» — {{ meeting.book.author }}
 
     .finish-modal__section
-      h3.finish-modal__subtitle Участники и оценки
+      h3.finish-modal__subtitle {{ $t('meetings.finishParticipants') }}
       ul.finish-modal__list(v-if="attendeesWithRatings.length")
         li.finish-modal__list-item(v-for="item in attendeesWithRatings" :key="item.id")
           UserAvatar(:name="item.name" :avatar-url="item.avatarUrl" size="sm")
           span.body-text {{ item.name }}
           span.finish-modal__badge(v-if="item.ratingValue !== null") {{ item.ratingValue }}/10
-          span.finish-modal__badge.finish-modal__badge--warn(v-else) Нет оценки
+          span.finish-modal__badge.finish-modal__badge--warn(v-else) {{ $t('meetings.finishNoRating') }}
 
     .finish-modal__section
-      h3.finish-modal__subtitle Отзывы
+      h3.finish-modal__subtitle {{ $t('meetings.finishReviews') }}
       ul.finish-modal__list(v-if="attendeesWithReviews.length")
         li.finish-modal__list-item(v-for="item in attendeesWithReviews" :key="item.id")
           UserAvatar(:name="item.name" :avatar-url="item.avatarUrl" size="sm")
           span.body-text {{ item.name }}
           span.finish-modal__review(v-if="item.reviewText") {{ item.reviewText }}
-          span.finish-modal__badge.finish-modal__badge--subtle(v-else) Нет отзыва
+          span.finish-modal__badge.finish-modal__badge--subtle(v-else) {{ $t('meetings.finishNoReview') }}
 
     .finish-modal__section(v-if="memberProgress.length")
-      h3.finish-modal__subtitle Прогресс чтения
+      h3.finish-modal__subtitle {{ $t('meetings.finishProgress') }}
       ul.finish-modal__list
         li.finish-modal__list-item(v-for="item in progressSorted" :key="item.name")
           span.body-text {{ item.name }}
@@ -95,23 +98,23 @@ AppModal(:is-open="isOpen" title="Завершение встречи и цик�
             .progress.finish-modal__progress-bar(:aria-label="`${item.name}: ${item.progress}%`")
               .progress__bar(:style="{ '--progress-value': `${item.progress}%` }")
             span.label-text {{ item.progress }}%
-          span.label-text(v-else) Не начал
-          span.finish-modal__badge.finish-modal__badge--accent(v-if="topProgressMembers.includes(item)") Претендент на сову
+          span.label-text(v-else) {{ $t('meetings.finishNotStarted') }}
+          span.finish-modal__badge.finish-modal__badge--accent(v-if="topProgressMembers.includes(item)") {{ $t('meetings.finishContender') }}
 
     .finish-modal__alert(v-if="hasMissingRatings")
       AlertTriangle(:size="18")
-      p.body-text Невозможно завершить: не все участники поставили оценки.
+      p.body-text {{ $t('meetings.finishCannot') }}
 
     AppCheckbox(v-model="confirmed")
-      span.body-text Я подтверждаю, что данные о прочтении участников достоверны
+      span.body-text {{ $t('meetings.finishConfirm') }}
 
   template(#footer)
-    button.button.button--secondary.label-text(type="button" @click="$emit('close')") Отмена
+    button.button.button--secondary.label-text(type="button" @click="$emit('close')") {{ $t('meetings.finishCancel') }}
     button.button.button--primary.label-text(
       type="button"
       :disabled="!confirmed || hasMissingRatings"
       @click="handleConfirm"
-    ) Завершить встречу и цикл
+    ) {{ $t('meetings.finishBtn') }}
 </template>
 
 <style scoped>

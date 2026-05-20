@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
   AlertTriangle,
   BookOpen,
@@ -35,6 +36,7 @@ import { useSaveRatingReviewMutation } from '@/queries/readingCycleQueries'
 
 const route = useRoute()
 const { user, isAdmin } = useAuthSession()
+const { t } = useI18n()
 const meetingId = computed(() => String(route.params.id ?? ''))
 const meetingQuery = useMeetingQuery(meetingId, computed(() => user.value?.id))
 const dashboardQuery = useDashboardQuery()
@@ -178,15 +180,15 @@ function handleFinishConfirm() {
 <template lang="pug">
 main.meeting-detail.container
   section.panel(v-if="meetingQuery.isLoading.value" aria-live="polite")
-    p.body-text Загружаем встречу...
+    p.body-text {{ $t('common.loadingMeeting') }}
   section.panel.meeting-detail__missing(v-else-if="meetingQuery.error.value")
     .section-header.section-header--compact
-      h1 Встреча не найдена
-    p.body-text Возможно, ссылка устарела или встреча ещё не назначена.
-    RouterLink.button.button--primary.label-text(to="/") Вернуться на дашборд
+      h1 {{ $t('meetings.notFound') }}
+    p.body-text {{ $t('meetings.notFoundText') }}
+    RouterLink.button.button--primary.label-text(to="/") {{ $t('meetings.backToDash') }}
   template(v-else-if="meeting")
-    nav.meeting-detail__breadcrumb.label-text(aria-label="Навигация")
-      RouterLink(to="/") Дашборд
+    nav.meeting-detail__breadcrumb.label-text(:aria-label="t('meetings.breadcrumbAria')")
+      RouterLink(to="/") {{ $t('nav.dashboard') }}
       span /
       span {{ meeting.cycleLabel }}
       span /
@@ -201,85 +203,85 @@ main.meeting-detail.container
       .meeting-detail__main
         section.panel.meeting-detail__admin-panel(v-if="isAdmin && !isArchived")
           .meeting-detail__admin-head
-            span.label-text Управление встречей
+            span.label-text {{ $t('meetings.adminPanel') }}
             .meeting-detail__admin-actions
-              SecondaryButton(:to="`/meetings/${meeting.id}/edit`" :icon="Pencil") Редактировать
+              SecondaryButton(:to="`/meetings/${meeting.id}/edit`" :icon="Pencil") {{ $t('meetings.edit') }}
               template(v-if="meeting.status === 'scheduled'")
                 button.button.button--primary.label-text(
                   type="button"
                   :disabled="!meeting.canStart || startMeetingMutation.isPending.value"
                   @click="startMeeting"
-                ) {{ startMeetingMutation.isPending.value ? 'Начинаем...' : 'Начать встречу' }}
+                ) {{ startMeetingMutation.isPending.value ? $t('meetings.starting') : $t('meetings.start') }}
               template(v-else-if="meeting.status === 'started'")
                 button.button.button--primary.label-text(
                   type="button"
                   :disabled="!meeting.canFinish || finishMeetingMutation.isPending.value"
                   @click="openFinishModal"
-                ) {{ finishMeetingMutation.isPending.value ? 'Завершаем...' : 'Закончить встречу и цикл' }}
+                ) {{ finishMeetingMutation.isPending.value ? $t('meetings.finishing') : $t('meetings.finish') }}
           .meeting-detail__admin-alerts
             template(v-if="meeting.status === 'scheduled'")
               .inline-alert(v-if="!hasMeetingQuorum")
                 AlertTriangle(:size="14")
-                span Нужно минимум 2 участника со статусом «Буду».
+                span {{ $t('meetings.needQuorum') }}
               .inline-alert(v-if="missingReadingAttendees.length")
                 AlertTriangle(:size="14")
-                span Нужно дочитать книгу:
+                span {{ $t('meetings.needReading') }}
                 span.meeting-detail__missing-reading
                   template(v-for="(attendee, idx) in missingReadingAttendees" :key="attendee.id")
                     | {{ attendee.name }}{{ idx < missingReadingAttendees.length - 1 ? ', ' : '' }}
               .inline-alert(v-if="!isMeetingTime")
                 AlertTriangle(:size="14")
-                span Встреча ещё не началась — назначена на {{ meeting.dateLabel }} {{ meeting.timeLabel }}.
+                span {{ $t('meetings.notYet', { date: meeting.dateLabel, time: meeting.timeLabel }) }}
               .inline-alert.inline-alert--success(v-if="meeting.canStart")
                 CheckCircle(:size="14")
-                span Встреча готова к началу.
-              p.proposal__error(v-if="startMeetingMutation.error.value") Не удалось начать встречу.
+                span {{ $t('meetings.readyStart') }}
+              p.proposal__error(v-if="startMeetingMutation.error.value") {{ $t('meetings.startError') }}
             template(v-else-if="meeting.status === 'started'")
               .inline-alert.inline-alert--success(v-if="meeting.canFinish")
                 CheckCircle(:size="14")
-                span Встреча готова к завершению.
+                span {{ $t('meetings.readyFinish') }}
               .inline-alert(v-if="missingRatingAttendees.length")
                 AlertTriangle(:size="14")
-                span Нужны оценки:
+                span {{ $t('meetings.needRatings') }}
                 span.meeting-detail__missing-rating
                   template(v-for="(attendee, idx) in missingRatingAttendees" :key="attendee.id")
                     | {{ attendee.name }}{{ idx < missingRatingAttendees.length - 1 ? ', ' : '' }}
-              p.proposal__error(v-if="finishMeetingMutation.error.value") Не удалось завершить встречу.
+              p.proposal__error(v-if="finishMeetingMutation.error.value") {{ $t('meetings.finishError') }}
 
         form.panel.meeting-detail__rating(v-if="shouldShowRatingForm" @submit.prevent="submitRatingReview" novalidate)
           template(v-if="hasSubmittedRating && !isEditingRating")
             .section-header.section-header--compact
-              h2 Оценка и отзыв
+              h2 {{ $t('meetings.ratingReview') }}
             .meeting-detail__rating-submitted
               .meeting-detail__rating-submitted-value
                 Star.meeting-detail__rating-submitted-icon(:size="20" aria-hidden="true")
                 span.meeting-detail__rating-number {{ currentUserRating }}
-                span.label-text из 10
+                span.label-text {{ $t('meetings.of10') }}
               p.meeting-detail__rating-submitted-review(v-if="currentUserReview") {{ currentUserReview }}
               SecondaryButton(
                 v-if="!isArchived"
                 type="button"
                 :icon="Pencil"
                 @click="editRating"
-              ) Редактировать
+              ) {{ $t('common.edit') }}
           template(v-else)
             .section-header.section-header--compact
-              h2 Оценка и отзыв
+              h2 {{ $t('meetings.ratingReview') }}
             .meeting-detail__rating-prompt
               Star.meeting-detail__rating-prompt-icon(:size="22" aria-hidden="true")
               .meeting-detail__rating-prompt-text
-                span.label-text Требуется действие
-                h2 Поставь оценку книге
-                p.body-text Встреча уже началась. Чтобы завершить цикл, нужна твоя оценка.
+                span.label-text {{ $t('meetings.ratingAction') }}
+                h2 {{ $t('meetings.rateBook') }}
+                p.body-text {{ $t('meetings.rateBookText') }}
             .meeting-detail__rating-row
-              label.label-text(for="meeting-rating") Оценка
+              label.label-text(for="meeting-rating") {{ $t('meetings.rating') }}
               .meeting-detail__rating-input-group
                 AppRangeInput#meeting-rating(
                   v-model="rating"
                   :min="1"
                   :max="10"
                   :step="0.1"
-                  aria-label="Оценка книги"
+                  :aria-label="t('meetings.ratingAria')"
                 )
                 .meeting-detail__rating-number-input
                   input.field-control(
@@ -288,27 +290,27 @@ main.meeting-detail.container
                     min="1"
                     max="10"
                     step="0.1"
-                    placeholder="1-10"
+                    :placeholder="t('meetings.rating')"
                     :aria-invalid="ratingSubmitted && !rating"
                   )
-                  span.label-text из 10
-            p.proposal__error(v-if="ratingSubmitted && !rating") Укажи оценку от 1 до 10.
+                  span.label-text {{ $t('meetings.of10') }}
+            p.proposal__error(v-if="ratingSubmitted && !rating") {{ $t('meetings.ratingRequired') }}
             .meeting-detail__rating-row
-              label.label-text(for="meeting-review") Отзыв
+              label.label-text(for="meeting-review") {{ $t('meetings.review') }}
               textarea#meeting-review.field-control.meeting-detail__input.meeting-detail__review(
                 v-model="review"
-                placeholder="Короткий отзыв, если хочется зафиксировать впечатление."
+                :placeholder="t('meetings.reviewPlaceholder')"
               )
             .meeting-detail__rating-actions
               button.button.button--primary.label-text(type="submit" :disabled="saveRatingReviewMutation.isPending.value")
-                | {{ saveRatingReviewMutation.isPending.value ? 'Сохраняем...' : 'Сохранить оценку' }}
+                | {{ saveRatingReviewMutation.isPending.value ? $t('meetings.savingRating') : $t('meetings.saveRating') }}
               button.button.button--ghost.label-text(
                 v-if="isEditingRating"
                 type="button"
                 @click="isEditingRating = false"
-              ) Отмена
-            p.body-text(v-if="saveRatingReviewMutation.isSuccess.value") Оценка сохранена.
-            p.proposal__error(v-if="saveRatingReviewMutation.error.value") Не удалось сохранить оценку.
+              ) {{ $t('common.cancel') }}
+            p.body-text(v-if="saveRatingReviewMutation.isSuccess.value") {{ $t('meetings.ratingSaved') }}
+            p.proposal__error(v-if="saveRatingReviewMutation.error.value") {{ $t('meetings.ratingError') }}
 
         section.panel.meeting-detail__info(aria-labelledby="meeting-info-title")
           .section-header.section-header--compact
@@ -360,47 +362,47 @@ main.meeting-detail.container
 
         section.meeting-detail__topics-section(aria-labelledby="meeting-topics-title")
           .section-header.section-header--compact
-            h2#meeting-topics-title Темы для обсуждения
+            h2#meeting-topics-title {{ $t('meetings.topics') }}
           ul.meeting-detail__topics(v-if="localTopics.length")
             li.meeting-detail__topic(v-for="(topic, index) in localTopics" :key="`${topic}-${index}`")
               MessageSquare.meeting-detail__topic-icon(:size="16" aria-hidden="true")
               span {{ topic }}
-          p.body-text(v-else) Тем пока нет.
+          p.body-text(v-else) {{ $t('meetings.noTopics') }}
           .meeting-detail__add-topic(v-if="!isArchived")
-            span.label-text Добавить тему
+            span.label-text {{ $t('meetings.addTopic') }}
             .meeting-detail__add-topic-row
               input.meeting-detail__input(
                 class="field-control"
                 v-model="newTopic"
                 type="text"
-                placeholder="Предложить вопрос..."
+                :placeholder="t('meetings.topicPlaceholder')"
                 @keydown.enter.prevent="submitTopic"
               )
               button.button.button--secondary.label-text(type="button" @click="submitTopic")
                 Send.meeting-detail__button-icon
-                | Отправить
+                | {{ $t('meetings.submitTopic') }}
 
-      aside.meeting-detail__sidebar(aria-label="Сводка встречи")
+      aside.meeting-detail__sidebar(:aria-label="t('meetings.sidebarAria')")
         section.panel.meeting-detail__participants(aria-labelledby="meeting-participants-title")
           .section-header.section-header--compact
-            h2#meeting-participants-title Участники встречи
+            h2#meeting-participants-title {{ $t('meetings.participants') }}
             .meeting-detail__participant-count
               span.label-text {{ meeting.attendees.length }}
               Users(:size="15" aria-hidden="true")
           .meeting-detail__rsvp-status(v-if="!isArchived")
             .inline-alert.inline-alert--success(v-if="rsvpStatus === 'attending'")
               CheckCircle(:size="14" aria-hidden="true")
-              span Вы участвуете во встрече
+              span {{ $t('meetings.youAttending') }}
               button.meeting-detail__decline-text(type="button" :disabled="updateRsvpMutation.isPending.value" @click="setRsvp('not_attending')")
-                | Не смогу
+                | {{ $t('meetings.notAttending') }}
             .inline-alert(v-else-if="rsvpStatus === 'not_attending'")
-              span Вы не сможете прийти
+              span {{ $t('meetings.youNotAttending') }}
             button.button.button--primary.label-text(
               v-if="!isCurrentUserAttending"
               type="button"
               :disabled="updateRsvpMutation.isPending.value"
               @click="setRsvp('attending')"
-            ) Буду на встрече
+            ) {{ $t('meetings.willAttend') }}
           ul.data-list
             li.data-list__item(v-for="attendee in meeting.attendees" :key="attendee.id")
               RouterLink.meeting-detail__attendee(:to="`/members/${attendee.id}`")
@@ -409,13 +411,13 @@ main.meeting-detail.container
               button.meeting-detail__remove-button(
                 v-if="isAdmin && !isArchived && canRemoveAttendee(attendee)"
                 type="button"
-                title="Удалить из участников"
-                aria-label="Удалить из участников"
+                :title="t('meetings.removeAttendee')"
+                :aria-label="t('meetings.removeAttendee')"
                 :disabled="removeRsvpMutation.isPending.value"
                 @click="removeAttendee(attendee.id)"
               )
                 UserMinus(:size="15" aria-hidden="true")
-          p.body-text(v-if="!meeting.attendees.length") Пока никто не подтвердил участие.
+          p.body-text(v-if="!meeting.attendees.length") {{ $t('meetings.noParticipants') }}
 
     MeetingFinishModal(
       v-if="!isArchived"
@@ -428,9 +430,9 @@ main.meeting-detail.container
 
   section.panel.meeting-detail__missing(v-else)
     .section-header.section-header--compact
-      h1 Встреча не найдена
-    p.body-text Возможно, ссылка устарела или встреча ещё не назначена.
-    RouterLink.button.button--primary.label-text(to="/") Вернуться на дашборд
+      h1 {{ $t('meetings.notFound') }}
+    p.body-text {{ $t('meetings.notFoundText') }}
+    RouterLink.button.button--primary.label-text(to="/") {{ $t('meetings.backToDash') }}
 </template>
 
 <style scoped>

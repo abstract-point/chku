@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Plus, Trash2 } from '@lucide/vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppInput from '@/components/ui/AppInput.vue'
@@ -7,6 +8,8 @@ import AppSelect from '@/components/ui/AppSelect.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
 import AppRadioGroup from '@/components/ui/AppRadioGroup.vue'
 import type { MeetingDetail } from '@/types/dashboard'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   meeting?: MeetingDetail
@@ -33,27 +36,12 @@ const topics = ref<string[]>([])
 const newTopic = ref('')
 const notes = ref('')
 
-const months = [
-  'Январь',
-  'Февраль',
-  'Март',
-  'Апрель',
-  'Май',
-  'Июнь',
-  'Июль',
-  'Август',
-  'Сентябрь',
-  'Октябрь',
-  'Ноябрь',
-  'Декабрь',
-]
-
 const dayOptions = computed(() => [
   { label: '—', value: null as number | null },
   ...Array.from({ length: 31 }, (_, i) => ({ label: String(i + 1), value: i + 1 })),
 ])
 
-const monthOptions = computed(() => months.map((name, i) => ({ label: name, value: i + 1 })))
+const monthOptions = computed(() => t('meetings.months').map((name: string, i: number) => ({ label: name, value: i + 1 })))
 
 const years = computed(() => {
   const current = new Date().getFullYear()
@@ -63,8 +51,8 @@ const years = computed(() => {
 const yearOptions = computed(() => years.value.map((y) => ({ label: String(y), value: y })))
 
 const formatOptions = computed(() => [
-  { label: 'Очно', value: false },
-  { label: 'Онлайн', value: true },
+  { label: t('meetings.formOffline'), value: false },
+  { label: t('meetings.formOnline'), value: true },
 ])
 
 const isEdit = computed(() => props.meeting !== undefined)
@@ -138,89 +126,89 @@ function isInvalid(field: string): boolean {
 <template lang="pug">
 form.meeting-form(@submit.prevent="onSubmit" novalidate)
   .section-header
-    h1 {{ isEdit ? 'Редактировать встречу' : 'Новая встреча' }}
-    span.label-text Цикл # {{ cycleId }}
+    h1 {{ isEdit ? $t('meetings.formEdit') : $t('meetings.formNew') }}
+    span.label-text {{ $t('meetings.formCycle', { id: cycleId }) }}
 
   .meeting-form__fields
-    AppFormField(label="Название" label-for="meeting-title" required :error="fieldError('title')")
+    AppFormField(:label="t('meetings.formTitle')" label-for="meeting-title" required :error="fieldError('title')")
       AppInput#meeting-title(
         v-model="title"
         required
-        placeholder="Ноябрьская встреча"
+        :placeholder="t('meetings.formTitlePlaceholder')"
         :aria-invalid="isInvalid('title')"
       )
 
     .meeting-form__datetime-row
-      AppFormField(label="Дата" label-for="meeting-day" required :error="fieldError('date')")
+      AppFormField(:label="t('meetings.formDate')" label-for="meeting-day" required :error="fieldError('date')")
         .meeting-form__date-selects
           AppSelect#meeting-day(v-model.number="day" :options="dayOptions")
           AppSelect(v-model.number="month" :options="monthOptions" required)
           AppSelect(v-model.number="year" :options="yearOptions" required)
-      AppFormField(label="Время" label-for="meeting-time" required :error="fieldError('time')")
+      AppFormField(:label="t('meetings.formTime')" label-for="meeting-time" required :error="fieldError('time')")
         AppInput#meeting-time(type="time" v-model="time" required :aria-invalid="isInvalid('time')")
 
-    AppFormField(label="Формат встречи")
+    AppFormField(:label="t('meetings.formFormat')")
       AppRadioGroup(name="meeting-format" v-model="isOnline" :options="formatOptions")
 
     template(v-if="!isOnline")
-      AppFormField(label="Место" label-for="meeting-place" required :error="fieldError('place')")
+      AppFormField(:label="t('meetings.formPlace')" label-for="meeting-place" required :error="fieldError('place')")
         AppInput#meeting-place(
           v-model="place"
           required
-          placeholder="Библиотека имени Некрасова"
+          :placeholder="t('meetings.formPlacePlaceholder')"
           :aria-invalid="isInvalid('place')"
         )
-      AppFormField(label="Адрес" label-for="meeting-address" :error="fieldError('address')")
+      AppFormField(:label="t('meetings.formAddress')" label-for="meeting-address" :error="fieldError('address')")
         AppInput#meeting-address(
           v-model="address"
-          placeholder="ул. Бауманская, 58/25с14"
+          :placeholder="t('meetings.formAddressPlaceholder')"
           :aria-invalid="isInvalid('address')"
         )
-      AppFormField(label="Бронь" label-for="meeting-reservation" :error="fieldError('reservation')")
+      AppFormField(:label="t('meetings.formReservation')" label-for="meeting-reservation" :error="fieldError('reservation')")
         AppInput#meeting-reservation(
           v-model="reservation"
-          placeholder="Зал «Сад», стол у окна"
+          :placeholder="t('meetings.formReservationPlaceholder')"
           :aria-invalid="isInvalid('reservation')"
         )
 
-    AppFormField(v-if="isOnline" label="Ссылка" label-for="meeting-link" required :error="fieldError('link')")
+    AppFormField(v-if="isOnline" :label="t('meetings.formLink')" label-for="meeting-link" required :error="fieldError('link')")
       AppInput#meeting-link(
         type="url"
         v-model="link"
-        placeholder="https://zoom.us/j/..."
+        :placeholder="t('meetings.formLink')"
         :required="isOnline"
         :aria-invalid="isInvalid('link')"
       )
 
-    AppFormField(v-if="!isOnline" label="Ссылка (дополнительно)" label-for="meeting-link-optional" :error="fieldError('link')")
+    AppFormField(v-if="!isOnline" :label="t('meetings.formLinkOptional')" label-for="meeting-link-optional" :error="fieldError('link')")
       AppInput#meeting-link-optional(
         type="url"
         v-model="link"
-        placeholder="https://..."
+        :placeholder="t('meetings.formLink')"
         :aria-invalid="isInvalid('link')"
       )
 
-    AppFormField(label="Темы для обсуждения")
+    AppFormField(:label="t('meetings.formTopics')")
       .meeting-form__topics-list(v-if="topics.length")
         .meeting-form__topic(v-for="(topic, index) in topics" :key="index")
           span.meeting-form__topic-text {{ topic }}
-          button.meeting-form__topic-remove(type="button" @click="removeTopic(index)" :title="'Удалить тему'")
+          button.meeting-form__topic-remove(type="button" @click="removeTopic(index)" :title="t('meetings.formRemoveTopic')")
             Trash2(:size="14")
       .meeting-form__add-topic
-        AppInput(v-model="newTopic" placeholder="Предложить тему..." @keydown.enter.prevent="addTopic")
+        AppInput(v-model="newTopic" :placeholder="t('meetings.formTopicPlaceholder')" @keydown.enter.prevent="addTopic")
         button.button.button--secondary.label-text(type="button" @click="addTopic")
           Plus(:size="16")
-          | Добавить
+          | {{ $t('meetings.formAddTopic') }}
 
-    AppFormField(label="Заметки" label-for="meeting-notes" :error="fieldError('notes')")
+    AppFormField(:label="t('meetings.formNotes')" label-for="meeting-notes" :error="fieldError('notes')")
       AppTextarea#meeting-notes(
         v-model="notes"
-        placeholder="Дополнительная информация о встрече..."
+        :placeholder="t('meetings.formNotesPlaceholder')"
         :aria-invalid="isInvalid('notes')"
       )
 
   button.button.button--primary.label-text.meeting-form__submit(type="submit" :disabled="isSubmitting")
-    | {{ isSubmitting ? 'Сохраняем...' : (isEdit ? 'Сохранить изменения' : 'Создать встречу') }}
+    | {{ isSubmitting ? $t('meetings.formSaving') : (isEdit ? $t('meetings.formSaveChanges') : $t('meetings.formCreate')) }}
 </template>
 
 <style scoped>
