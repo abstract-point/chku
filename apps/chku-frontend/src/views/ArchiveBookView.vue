@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { ArrowLeft, CalendarDays, MessageSquare, Star, UserRound } from '@lucide/vue'
+import { ArrowLeft, CalendarDays, MapPin, MessageSquare, Monitor, Star, UserRound } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import { formatDateLabel, formatTimeLabel } from '@/mappers/date'
 import { useArchiveBookQuery } from '@/queries/archiveQueries'
 
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? ''))
 const bookQuery = useArchiveBookQuery(slug)
 const book = computed(() => bookQuery.data.value)
+const meeting = computed(() => book.value?.meeting)
 </script>
 
 <template lang="pug">
@@ -104,13 +106,35 @@ main.archive-book.container
               span.label-text {{ book.completedLabel }}
             li.data-list__item
               span.label-text.archive-book__muted Встреча
-              span.label-text {{ book.meetingLabel }}
+              span.label-text {{ meeting ? formatDateLabel(meeting.date ?? undefined) : book.meetingLabel }}
             li.data-list__item
               span.label-text.archive-book__muted Оценка
               span.label-text {{ book.rating.toFixed(1) }}/10
             li.data-list__item
               span.label-text.archive-book__muted Отзывов
               span.label-text {{ book.reviews.length }}
+
+        section.panel.archive-book__meeting(v-if="meeting")
+          .section-header.section-header--compact
+            span.label-text Встреча в архиве
+            CalendarDays.archive-book__icon
+          h3.archive-book__meeting-title {{ meeting.title }}
+          ul.data-list
+            li.data-list__item
+              span.label-text.archive-book__muted Дата
+              span.label-text {{ formatDateLabel(meeting.date ?? undefined) }} · {{ formatTimeLabel(meeting.time ?? undefined) }}
+            li.data-list__item
+              span.label-text.archive-book__muted Формат
+              span.label-text.archive-book__meeting-format
+                Monitor.archive-book__icon(v-if="meeting.isOnline")
+                MapPin.archive-book__icon(v-else)
+                | {{ meeting.isOnline ? 'Онлайн' : meeting.place }}
+            li.data-list__item
+              span.label-text.archive-book__muted Участники
+              span.label-text {{ meeting.attendingCount }}/{{ meeting.rsvpCount }}
+          RouterLink.button.button--secondary.label-text.archive-book__meeting-link(:to="`/meetings/${meeting.id}`")
+            CalendarDays.archive-book__icon
+            | Открыть встречу
 
         RouterLink.button.button--secondary.label-text.archive-book__back(to="/archive")
           ArrowLeft.archive-book__icon
@@ -288,6 +312,23 @@ main.archive-book.container
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+}
+
+.archive-book__meeting-title {
+  margin-bottom: var(--space-md);
+}
+
+.archive-book__meeting-format {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.archive-book__meeting-link {
+  justify-content: center;
+  width: 100%;
+  margin-top: var(--space-md);
 }
 
 .archive-book__back {

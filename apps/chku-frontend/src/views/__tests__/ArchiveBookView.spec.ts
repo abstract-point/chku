@@ -33,15 +33,17 @@ function mountArchiveBook(slug = 'duna') {
 
 describe('ArchiveBookView', () => {
   it('renders archived book details, reviews and discussion', () => {
-    const wrapper = mountArchiveBook()
+    const wrapper = mountArchiveBook('ten-istoriya')
 
-    expect(wrapper.text()).toContain('Дюна')
-    expect(wrapper.text()).toContain('Фрэнк Герберт')
-    expect(wrapper.text()).toContain('Михаил')
-    expect(wrapper.text()).toContain('8.6/10')
+    expect(wrapper.text()).toContain('Тайная история')
+    expect(wrapper.text()).toContain('Донна Тартт')
+    expect(wrapper.text()).toContain('Елена')
+    expect(wrapper.text()).toContain('9.2/10')
     expect(wrapper.text()).toContain('Отзывы клуба')
     expect(wrapper.text()).toContain('Обсуждение')
-    expect(wrapper.text()).toContain('Можно ли читать историю Пола')
+    expect(wrapper.text()).toContain('Где проходит граница')
+    expect(wrapper.text()).toContain('Встреча в архиве')
+    expect(wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/meetings/1')).toBe(true)
   })
 
   it('renders fallback for unknown book slug', () => {
