@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   modelValue: number
@@ -39,9 +42,9 @@ function submitForm() {
 <template lang="pug">
 form.reading-progress-form(@submit.prevent="submitForm")
   .reading-progress-form__header
-    span.label-text Обновить прогресс
+    span.label-text {{ $t('dash.progressFormTitle') }}
     p.reading-progress-form__value
-      | Текущий прогресс:
+      | {{ $t('dash.progressFormCurrent') }}
       span {{ normalizedProgress }}%
 
   .reading-progress-form__slider
@@ -52,7 +55,7 @@ form.reading-progress-form(@submit.prevent="submitForm")
       step="1"
       :value="normalizedProgress"
       :style="{ '--range-value': `${normalizedProgress}%` }"
-      aria-label="Прогресс чтения в процентах"
+      :aria-label="$t('dash.progressFormAria')"
       @input="updateFromEvent"
     )
     .reading-progress-form__scale
@@ -60,7 +63,7 @@ form.reading-progress-form(@submit.prevent="submitForm")
       span.label-text 100%
 
   .reading-progress-form__field
-    span.label-text Процент
+    span.label-text {{ $t('dash.progressFormPercent') }}
     .reading-progress-form__number
       input.field-control(
         type="number"
@@ -72,13 +75,13 @@ form.reading-progress-form(@submit.prevent="submitForm")
         @input="updateFromEvent"
       )
       span.label-text %
-  p.body-text.reading-progress-form__hint Укажи прогресс ползунком или введи значение вручную
+  p.body-text.reading-progress-form__hint {{ $t('dash.progressFormHint') }}
   p.body-text.reading-progress-form__error(v-if="errorMessage" aria-live="polite") {{ errorMessage }}
 
   .reading-progress-form__actions
-    button.button.button--secondary.label-text(type="button" :disabled="isSaving" @click="emit('cancel')") Отмена
+    button.button.button--secondary.label-text(type="button" :disabled="isSaving" @click="emit('cancel')") {{ $t('common.cancel') }}
     button.button.button--primary.label-text(type="submit" :disabled="isSaving")
-      | {{ isSaving ? 'Сохраняем' : 'Сохранить прогресс' }}
+      | {{ isSaving ? $t('dash.progressFormSaving') : $t('dash.progressFormSave') }}
 </template>
 
 <style scoped>

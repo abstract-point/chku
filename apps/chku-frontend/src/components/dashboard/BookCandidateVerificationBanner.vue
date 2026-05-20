@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { CircleAlert } from '@lucide/vue'
+import { useI18n } from 'vue-i18n'
 import { useCandidateResponseMutation, useConfirmCandidateMutation } from '@/queries/candidateQueries'
 import type { BookChoiceEvent } from '@/types/club'
 
+const { t } = useI18n()
 const props = defineProps<{
   choice: BookChoiceEvent
 }>()
@@ -35,26 +37,26 @@ section.book-candidate-banner(aria-labelledby="verification-title")
   .book-candidate-banner__status(aria-hidden="true")
     CircleAlert(:size="22")
   .book-candidate-banner__content
-    span.label-text.book-candidate-banner__label Требуется действие
-    h2#verification-title.book-candidate-banner__title Ожидает проверки: «{{ choice.bookTitle }}»
+    span.label-text.book-candidate-banner__label {{ $t('dash.bannerAction') }}
+    h2#verification-title.book-candidate-banner__title {{ $t('dash.verifTitle', { title: choice.bookTitle }) }}
     p.book-candidate-banner__text
-      | {{ choice.proposerName }} предложила «{{ choice.bookTitle }}» — {{ choice.author }}. Ты уже читал(а) эту книгу?
+      | {{ $t('dash.verifText', { proposer: choice.proposerName, title: choice.bookTitle, author: choice.author }) }}
     p.book-candidate-banner__text(v-if="choice.status === 'awaiting_owner_confirmation'")
-      | Все ответили, что не читали книгу. Ожидаем финальное подтверждение владельца.
+      | {{ $t('dash.verifOwnerWaiting') }}
     p.book-candidate-banner__text(v-else-if="readCount > 0")
-      | Есть ответ “читал(а)”, кандидат будет отклонён.
+      | {{ $t('dash.verifHasRead') }}
     p.book-candidate-banner__text(v-else)
-      | Ожидаем ответов: {{ pendingCount }}.
+      | {{ $t('dash.verifWaiting', { n: pendingCount }) }}
   .book-candidate-banner__actions
     button.button.button--primary.label-text(
       v-if="choice.canConfirm"
       type="button"
       :disabled="isPending"
       @click="confirm"
-    ) Подтвердить книгу
+    ) {{ $t('dash.verifConfirm') }}
     template(v-else-if="choice.status !== 'awaiting_owner_confirmation'")
-      button.button.button--secondary.label-text(type="button" :disabled="isPending" @click="respond('read')") Я читал(а)
-      button.button.button--inverted.label-text(type="button" :disabled="isPending" @click="respond('not_read')") Не читал(а)
+      button.button.button--secondary.label-text(type="button" :disabled="isPending" @click="respond('read')") {{ $t('dash.verifRead') }}
+      button.button.button--inverted.label-text(type="button" :disabled="isPending" @click="respond('not_read')") {{ $t('dash.verifNotRead') }}
 </template>
 
 <style scoped>

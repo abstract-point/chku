@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/ui/AppModal.vue'
 import DashboardReadingProgressForm from '@/components/dashboard/DashboardReadingProgressForm.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useUpdateReadingProgressMutation } from '@/queries/dashboardQueries'
 import type { BookProgressMember, CurrentBook } from '@/types/dashboard'
 
+const { t } = useI18n()
 const props = defineProps<{
   book: CurrentBook
   members: BookProgressMember[]
@@ -20,19 +22,19 @@ const pendingProgressPercent = ref(0)
 const updateProgressMutation = useUpdateReadingProgressMutation()
 
 const progressErrorMessage = computed(() =>
-  updateProgressMutation.error.value ? 'Не удалось сохранить прогресс. Попробуй ещё раз.' : '',
+  updateProgressMutation.error.value ? t('dash.progressError') : '',
 )
 
 const cycleHeaderLabel = computed(() => {
   if (props.book.cycleStatus === 'active') {
-    return `Цикл #${props.book.cycleNumber}`
+    return t('dash.cycleNum', { n: props.book.cycleNumber })
   }
   return null
 })
 
 const nextSelectorLabel = computed(() => {
   if (props.nextSelectorName) {
-    return `Выбирает следующую: ${props.nextSelectorName}`
+    return t('dash.nextSelector', { name: props.nextSelectorName })
   }
   return null
 })
@@ -100,9 +102,9 @@ function confirmProgress() {
 }
 
 function medalLabel(medal: BookProgressMember['medal']) {
-  if (medal === 'gold') return 'Золото'
-  if (medal === 'silver') return 'Серебро'
-  if (medal === 'bronze') return 'Бронза'
+  if (medal === 'gold') return t('dash.medalGold')
+  if (medal === 'silver') return t('dash.medalSilver')
+  if (medal === 'bronze') return t('dash.medalBronze')
   return ''
 }
 </script>
@@ -110,14 +112,14 @@ function medalLabel(medal: BookProgressMember['medal']) {
 <template lang="pug">
 section.dashboard__main(aria-labelledby="current-cycle-title")
   .section-header
-    h2#current-cycle-title Текущий цикл
+    h2#current-cycle-title {{ $t('dash.currentCycle') }}
     span.label-text(v-if="cycleHeaderLabel") {{ cycleHeaderLabel }}
     span.label-text(v-if="nextSelectorLabel") {{ nextSelectorLabel }}
 
   article.current-book
-    .book-cover.current-book__cover(:aria-label="`Обложка книги ${book.title}`")
+    .book-cover.current-book__cover(:aria-label="$t('archive.coverAria', { title: book.title })")
       .book-cover__content
-        span.current-book__cover-label.label-text Выбрал {{ book.selectedBy }}
+        span.current-book__cover-label.label-text {{ $t('dash.selectedBy', { name: book.selectedBy }) }}
         template(v-for="line in coverTitleLines" :key="line")
           | {{ line }}
           br
@@ -132,23 +134,23 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
       .panel.panel--filled.current-book__progress
         template(v-if="book.progress === 100")
           .current-book__progress-header
-            span.label-text Мой прогресс
+            span.label-text {{ $t('dash.myProgress') }}
             span.label-text {{ book.progressLabel }}
-          .progress(:aria-label="`Мой прогресс чтения ${book.progress}%`")
+          .progress(:aria-label="$t('dash.myProgressAria', { pct: book.progress })")
             .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
           .current-book__done-message
-            span.label-text Ты молодец, дочитал книгу!
-            p.body-text Ждём остальных участников клуба.
+            span.label-text {{ $t('dash.doneMsg') }}
+            p.body-text {{ $t('dash.doneSub') }}
         template(v-else-if="!isProgressFormOpen")
           .current-book__progress-header
-            span.label-text Мой прогресс
+            span.label-text {{ $t('dash.myProgress') }}
             span.label-text {{ book.progressLabel }}
-          .progress(:aria-label="`Мой прогресс чтения ${book.progress}%`")
+          .progress(:aria-label="$t('dash.myProgressAria', { pct: book.progress })")
             .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
           button.button.button--secondary.label-text(
             type="button"
             @click="openProgressForm"
-          ) Обновить прогресс
+          ) {{ $t('dash.updateProgress') }}
         DashboardReadingProgressForm(
           v-else
           :model-value="book.progress"
@@ -159,8 +161,8 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
         )
 
   .section-header.dashboard__section-spaced
-    h3 Прогресс клуба
-    span.label-text {{ activeProgressCount }} участников
+    h3 {{ $t('dash.clubProgress') }}
+    span.label-text {{ $t('dash.clubProgressCount', { n: activeProgressCount }) }}
 
   ul.data-list.club-progress(role="list")
     li.data-list__item.club-progress__item(v-for="member in membersWithMedals" :key="member.name")
@@ -179,20 +181,20 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
         .progress.member-status__progress-track(:aria-label="`${member.name}: ${member.progress}%`")
           .progress__bar(:style="{ '--progress-value': `${member.progress}%` }")
         span.label-text {{ member.progress }}%
-      span.label-text(v-else) Не начал
-  RouterLink.button.button--ghost.label-text.club-progress__link(to="/members") Все участники клуба
+      span.label-text(v-else) {{ $t('dash.notStarted') }}
+  RouterLink.button.button--ghost.label-text.club-progress__link(to="/members") {{ $t('dash.allMembers') }}
 
   AppModal(
     :is-open="isConfirmModalOpen"
-    title="Подтверждение прочтения"
+    :title="t('dash.confirmReadTitle')"
     @close="isConfirmModalOpen = false"
   )
     template(#default)
-      p.body-text Ты уверен, что дочитал книгу?
-      p.body-text Это фиксирует время завершения и влияет на раздачу сов. Отменить будет нельзя.
+      p.body-text {{ $t('dash.confirmReadText') }}
+      p.body-text {{ $t('dash.confirmReadHint') }}
     template(#footer)
-      button.button.button--secondary.label-text(type="button" @click="isConfirmModalOpen = false") Отмена
-      button.button.button--primary.label-text(type="button" @click="confirmProgress") Да, я дочитал
+      button.button.button--secondary.label-text(type="button" @click="isConfirmModalOpen = false") {{ $t('common.cancel') }}
+      button.button.button--primary.label-text(type="button" @click="confirmProgress") {{ $t('dash.confirmReadBtn') }}
 </template>
 
 <style scoped>

@@ -2,11 +2,13 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Link as LinkIcon, MapPin, Monitor } from '@lucide/vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthSession } from '@/queries/authQueries'
 import { useUpdateMeetingRsvpMutation } from '@/queries/meetingQueries'
 import MemberTooltip from '@/components/dashboard/MemberTooltip.vue'
 import type { MeetingSummary } from '@/types/dashboard'
 
+const { t } = useI18n()
 const props = defineProps<{
   meeting: MeetingSummary
 }>()
@@ -25,7 +27,7 @@ const attendingMembers = computed(() =>
 const visibleAttendees = computed(() => attendingMembers.value.slice(0, 4))
 const extraCount = computed(() => Math.max(0, attendingMembers.value.length - 4))
 const sectionLabel = computed(() =>
-  props.meeting.status === 'started' ? 'Встреча идёт' : 'Следующая встреча',
+  props.meeting.status === 'started' ? t('dash.meetingInProgress') : t('dash.nextMeeting'),
 )
 
 function setRsvp(status: 'attending' | 'not_attending') {
@@ -45,28 +47,28 @@ section.panel.dashboard-card(aria-labelledby="meeting-title")
       span {{ meeting.place }}
     p.body-text.dashboard-card__text(v-else)
       Monitor(:size="17")
-      span Онлайн
+      span {{ $t('dash.online') }}
     p.body-text.dashboard-card__text(v-if="meeting.link")
       LinkIcon(:size="17")
       a.dashboard-card__meeting-link(:href="meeting.link" target="_blank" rel="noopener noreferrer") {{ meeting.link }}
-  .dashboard-card__avatars(v-if="attendingMembers.length" aria-label="Участники встречи")
+  .dashboard-card__avatars(v-if="attendingMembers.length" :aria-label="$t('dash.meetingAttendeesAria')")
     MemberTooltip(v-for="member in visibleAttendees" :key="member.id" :member="member")
     span.avatar.avatar--more(v-if="extraCount > 0") +{{ extraCount }}
-  .inline-alert.inline-alert--success(v-if="myRsvpStatus === 'attending'") Вы участвуете во встрече
-  .inline-alert(v-else-if="myRsvpStatus === 'not_attending'") Вы не сможете прийти
+  .inline-alert.inline-alert--success(v-if="myRsvpStatus === 'attending'") {{ $t('dash.youAttending') }}
+  .inline-alert(v-else-if="myRsvpStatus === 'not_attending'") {{ $t('dash.youNotAttending') }}
   button.button.button--primary.dashboard-card__button(
     v-else
     type="button"
     :disabled="rsvpMutation.isPending.value"
     @click="setRsvp('attending')"
-  ) Подтвердить участие
+  ) {{ $t('dash.confirmAttendance') }}
   button.button.button--secondary.dashboard-card__button(
     v-if="myRsvpStatus === 'pending'"
     type="button"
     :disabled="rsvpMutation.isPending.value"
     @click="setRsvp('not_attending')"
-  ) Не смогу
-  RouterLink.button.button--ghost.label-text.dashboard-card__link(:to="`/meetings/${meeting.id}`") Подробнее о встрече
+  ) {{ $t('dash.cannotAttend') }}
+  RouterLink.button.button--ghost.label-text.dashboard-card__link(:to="`/meetings/${meeting.id}`") {{ $t('dash.meetingDetails') }}
 </template>
 
 <style scoped>

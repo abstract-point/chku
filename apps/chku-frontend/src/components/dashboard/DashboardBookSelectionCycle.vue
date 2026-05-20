@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Check, Clock3, X } from '@lucide/vue'
+import { useI18n } from 'vue-i18n'
 import UserAvatar from '@/components/UserAvatar.vue'
 import type { ApiBookCandidate, ApiBookCandidateResponse } from '@/api/types'
 import { useAuthSession } from '@/queries/authQueries'
 import { useCandidateResponseMutation, useConfirmCandidateMutation } from '@/queries/candidateQueries'
 
+const { t } = useI18n()
 const props = defineProps<{
   candidate: ApiBookCandidate
 }>()
@@ -23,8 +25,8 @@ const canRespond = computed(
 )
 const statusLabel = computed(() =>
   props.candidate.status === 'awaiting_owner_confirmation'
-    ? 'Ожидает подтверждения'
-    : 'Ожидает проверки',
+    ? t('dash.awaitingOwner')
+    : t('dash.awaitingVerification'),
 )
 const pendingCount = computed(
   () => props.candidate.responses.filter((response) => response.response === 'pending').length,
@@ -37,20 +39,20 @@ const readCount = computed(
 )
 const responseSummary = computed(() => {
   if (props.candidate.status === 'awaiting_owner_confirmation') {
-    return 'Все активные участники ответили, что не читали книгу.'
+    return t('dash.summaryAllClear')
   }
 
   if (readCount.value > 0) {
-    return 'Есть ответ «читал(а)», этот кандидат не пройдёт проверку.'
+    return t('dash.summaryHasRead')
   }
 
-  return `Ответили «не читал(а)»: ${notReadCount.value}. Ждём: ${pendingCount.value}.`
+  return t('dash.summaryCounts', { notRead: notReadCount.value, pending: pendingCount.value })
 })
 
 function responseLabel(response: ApiBookCandidateResponse['response']) {
-  if (response === 'not_read') return 'Не читал(а)'
-  if (response === 'read') return 'Читал(а)'
-  return 'Ждём ответ'
+  if (response === 'not_read') return t('dash.respNotRead')
+  if (response === 'read') return t('dash.respRead')
+  return t('dash.respPending')
 }
 
 function responseIcon(response: ApiBookCandidateResponse['response']) {
@@ -80,13 +82,13 @@ function confirm() {
 <template lang="pug">
 section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
   .section-header
-    h2#book-selection-title Выбор книги
+    h2#book-selection-title {{ $t('dash.bookSelection') }}
     span.label-text {{ statusLabel }}
 
   article.current-book
-    .book-cover.current-book__cover(:aria-label="`Обложка книги ${candidate.book.title}`")
+    .book-cover.current-book__cover(:aria-label="$t('archive.coverAria', { title: candidate.book.title })")
       .book-cover__content
-        span.current-book__cover-label.label-text Предложил(а) {{ candidate.proposer.name }}
+        span.current-book__cover-label.label-text {{ $t('dash.proposedBy', { name: candidate.proposer.name }) }}
         template(v-for="line in coverTitleLines" :key="line")
           | {{ line }}
           br
@@ -98,7 +100,7 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
       p.body-text.current-book__description
         | {{ candidate.description || candidate.book.description }}
       .panel.panel--filled.book-selection__reason(v-if="candidate.reason")
-        span.label-text Почему эта книга
+        span.label-text {{ $t('dash.whyThisBook') }}
         p.body-text {{ candidate.reason }}
       .book-selection__actions(v-if="canRespond || candidate.canConfirm")
         button.button.button--secondary.label-text(
@@ -106,26 +108,26 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
           type="button"
           :disabled="isPending"
           @click="respond('read')"
-        ) Я читал(а)
+        ) {{ $t('dash.iveRead') }}
         button.button.button--inverted.label-text(
           v-if="canRespond"
           type="button"
           :disabled="isPending"
           @click="respond('not_read')"
-        ) Не читал(а)
+        ) {{ $t('dash.notRead') }}
         button.button.button--primary.label-text(
           v-if="candidate.canConfirm"
           type="button"
           :disabled="isPending"
           @click="confirm"
-        ) Подтвердить книгу
+        ) {{ $t('dash.confirmBook') }}
       p.body-text.book-selection__note(v-else-if="candidate.status === 'awaiting_owner_confirmation'")
-        | Ожидаем финальное подтверждение владельца.
+        | {{ $t('dash.waitingOwner') }}
       p.body-text.book-selection__note(v-else-if="currentResponse && currentResponse.response !== 'pending'")
-        | Твой ответ сохранён: {{ responseLabel(currentResponse.response) }}.
+        | {{ $t('dash.responseSaved', { response: responseLabel(currentResponse.response) }) }}
 
   .section-header.dashboard__section-spaced
-    h3 Ответы клуба
+    h3 {{ $t('dash.clubResponses') }}
     span.label-text {{ responseSummary }}
 
   ul.data-list.club-progress(role="list")

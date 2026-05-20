@@ -3,8 +3,11 @@ import DashboardBookSelectionCycle from '@/components/dashboard/DashboardBookSel
 import DashboardCurrentCycle from '@/components/dashboard/DashboardCurrentCycle.vue'
 import DashboardMeetingSection from '@/components/dashboard/DashboardMeetingSection.vue'
 import DashboardTurnOrderCard from '@/components/dashboard/DashboardTurnOrderCard.vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
+
+const { t } = useI18n()
 
 const dashboardQuery = useDashboardQuery()
 const { isAdmin } = useAuthSession()
@@ -13,9 +16,9 @@ const { isAdmin } = useAuthSession()
 <template lang="pug">
 main.dashboard.container
   section.panel(v-if="dashboardQuery.isLoading.value" aria-live="polite")
-    p.body-text Загружаем дашборд...
+    p.body-text {{ $t('common.loadingDash') }}
   section.panel(v-else-if="dashboardQuery.error.value" aria-live="polite")
-    p.body-text Не удалось загрузить дашборд.
+    p.body-text {{ $t('common.errorDash') }}
   template(v-else-if="dashboardQuery.data.value")
     .dashboard__grid
       DashboardBookSelectionCycle(
@@ -30,8 +33,8 @@ main.dashboard.container
       )
       section.panel(v-else)
         .section-header.section-header--compact
-          h2 Текущий цикл ещё не начат
-        p.body-text Когда книга будет утверждена, она появится здесь.
+          h2 {{ $t('dash.notStartedTitle') }}
+        p.body-text {{ $t('dash.notStartedText') }}
       aside.dashboard__sidebar(aria-label="Сводка клуба")
         DashboardMeetingSection(
           :meeting="dashboardQuery.data.value.nextMeeting"

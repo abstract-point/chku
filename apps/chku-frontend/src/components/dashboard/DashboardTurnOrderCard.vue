@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Users } from '@lucide/vue'
+import { useI18n } from 'vue-i18n'
 import UserAvatar from '@/components/UserAvatar.vue'
 import type { TurnOrderMember } from '@/types/dashboard'
 
+const { t } = useI18n()
 const props = defineProps<{
   members: TurnOrderMember[]
   cycleStatus?: string | null
@@ -22,10 +24,10 @@ const queueMembers = computed(() =>
 
 const currentProcessBadge = computed(() => {
   if (!currentProcessMember.value) return null
-  if (currentProcessMember.value.isChoosingNow) return 'Выбирает книгу'
-  if (currentProcessMember.value.isCurrentCycleProposer) return 'Выбрал книгу'
-  if (isCurrentTurn(currentProcessMember.value)) return 'Выбирает книгу'
-  if (currentProcessMember.value.active) return 'ВЫБИРАЕТ КНИГУ'
+  if (currentProcessMember.value.isChoosingNow) return t('dash.choosingBook')
+  if (currentProcessMember.value.isCurrentCycleProposer) return t('dash.choseBook')
+  if (isCurrentTurn(currentProcessMember.value)) return t('dash.choosingBook')
+  if (currentProcessMember.value.active) return t('dash.choosingBook')
   return null
 })
 
@@ -47,8 +49,8 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
     .section-header__icon(aria-hidden="true")
       Users(:size="18")
     .section-header__content
-      span#turn-order-title.label-text.section-header__title Очередь выбора
-      p.section-header__description Книги выбираются по очереди. Следующую книгу можно утвердить, только если её ещё никто не читал.
+      span#turn-order-title.label-text.section-header__title {{ $t('dash.turnOrder') }}
+      p.section-header__description {{ $t('dash.turnOrderDesc') }}
 
   .turn-order__list
     .turn-order__card(
@@ -60,7 +62,7 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
       }`
     )
       template(v-if="item.isActive")
-        .turn-order__card-header ТЕКУЩИЙ ЦИКЛ
+        .turn-order__card-header {{ $t('dash.turnOrderCurrent') }}
       .turn-order__card-body
         .turn-order__person
           UserAvatar.turn-order__avatar(
@@ -72,10 +74,10 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
             span.turn-order__name {{ item.member.name }}
             template(v-if="item.isActive")
               span.turn-order__badge-text {{ currentProcessBadge }}
-            span.turn-order__badge-text.turn-order__badge-text--muted(v-else-if="item.isNext") Выбирает следующий
+            span.turn-order__badge-text.turn-order__badge-text--muted(v-else-if="item.isNext") {{ $t('dash.choosingNext') }}
 
   .turn-order__empty(v-if="!allMembers.length")
-    p.body-text Не удалось загрузить очередь.
+    p.body-text {{ $t('dash.turnOrderError') }}
 </template>
 
 <style scoped>
