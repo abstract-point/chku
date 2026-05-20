@@ -102,11 +102,12 @@ describe('MeetingDetailView', () => {
     })
 
     const wrapper = mountMeetingDetail()
-    const declineButton = wrapper.find('.meeting-detail__decline-button')
+    const declineButton = wrapper.find('.meeting-detail__decline-text')
 
     expect(wrapper.text()).toContain('Вы идёте на эту встречу')
     expect(wrapper.text()).not.toContain('Буду на встрече')
     expect(declineButton.exists()).toBe(true)
+    expect(wrapper.text()).toContain('Не смогу')
 
     await declineButton.trigger('click')
 
@@ -182,13 +183,13 @@ describe('MeetingDetailView', () => {
     const scheduledWrapper = mountMeetingDetail()
 
     expect(scheduledWrapper.text()).not.toContain('Оценка и отзыв')
-    expect(scheduledWrapper.find('#meeting-rating').exists()).toBe(false)
+    expect(scheduledWrapper.find('input[type="number"]').exists()).toBe(false)
 
     patchMeetingDetail({ status: 'started', rsvpStatus: 'attending' })
     const startedWrapper = mountMeetingDetail()
 
     expect(startedWrapper.text()).toContain('Оценка и отзыв')
-    expect(startedWrapper.find('#meeting-rating').exists()).toBe(true)
+    expect(startedWrapper.find('input[type="number"]').exists()).toBe(true)
   })
 
   it('hides rating form when meeting is started but user is not attending', () => {
@@ -196,7 +197,7 @@ describe('MeetingDetailView', () => {
     const wrapper = mountMeetingDetail()
 
     expect(wrapper.text()).not.toContain('Оценка и отзыв')
-    expect(wrapper.find('#meeting-rating').exists()).toBe(false)
+    expect(wrapper.find('input[type="number"]').exists()).toBe(false)
   })
 
   it('shows saved rating instead of form when user has already rated', () => {
@@ -246,8 +247,9 @@ describe('MeetingDetailView', () => {
 
     await editButton!.trigger('click')
 
-    expect(wrapper.find('#meeting-rating').exists()).toBe(true)
-    expect((wrapper.find('#meeting-rating').element as HTMLInputElement).value).toBe('8')
+    const ratingInput = wrapper.find('input[type="number"]')
+    expect(ratingInput.exists()).toBe(true)
+    expect((ratingInput.element as HTMLInputElement).value).toBe('8')
     expect((wrapper.find('#meeting-review').element as HTMLTextAreaElement).value).toBe(
       'Отличная книга!',
     )
