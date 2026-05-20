@@ -22,7 +22,9 @@ describe('BannerSection', () => {
     route.value = { path: '/meetings/october-42', name: 'meeting-detail' }
   })
 
-  it('shows meeting rating banner on meeting page for attendee missing rating', () => {
+  it('shows meeting rating banner on non-meeting page for attendee missing rating', () => {
+    route.value = { path: '/', name: 'home' }
+
     patchDashboardMock({
       nextMeeting: {
         id: 'october-42',
@@ -39,6 +41,22 @@ describe('BannerSection', () => {
     expect(wrapper.text()).toContain(
       'Встреча уже началась. Чтобы завершить цикл, нужна твоя оценка.',
     )
+  })
+
+  it('hides meeting rating banner on meeting detail page', () => {
+    patchDashboardMock({
+      nextMeeting: {
+        id: 'october-42',
+        status: 'started',
+      },
+      lifecycle: {
+        missingRatings: [{ id: 1 }],
+      },
+    })
+
+    const wrapper = mount(BannerSection)
+
+    expect(wrapper.text()).not.toContain('Поставь оценку книге')
   })
 
   it('hides book candidate banner on home page via hideOn', () => {

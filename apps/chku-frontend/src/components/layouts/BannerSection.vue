@@ -96,6 +96,7 @@ const bannerConfigs: BannerConfig[] = [
         missingRatings.some((m) => m.id === user.value!.id)
       )
     },
+    hideOn: ['meeting-detail'],
     props: () => ({ meetingId: nextMeeting.value?.id }),
   },
   {
