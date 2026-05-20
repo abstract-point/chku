@@ -9,6 +9,7 @@ use App\Models\Meeting;
 use App\Models\MeetingRsvp;
 use App\Models\Rating;
 use App\Models\ReadingCycle;
+use App\Models\ReadingProgress;
 use App\Models\Review;
 use App\Models\TurnOrder;
 use App\Models\User;
@@ -305,6 +306,41 @@ class MeetingApiTest extends TestCase
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', 'active')->first();
         $meeting = $cycle->meeting()->first();
+        $meeting->update(['date' => now()->subDay()->format('Y-m-d'), 'time' => '00:00']);
+        $attendees = ClubMember::whereHas('user', fn ($query) => $query->whereIn('email', [
+            'elena@example.com',
+            'mikhail@example.com',
+        ]))->get();
+
+        $meeting->rsvps()->delete();
+        foreach ($attendees as $member) {
+            MeetingRsvp::create([
+                'meeting_id' => $meeting->id,
+                'club_member_id' => $member->id,
+                'status' => 'attending',
+            ]);
+            ReadingProgress::updateOrCreate(
+                ['reading_cycle_id' => $cycle->id, 'club_member_id' => $member->id],
+                ['status' => 'finished', 'progress_percent' => 100, 'finished_at' => now()],
+            );
+        }
+
+        $response = $this->actingAs($admin)->postJson("/api/meetings/{$meeting->id}/start");
+
+        $response->assertOk();
+        $response->assertJsonPath('data.status', 'started');
+        $this->assertNotNull($meeting->refresh()->started_at);
+    }
+
+    public function test_admin_cannot_start_meeting_until_all_attendees_finished_reading(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $admin = User::where('email', 'elena@example.com')->firstOrFail();
+        $cycle = ReadingCycle::where('status', 'active')->first();
+        $meeting = $cycle->meeting()->first();
+        $meeting->update(['date' => now()->subDay()->format('Y-m-d'), 'time' => '00:00']);
+
         $attendees = ClubMember::whereHas('user', fn ($query) => $query->whereIn('email', [
             'elena@example.com',
             'mikhail@example.com',
@@ -319,11 +355,60 @@ class MeetingApiTest extends TestCase
             ]);
         }
 
-        $response = $this->actingAs($admin)->postJson("/api/meetings/{$meeting->id}/start");
+        $first = $attendees->first();
+        ReadingProgress::updateOrCreate(
+            ['reading_cycle_id' => $cycle->id, 'club_member_id' => $first->id],
+            ['status' => 'finished', 'progress_percent' => 100, 'finished_at' => now()],
+        );
 
-        $response->assertOk();
-        $response->assertJsonPath('data.status', 'started');
-        $this->assertNotNull($meeting->refresh()->started_at);
+        $this->actingAs($admin)
+            ->postJson("/api/meetings/{$meeting->id}/start")
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Встречу можно начать только после того, как все участники дочитают книгу.');
+
+        $last = $attendees->last();
+        ReadingProgress::updateOrCreate(
+            ['reading_cycle_id' => $cycle->id, 'club_member_id' => $last->id],
+            ['status' => 'finished', 'progress_percent' => 100, 'finished_at' => now()],
+        );
+
+        $this->actingAs($admin)
+            ->postJson("/api/meetings/{$meeting->id}/start")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'started');
+    }
+
+    public function test_admin_cannot_start_meeting_before_scheduled_time(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $admin = User::where('email', 'elena@example.com')->firstOrFail();
+        $cycle = ReadingCycle::where('status', 'active')->first();
+        $meeting = $cycle->meeting()->first();
+        $meeting->update(['date' => now()->addDay()->format('Y-m-d'), 'time' => '23:59']);
+
+        $attendees = ClubMember::whereHas('user', fn ($query) => $query->whereIn('email', [
+            'elena@example.com',
+            'mikhail@example.com',
+        ]))->get();
+
+        $meeting->rsvps()->delete();
+        foreach ($attendees as $member) {
+            MeetingRsvp::create([
+                'meeting_id' => $meeting->id,
+                'club_member_id' => $member->id,
+                'status' => 'attending',
+            ]);
+            ReadingProgress::updateOrCreate(
+                ['reading_cycle_id' => $cycle->id, 'club_member_id' => $member->id],
+                ['status' => 'finished', 'progress_percent' => 100, 'finished_at' => now()],
+            );
+        }
+
+        $this->actingAs($admin)
+            ->postJson("/api/meetings/{$meeting->id}/start")
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Встречу нельзя начать раньше назначенного времени.');
     }
 
     public function test_admin_cannot_start_meeting_without_two_attending_members(): void
