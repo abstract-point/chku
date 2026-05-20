@@ -43,5 +43,8 @@ class CycleHistoryApiTest extends TestCase
         $response->assertJsonPath('data.0.reviewsCount', 3);
         $response->assertJsonPath('data.0.attendingCount', 3);
         $response->assertJsonPath('data.0.rsvpCount', 3);
+        $response->assertJsonPath('data.0.meeting.status', 'finished');
+        $response->assertJsonPath('data.0.meeting.attendingCount', 3);
+        $response->assertJsonPath('data.0.meeting.rsvpCount', 3);
     }
 }

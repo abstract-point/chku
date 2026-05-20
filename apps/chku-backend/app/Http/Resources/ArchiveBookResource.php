@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Enums\MeetingRsvpStatusEnum;
+use App\Enums\ReadingCycleStatusEnum;
 use App\Support\MemberAvatar;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -14,9 +15,11 @@ class ArchiveBookResource extends JsonResource
         $book = $this->book;
         $genre = $book?->genre;
         $avgRating = $this->ratings->avg('rating') ?? 0;
+        $meeting = $this->relationLoaded('meeting') ? $this->meeting : null;
         $rsvps = $this->meeting?->rsvps;
         $attendingCount = $rsvps?->where('status', MeetingRsvpStatusEnum::Attending)->count() ?? 0;
         $rsvpCount = $rsvps?->count() ?? 0;
+        $cycleIsCompleted = $this->status === ReadingCycleStatusEnum::Completed;
 
         return [
             'slug' => $book?->slug,
@@ -38,6 +41,20 @@ class ArchiveBookResource extends JsonResource
             'rsvpCount' => $rsvpCount,
             'synopsis' => $book?->description,
             'meetingLabel' => $this->whenLoaded('meeting', fn () => $this->meeting->date?->format('d F Y') . ', ' . $this->meeting->place),
+            'meeting' => $meeting ? [
+                'id' => $meeting->id,
+                'title' => $meeting->title,
+                'date' => $meeting->date?->format('Y-m-d'),
+                'time' => $meeting->time,
+                'place' => $meeting->place,
+                'link' => $meeting->link,
+                'isOnline' => (bool) $meeting->is_online,
+                'status' => $cycleIsCompleted || $meeting->finished_at
+                    ? 'finished'
+                    : ($meeting->started_at ? 'started' : 'scheduled'),
+                'attendingCount' => $attendingCount,
+                'rsvpCount' => $rsvpCount,
+            ] : null,
             'discussionPrompt' => $this->discussion_prompt,
             'coverColor' => $book?->cover_color,
             'reviews' => ReviewResource::collection($this->whenLoaded('reviews')),
