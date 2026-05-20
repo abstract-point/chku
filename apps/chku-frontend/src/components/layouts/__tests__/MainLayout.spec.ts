@@ -9,8 +9,8 @@ function createTestRouter() {
   return createRouter({
     history: createWebHistory(),
     routes: [
-      { path: '/', component: { template: '<div>Содержимое страницы</div>' } },
-      { path: '/members', component: { template: '<div>Участники</div>' } },
+      { path: '/', name: 'home', component: { template: '<div>Содержимое страницы</div>' } },
+      { path: '/members', name: 'members', component: { template: '<div>Участники</div>' } },
     ],
   })
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, type Component } from 'vue'
+import { useRoute, type RouteRecordName } from 'vue-router'
 import { useAuthSession } from '@/queries/authQueries'
 import { useActiveCandidateQuery } from '@/queries/candidateQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
@@ -17,9 +17,6 @@ const dashboardQuery = useDashboardQuery()
 const activeCandidateQuery = useActiveCandidateQuery({
   enabled: computed(() => isAuthenticated.value),
 })
-
-const isDashboardPage = computed(() => route.path === '/')
-const isMeetingPage = computed(() => route.name === 'meeting-detail')
 
 function isMeetingTimeReached(date?: string, time?: string): boolean {
   if (!date || !time) return false
@@ -39,7 +36,10 @@ const activeBookChoice = computed(() => {
     (response) => response.member.id === user.value?.id,
   )
 
-  if (candidate.status === 'pending' && (!currentResponse || currentResponse.response === 'pending')) {
+  if (
+    candidate.status === 'pending' &&
+    (!currentResponse || currentResponse.response === 'pending')
+  ) {
     return mapCandidateToChoice(candidate)
   }
 
@@ -48,63 +48,91 @@ const activeBookChoice = computed(() => {
 
 const nextMeeting = computed(() => dashboardQuery.data.value?.nextMeeting)
 
-interface Banner {
-  type: 'choose_book' | 'meeting_admin' | 'book_candidate' | 'two_factor' | 'meeting_rating'
+interface BannerConfig {
+  id: string
+  component: Component
+  condition: () => boolean
+  showOn?: RouteRecordName[]
+  hideOn?: RouteRecordName[]
+  props?: () => Record<string, unknown>
 }
 
-const banners = computed<Banner[]>(() => {
-  const data = dashboardQuery.data.value
-  if (!data) return []
+const bannerConfigs: BannerConfig[] = [
+  {
+    id: 'choose_book',
+    component: BannerChooseBook,
+    condition: () => !!dashboardQuery.data.value?.lifecycle?.shouldShowChooseBookBanner,
+  },
+  {
+    id: 'meeting_admin',
+    component: BannerMeetingAdmin,
+    condition: () =>
+      isAdmin.value &&
+      !!nextMeeting.value &&
+      nextMeeting.value.status !== 'finished' &&
+      (nextMeeting.value.status === 'started' ||
+        isMeetingTimeReached(nextMeeting.value.date, nextMeeting.value.time)),
+    hideOn: ['home', 'meeting-detail'],
+    props: () => ({ meeting: nextMeeting.value }),
+  },
+  {
+    id: 'book_candidate',
+    component: BookCandidateVerificationBanner,
+    condition: () => !!activeBookChoice.value,
+    hideOn: ['home'],
+    props: () => ({ choice: activeBookChoice.value }),
+  },
+  {
+    id: 'meeting_rating',
+    component: BannerMeetingRating,
+    condition: () => {
+      const data = dashboardQuery.data.value
+      const meeting = nextMeeting.value
+      const missingRatings = data?.lifecycle?.missingRatings ?? []
+      return (
+        !!meeting &&
+        meeting.status === 'started' &&
+        !!user.value &&
+        missingRatings.some((m) => m.id === user.value!.id)
+      )
+    },
+    props: () => ({ meetingId: nextMeeting.value?.id }),
+  },
+  {
+    id: 'two_factor',
+    component: TwoFactorRequiredBanner,
+    condition: () => isAdmin.value && !twoFactorEnabled.value,
+  },
+]
 
-  const result: Banner[] = []
+const visibleBanners = computed(() => {
+  const currentRouteName = route.name
 
-  if (data.lifecycle?.shouldShowChooseBookBanner) {
-    result.push({ type: 'choose_book' })
-  }
+  return bannerConfigs.filter((config) => {
+    if (!config.condition()) return false
 
-  const meeting = nextMeeting.value
-  if (
-    isAdmin.value &&
-    meeting &&
-    meeting.status !== 'finished' &&
-    !isDashboardPage.value &&
-    !isMeetingPage.value &&
-    (meeting.status === 'started' || isMeetingTimeReached(meeting.date, meeting.time))
-  ) {
-    result.push({ type: 'meeting_admin' })
-  }
+    if (config.showOn && currentRouteName) {
+      if (!config.showOn.includes(currentRouteName)) return false
+    }
 
-  if (activeBookChoice.value && !isDashboardPage.value) {
-    result.push({ type: 'book_candidate' })
-  }
+    if (config.hideOn && currentRouteName) {
+      if (config.hideOn.includes(currentRouteName)) return false
+    }
 
-  const missingRatings = data.lifecycle?.missingRatings ?? []
-  if (
-    meeting &&
-    meeting.status === 'started' &&
-    !isMeetingPage.value &&
-    user.value &&
-    missingRatings.some((m) => m.id === user.value!.id)
-  ) {
-    result.push({ type: 'meeting_rating' })
-  }
-
-  if (isAdmin.value && !twoFactorEnabled.value) {
-    result.push({ type: 'two_factor' })
-  }
-
-  return result
+    return true
+  })
 })
 </script>
 
 <template lang="pug">
-template(v-if="banners.length")
+template(v-if="visibleBanners.length")
   .banner-section.container
-    BannerChooseBook(v-if="banners.some((b) => b.type === 'choose_book')")
-    BannerMeetingAdmin(v-if="banners.some((b) => b.type === 'meeting_admin') && nextMeeting" :meeting="nextMeeting")
-    BookCandidateVerificationBanner(v-if="banners.some((b) => b.type === 'book_candidate')" :choice="activeBookChoice")
-    BannerMeetingRating(v-if="banners.some((b) => b.type === 'meeting_rating') && nextMeeting" :meeting-id="nextMeeting.id")
-    TwoFactorRequiredBanner(v-if="banners.some((b) => b.type === 'two_factor')")
+    component(
+      v-for="banner in visibleBanners"
+      :key="banner.id"
+      :is="banner.component"
+      v-bind="banner.props ? banner.props() : undefined"
+    )
 </template>
 
 <style scoped>
