@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Eye, EyeOff, Lock, Mail } from '@lucide/vue'
 import owlLogo from '@/assets/owl-logo.svg'
 import AppFormField from '@/components/ui/AppFormField.vue'
@@ -10,6 +11,7 @@ import { useLoginMutation, useTwoFactorChallengeMutation } from '@/queries/authQ
 import { useFormErrors } from '@/composables/useFormErrors'
 
 const router = useRouter()
+const { t } = useI18n()
 const loginMutation = useLoginMutation()
 const twoFactorChallengeMutation = useTwoFactorChallengeMutation()
 const formErrors = useFormErrors()
@@ -54,13 +56,13 @@ async function submitTwoFactor() {
 main.login
   .login__branding
     img.login__logo(:src="owlLogo" alt="ЧКУ")
-    p.login__club-fullname.label-text Читальный клуб умничек
+    p.login__club-fullname.label-text {{ $t('auth.clubFull') }}
 
   .login__panel
-    h2.login__title Вход в систему
+    h2.login__title {{ $t('auth.loginTitle') }}
 
     form(v-if="step === 'credentials'" @submit.prevent="submitCredentials")
-      AppFormField.login__field(label="Email" label-for="login-email" required :error="formErrors.getError('email')")
+      AppFormField.login__field(:label="t('auth.email')" label-for="login-email" required :error="formErrors.getError('email')")
         .login__input-wrapper
           Mail.login__input-icon
           AppInput#login-email.login__input--with-icon(
@@ -68,10 +70,10 @@ main.login
             v-model="email"
             required
             autocomplete="email"
-            placeholder="you@example.com"
+            :placeholder="t('auth.emailPlaceholder')"
             :aria-invalid="formErrors.hasError('email')"
           )
-      AppFormField.login__field(label="Пароль" label-for="login-password" required :error="formErrors.getError('password')")
+      AppFormField.login__field(:label="t('auth.password')" label-for="login-password" required :error="formErrors.getError('password')")
         .login__input-wrapper
           Lock.login__input-icon
           AppInput#login-password.login__input--with-icon(
@@ -79,29 +81,29 @@ main.login
             v-model="password"
             required
             autocomplete="current-password"
-            placeholder="Введите пароль"
+            :placeholder="t('auth.passwordPlaceholder')"
             :aria-invalid="formErrors.hasError('password')"
           )
           button.login__toggle-password(
             type="button"
             @click="showPassword = !showPassword"
-            :aria-label="showPassword ? 'Скрыть пароль' : 'Показать пароль'"
+            :aria-label="showPassword ? $t('auth.hidePassword') : $t('auth.showPassword')"
           )
             EyeOff(v-if="showPassword")
             Eye(v-else)
 
       .login__options
-        AppCheckbox(v-model="remember") Запомнить меня
-        button.login__forgot(type="button" disabled) Забыли пароль?
+        AppCheckbox(v-model="remember") {{ $t('auth.remember') }}
+        button.login__forgot(type="button" disabled) {{ $t('auth.forgot') }}
 
       p.login__error(v-if="loginMutation.error.value && !Object.keys(formErrors.fieldErrors.value).length")
         | {{ loginMutation.error.value.message }}
 
       button.button.login__submit(type="submit" :disabled="loginMutation.isPending.value")
-        | {{ loginMutation.isPending.value ? 'Вход...' : 'Войти' }}
+        | {{ loginMutation.isPending.value ? $t('auth.loggingIn') : $t('auth.loginBtn') }}
 
     form(v-else @submit.prevent="submitTwoFactor")
-      AppFormField.login__field(label="Код из приложения-аутентификатора" label-for="login-2fa" required :error="formErrors.getError('code')")
+      AppFormField.login__field(:label="t('auth.twoFactorCode')" label-for="login-2fa" required :error="formErrors.getError('code')")
         AppInput#login-2fa.login__input--with-icon(
           type="text"
           v-model="twoFactorCode"
@@ -114,7 +116,7 @@ main.login
       p.login__error(v-if="twoFactorChallengeMutation.error.value && !Object.keys(formErrors.fieldErrors.value).length")
         | {{ twoFactorChallengeMutation.error.value.message }}
       button.button.login__submit(type="submit" :disabled="twoFactorChallengeMutation.isPending.value")
-        | {{ twoFactorChallengeMutation.isPending.value ? 'Проверка...' : 'Подтвердить' }}
+        | {{ twoFactorChallengeMutation.isPending.value ? $t('auth.verifying') : $t('auth.verifyBtn') }}
 </template>
 
 <style scoped>

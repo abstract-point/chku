@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import UserAvatar from '@/components/UserAvatar.vue'
+import { useI18n } from 'vue-i18n'
 import type { MeetingAttendee } from '@/types/dashboard'
+
+const { t } = useI18n()
 
 defineProps<{
   member: MeetingAttendee
@@ -15,7 +18,7 @@ defineProps<{
     .member-tooltip__meta(v-if="member.favoriteGenre")
       span {{ member.favoriteGenre }}
     .member-tooltip__meta(v-if="member.memberSince")
-      span С нами с {{ member.memberSince }}
+      span {{ $t('memberDetail.memberSince', { year: member.memberSince }) }}
 </template>
 
 <style scoped>

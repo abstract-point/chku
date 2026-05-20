@@ -2,8 +2,11 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { BookOpen, Star, Users } from '@lucide/vue'
+import { useI18n } from 'vue-i18n'
 import { useClubQuery } from '@/queries/clubQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
+
+const { t } = useI18n()
 
 const clubQuery = useClubQuery()
 const dashboardQuery = useDashboardQuery()
@@ -22,7 +25,7 @@ const currentCycleState = computed(() => {
 
   if (state === 'reading' && currentBook) {
     return {
-      label: 'Читаем',
+      label: t('dash.meetingInProgress'),
       value: currentBook.title,
       progress: currentBook.progressLabel ?? `${currentBook.progress}%`,
     }
@@ -30,15 +33,15 @@ const currentCycleState = computed(() => {
 
   if (state === 'pending' || state === 'verification') {
     return {
-      label: 'Кандидат',
-      value: 'На проверке',
+      label: t('dash.bookSelection'),
+      value: t('dash.awaitingVerification'),
       progress: null,
     }
   }
 
   return {
-    label: 'Статус',
-    value: 'Книга не выбрана',
+    label: t('dash.turnOrder'),
+    value: t('dash.notStartedTitle'),
     progress: null,
   }
 })
@@ -68,10 +71,10 @@ footer.app-footer
     .app-footer__brand
       span.app-footer__brand-name {{ clubName }}
       span.app-footer__copy © {{ currentYear }}
-    nav.app-footer__nav(aria-label="Нижняя навигация")
-      RouterLink(to="/") Дашборд
-      RouterLink(to="/archive") Архив
-      RouterLink(to="/profile") Профиль
+    nav.app-footer__nav(:aria-label="$t('nav.bottomAria')")
+      RouterLink(to="/") {{ $t('nav.dashboard') }}
+      RouterLink(to="/archive") {{ $t('nav.archive') }}
+      RouterLink(to="/profile") {{ $t('nav.profile') }}
 </template>
 
 <style scoped>

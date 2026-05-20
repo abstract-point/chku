@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = withDefaults(
   defineProps<{
@@ -32,7 +35,7 @@ const initials = computed(() =>
 
 const shouldShowImage = computed(() => Boolean(props.avatarUrl) && !imageFailed.value)
 const component = computed(() => (props.to ? RouterLink : 'span'))
-const label = computed(() => props.ariaLabel ?? `Аватар ${props.name}`)
+const label = computed(() => props.ariaLabel ?? `${t('settings.avatar')} ${props.name}`)
 
 watch(
   () => props.avatarUrl,

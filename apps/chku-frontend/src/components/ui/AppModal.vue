@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   isOpen: boolean
@@ -39,7 +42,7 @@ Teleport(to="#modal-portal")
         .app-modal__header(v-if="title || $slots.header")
           slot(name="header")
             h2#modal-title.app-modal__title {{ title }}
-          button.app-modal__close(type="button" aria-label="Закрыть" @click="$emit('close')")
+          button.app-modal__close(type="button" :aria-label="$t('common.close')" @click="$emit('close')")
             | &times;
         .app-modal__body
           slot

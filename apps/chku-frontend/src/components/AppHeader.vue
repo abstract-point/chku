@@ -2,10 +2,13 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { BookMarked, ChevronDown, LogOut, Moon, Settings, Sun, User } from '@lucide/vue'
+import { useI18n } from 'vue-i18n'
 import AppLogo from '@/components/AppLogo.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useAuthSession, useLogoutMutation } from '@/queries/authQueries'
 import { useClubQuery } from '@/queries/clubQueries'
+
+const { t } = useI18n()
 
 const clubQuery = useClubQuery()
 const { isAuthenticated, isDeveloper, roles, user } = useAuthSession()
@@ -17,9 +20,9 @@ const menuRoot = ref<HTMLElement | null>(null)
 const clubName = computed(() => clubQuery.data.value?.name ?? 'ЧКУ')
 
 const roleLabel = computed(() => {
-  if (isDeveloper.value) return 'Разработчик'
-  if (roles.value.includes('admin')) return 'Администратор'
-  return 'Участник'
+  if (isDeveloper.value) return t('nav.roleDev')
+  if (roles.value.includes('admin')) return t('nav.roleAdmin')
+  return t('nav.roleMember')
 })
 
 function getPreferredTheme() {
@@ -79,11 +82,11 @@ header.app-header
     AppLogo
     span.app-header__brand-name {{ clubName }}
 
-  nav.app-header__nav(aria-label="Основная навигация")
+  nav.app-header__nav(:aria-label="$t('nav.mainAria')")
     template(v-if="isAuthenticated")
-      RouterLink(to="/") Дашборд
-      RouterLink(to="/members") Участники
-      RouterLink(to="/archive") Архив
+      RouterLink(to="/") {{ $t('nav.dashboard') }}
+      RouterLink(to="/members") {{ $t('nav.members') }}
+      RouterLink(to="/archive") {{ $t('nav.archive') }}
       .app-header__menu(ref="menuRoot" v-if="user")
         button.app-header__user(
           type="button"
@@ -103,18 +106,18 @@ header.app-header
           .app-header__dropdown-divider
           RouterLink.app-header__dropdown-item(to="/profile" role="menuitem" @click="closeUserMenu")
             User.app-header__dropdown-item-icon(:size="16")
-            span Профиль
+            span {{ $t('nav.profile') }}
           RouterLink.app-header__dropdown-item(to="/propose-selection" role="menuitem" @click="closeUserMenu")
             BookMarked.app-header__dropdown-item-icon(:size="16")
-            span Моя очередь книг
+            span {{ $t('nav.myQueue') }}
           RouterLink.app-header__dropdown-item(to="/profile/settings" role="menuitem" @click="closeUserMenu")
             Settings.app-header__dropdown-item-icon(:size="16")
-            span Настройки
+            span {{ $t('nav.settings') }}
           .app-header__dropdown-divider
           .app-header__dropdown-item.app-header__dropdown-item--theme
             .app-header__dropdown-item-left
               Sun.app-header__dropdown-item-icon(:size="16")
-              span Тема
+              span {{ $t('nav.theme') }}
             .app-header__theme-toggle
               button.app-header__theme-btn(
                 type="button"
@@ -135,9 +138,9 @@ header.app-header
             @click="handleLogout"
           )
             LogOut.app-header__dropdown-item-icon(:size="16")
-            span Выйти
+            span {{ $t('nav.logout') }}
     template(v-else)
-      RouterLink(to="/login") Вход
+      RouterLink(to="/login") {{ $t('nav.login') }}
 </template>
 
 <style scoped>

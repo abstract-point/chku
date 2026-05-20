@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Copy, Info, RotateCcw, ShieldCheck } from '@lucide/vue'
 import {
   useAuthSession,
@@ -14,6 +15,7 @@ import {
 import type { ComponentPublicInstance } from 'vue'
 
 const { twoFactorEnabled } = useAuthSession()
+const { t } = useI18n()
 
 const isTwoFactorEnabled = computed(() => twoFactorEnabled.value)
 const shouldLoadSetupSecrets = ref(false)
@@ -77,7 +79,7 @@ async function loadQrAndSecret() {
     const queryError = qrResult.error ?? secretResult.error
     if (queryError) throw queryError
   } catch (err) {
-    error.value = getErrorMessage(err, 'Не удалось загрузить QR-код.')
+    error.value = getErrorMessage(err, t('auth.twoFactor.qrLoadFailed'))
   }
 }
 
@@ -87,18 +89,16 @@ async function startSetup() {
     await enableTwoFactorMutation.mutateAsync()
     await loadQrAndSecret()
     codeDigits.value = ['', '', '', '', '', '']
-    message.value = 'Отсканируй QR-код и введи код подтверждения.'
+    message.value = t('auth.twoFactor.qrLoaded')
   } catch (err) {
-    error.value = getErrorMessage(err, 'Не удалось начать настройку 2FA.')
+    error.value = getErrorMessage(err, t('auth.twoFactor.setupFailed'))
   }
 }
 
 async function refreshQr() {
   clearFeedback()
   if (
-    !window.confirm(
-      'Обновить QR-код? Старый код станет недействителен, и понадобится заново настроить аутентификатор.',
-    )
+    !window.confirm(t('auth.twoFactor.refreshConfirm'))
   ) {
     return
   }
@@ -106,9 +106,9 @@ async function refreshQr() {
     await enableTwoFactorMutation.mutateAsync()
     await loadQrAndSecret()
     codeDigits.value = ['', '', '', '', '', '']
-    message.value = 'QR-код обновлён. Отсканируй новый код.'
+    message.value = t('auth.twoFactor.qrUpdated')
   } catch (err) {
-    error.value = getErrorMessage(err, 'Не удалось обновить QR-код.')
+    error.value = getErrorMessage(err, t('auth.twoFactor.qrUpdateFailed'))
   }
 }
 
@@ -125,9 +125,9 @@ async function confirmSetup() {
     }
     shouldLoadSetupSecrets.value = false
     codeDigits.value = ['', '', '', '', '', '']
-    message.value = '2FA включена. Сохрани резервные коды.'
+    message.value = t('auth.twoFactor.enabledWithCodes')
   } catch (err) {
-    error.value = getErrorMessage(err, 'Код подтверждения не подошёл.')
+    error.value = getErrorMessage(err, t('auth.twoFactor.invalidCode'))
   }
 }
 
@@ -138,7 +138,7 @@ async function showRecoveryCodes() {
     const result = await recoveryCodesQuery.refetch()
     if (result.error) throw result.error
   } catch (err) {
-    error.value = getErrorMessage(err, 'Не удалось загрузить резервные коды.')
+    error.value = getErrorMessage(err, t('auth.twoFactor.recoveryLoadFailed'))
   }
 }
 
@@ -149,15 +149,15 @@ async function regenerateRecoveryCodes() {
     shouldLoadRecoveryCodes.value = true
     const result = await recoveryCodesQuery.refetch()
     if (result.error) throw result.error
-    message.value = 'Резервные коды обновлены.'
+    message.value = t('auth.twoFactor.recoveryUpdated')
   } catch (err) {
-    error.value = getErrorMessage(err, 'Не удалось обновить резервные коды.')
+    error.value = getErrorMessage(err, t('auth.twoFactor.recoveryUpdateFailed'))
   }
 }
 
 async function disable() {
   clearFeedback()
-  if (!window.confirm('Выключить двухфакторную защиту? Это снизит безопасность аккаунта.')) {
+  if (!window.confirm(t('auth.twoFactor.disableConfirm'))) {
     return
   }
   try {
@@ -165,9 +165,9 @@ async function disable() {
     shouldLoadRecoveryCodes.value = false
     shouldLoadSetupSecrets.value = false
     codeDigits.value = ['', '', '', '', '', '']
-    message.value = '2FA выключена.'
+    message.value = t('auth.twoFactor.disabledOk')
   } catch (err) {
-    error.value = getErrorMessage(err, 'Не удалось выключить 2FA.')
+    error.value = getErrorMessage(err, t('auth.twoFactor.disableFailed'))
   }
 }
 
@@ -230,42 +230,42 @@ function onDigitPaste(event: ClipboardEvent, index: number) {
 <template lang="pug">
 section.panel.two-factor-setup(aria-labelledby="two-factor-title")
   .section-header.section-header--compact
-    h2#two-factor-title Двухфакторная защита
+    h2#two-factor-title {{ $t('auth.twoFactor.title') }}
     span.badge.label-text(:class="isTwoFactorEnabled ? 'badge--reading' : 'badge--action'")
       ShieldCheck.two-factor-setup__badge-icon
-      | {{ isTwoFactorEnabled ? '2FA включена' : '2FA выключена' }}
+      | {{ isTwoFactorEnabled ? $t('auth.twoFactor.enabled') : $t('auth.twoFactor.disabled') }}
 
   .two-factor-setup__body
     template(v-if="!isTwoFactorEnabled")
       p.body-text.two-factor-setup__lead
-        | Подтверждай вход одноразовым кодом из приложения-аутентификатора. Для администраторов и разработчиков 2FA обязательна перед управлением участниками клуба.
+        | {{ $t('auth.twoFactor.desc') }}
 
       .two-factor-setup__start(v-if="!qrCodeSvg && !isLoadingQr")
         button.button.button--primary.label-text(type="button" :disabled="isBusy" @click="startSetup")
-          | Включить 2FA
+          | {{ $t('auth.twoFactor.enable') }}
 
       .two-factor-setup__loading(v-if="isLoadingQr")
-        p.body-text Загружаем QR-код…
+        p.body-text {{ $t('auth.twoFactor.loadingQr') }}
 
       .two-factor-setup__card(v-if="qrCodeSvg")
         .two-factor-setup__grid
           .two-factor-setup__left
             .two-factor-setup__qr-row
-              .two-factor-setup__qr-card(aria-label="QR-код для настройки аутентификатора")
+              .two-factor-setup__qr-card(:aria-label="t('auth.twoFactor.qrAria')")
                 .two-factor-setup__qr(v-html="qrCodeSvg")
 
               .two-factor-setup__secret(v-if="secretKey")
-                span.label-text Ручной ключ
+                span.label-text {{ $t('auth.twoFactor.manualKey') }}
                 p.body-text.two-factor-setup__secret-hint
-                  | Если QR-код не сканируется, добавь ключ вручную.
+                  | {{ $t('auth.twoFactor.manualKeyHint') }}
                 .two-factor-setup__secret-box
                   code.two-factor-setup__secret-key {{ secretKey }}
-                  button.two-factor-setup__copy-icon(type="button" @click="copySecret" :title="copiedSecret ? 'Скопировано' : 'Скопировать'")
+                  button.two-factor-setup__copy-icon(type="button" @click="copySecret" :title="copiedSecret ? t('auth.twoFactor.copied') : t('auth.twoFactor.copy')")
                     Copy
 
             button.button.button--secondary.label-text.two-factor-setup__refresh(type="button" :disabled="isBusy" @click="refreshQr")
               RotateCcw.two-factor-setup__button-icon
-              | Обновить QR-код
+              | {{ $t('auth.twoFactor.refreshQr') }}
 
           .two-factor-setup__divider
 
@@ -273,16 +273,16 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
             ol.two-factor-setup__steps
               li
                 span.two-factor-setup__step-num 1.
-                | Открой приложение-аутентификатор
+                | {{ $t('auth.twoFactor.step1') }}
               li
                 span.two-factor-setup__step-num 2.
-                | Отсканируй QR-код
+                | {{ $t('auth.twoFactor.step2') }}
               li
                 span.two-factor-setup__step-num 3.
-                | Введи 6-значный код
+                | {{ $t('auth.twoFactor.step3') }}
 
             .two-factor-setup__code-group
-              label.label-text Код из приложения
+              label.label-text {{ $t('auth.twoFactor.codeLabel') }}
               .two-factor-setup__code-inputs
                 input.two-factor-setup__digit(
                   v-for="(_, index) in 3"
@@ -322,7 +322,7 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
               :disabled="isBusy || !canConfirm"
               @click="confirmSetup"
             )
-              | {{ isBusy ? 'Проверка…' : 'Включить 2FA' }}
+              | {{ isBusy ? $t('auth.twoFactor.confirming') : $t('auth.twoFactor.confirmBtn') }}
 
 
         .two-factor-setup__footer(v-if="message" )
@@ -331,26 +331,26 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 
     template(v-else)
       p.body-text.two-factor-setup__lead
-        | При входе система будет запрашивать одноразовый код из приложения-аутентификатора.
+        | {{ $t('auth.twoFactor.enabledDesc') }}
 
       .two-factor-setup__actions
         button.button.button--secondary.label-text(type="button" :disabled="isBusy" @click="showRecoveryCodes")
-          | Показать резервные коды
+          | {{ $t('auth.twoFactor.recoveryShow') }}
         button.button.button--secondary.label-text(type="button" :disabled="isBusy" @click="regenerateRecoveryCodes")
-          | Обновить коды
+          | {{ $t('auth.twoFactor.recoveryRefresh') }}
 
       .two-factor-setup__recovery(v-if="recoveryCodes.length")
         .two-factor-setup__recovery-header
-          span.label-text Резервные коды
+          span.label-text {{ $t('auth.twoFactor.recoveryTitle') }}
           button.button.button--ghost.label-text(type="button" @click="copyRecoveryCodes")
-            | {{ copiedRecovery ? 'Скопированы' : 'Скопировать все' }}
+            | {{ copiedRecovery ? $t('auth.twoFactor.recoveryCopied') : $t('auth.twoFactor.recoveryCopyAll') }}
         ul.two-factor-setup__codes(role="list")
           li(v-for="code in recoveryCodes" :key="code")
             code {{ code }}
 
       .two-factor-setup__disable
         button.button.button--ghost.label-text.two-factor-setup__disable-btn(type="button" :disabled="isBusy" @click="disable")
-          | Выключить 2FA
+          | {{ $t('auth.twoFactor.disable') }}
 
 
 </template>
