@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ArrowLeft, CalendarDays, MapPin, MessageSquare, Monitor, Star, UserRound } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDateLabel, formatTimeLabel } from '@/mappers/date'
 import { useArchiveBookQuery } from '@/queries/archiveQueries'
 
 const route = useRoute()
+const { t } = useI18n()
 const slug = computed(() => String(route.params.slug ?? ''))
 const bookQuery = useArchiveBookQuery(slug)
 const book = computed(() => bookQuery.data.value)
@@ -16,22 +18,22 @@ const meeting = computed(() => book.value?.meeting)
 <template lang="pug">
 main.archive-book.container
   section.panel(v-if="bookQuery.isLoading.value" aria-live="polite")
-    p.body-text Загружаем книгу...
+    p.body-text {{ $t('archiveBook.loading') }}
   section.panel.archive-book__missing(v-else-if="bookQuery.error.value")
     .section-header.section-header--compact
-      h1 Книга не найдена
-    p.body-text Возможно, ссылка устарела или книга ещё не добавлена в архив.
-    RouterLink.button.button--primary.label-text(to="/archive") Вернуться в архив
+      h1 {{ $t('archiveBook.notFound') }}
+    p.body-text {{ $t('archiveBook.notFoundText') }}
+    RouterLink.button.button--primary.label-text(to="/archive") {{ $t('archiveBook.backToArchive') }}
   template(v-else-if="book")
-    nav.archive-book__breadcrumb.label-text(aria-label="Навигация по архиву")
-      RouterLink(to="/archive") Архив
+    nav.archive-book__breadcrumb.label-text(:aria-label="t('archiveBook.navAria')")
+      RouterLink(to="/archive") {{ $t('nav.archive') }}
       span /
       span {{ book.cycleLabel }}
       span /
       span.archive-book__breadcrumb-current {{ book.title }}
 
     .archive-book__hero
-      .book-cover.archive-book__cover(:style="{ backgroundColor: book.coverColor }" :aria-label="`Обложка книги ${book.title}`")
+      .book-cover.archive-book__cover(:style="{ backgroundColor: book.coverColor }" :aria-label="t('archiveBook.coverAria', { title: book.title })")
         .book-cover__content.archive-book__cover-title {{ book.coverTitle }}
 
       .archive-book__info
@@ -40,31 +42,31 @@ main.archive-book.container
 
         .archive-book__meta
           .archive-book__meta-item
-            span.label-text.archive-book__muted Выбрал(а)
+            span.label-text.archive-book__muted {{ $t('archiveBook.chosenBy') }}
             .archive-book__member
               UserRound.archive-book__icon
               UserAvatar.archive-book__avatar(:name="book.proposedBy" :avatar-url="book.proposerAvatarUrl" size="sm")
               span.label-text {{ book.proposedBy }}
           .archive-book__meta-item
-            span.label-text.archive-book__muted Средняя оценка
+            span.label-text.archive-book__muted {{ $t('archiveBook.avgRating') }}
             span.archive-book__rating.label-text
               Star.archive-book__icon
               | {{ book.rating.toFixed(1) }}/10
           .archive-book__meta-item
-            span.label-text.archive-book__muted Цикл
+            span.label-text.archive-book__muted {{ $t('archiveBook.cycle') }}
             span.archive-book__cycle.label-text
               CalendarDays.archive-book__icon
               | {{ book.cycleLabel }} · {{ book.completedLabel }}
 
         .section-header.section-header--compact
-          h2 Синопсис
+          h2 {{ $t('archiveBook.synopsis') }}
         p.body-text.archive-book__synopsis {{ book.synopsis }}
 
     .archive-book__content
       section.archive-book__main(aria-labelledby="archive-book-reviews")
         .section-header
-          h2#archive-book-reviews Отзывы клуба
-          span.label-text {{ book.reviews.length }} отзыва
+          h2#archive-book-reviews {{ $t('archiveBook.reviews') }}
+          span.label-text {{ $t('archiveBook.reviewN', { n: book.reviews.length }) }}
 
         article.panel.archive-book__review(v-for="review in book.reviews" :key="`${review.memberName}-${review.rating}`")
           .archive-book__review-header
@@ -75,11 +77,11 @@ main.archive-book.container
           p.body-text {{ review.text }}
 
         .section-header.archive-book__discussion-header
-          h2 Обсуждение
-          span.label-text Встреча клуба
+          h2 {{ $t('archiveBook.discussion') }}
+          span.label-text {{ $t('archiveBook.clubMeeting') }}
 
         .panel.archive-book__prompt
-          span.label-text.archive-book__muted Главный вопрос
+          span.label-text.archive-book__muted {{ $t('archiveBook.mainQuestion') }}
           p.archive-book__prompt-text {{ book.discussionPrompt }}
 
         .archive-book__discussion
@@ -92,59 +94,59 @@ main.archive-book.container
               span.label-text.archive-book__muted {{ message.dateLabel }}
             p.body-text {{ message.text }}
 
-      aside.archive-book__sidebar(aria-label="Сводка книги")
+      aside.archive-book__sidebar(:aria-label="t('archiveBook.bookSummaryAria')")
         section.panel
           .section-header.section-header--compact
-            span.label-text Сводка цикла
+            span.label-text {{ $t('archiveBook.cycleSummary') }}
           ul.data-list
             li.data-list__item
-              span.label-text.archive-book__muted Жанр
+              span.label-text.archive-book__muted {{ $t('archiveBook.genre') }}
               span.badge.label-text(:class="`badge--${book.genre === 'scifi' ? 'action' : book.genre === 'nonfiction' ? 'done' : 'reading'}`")
                 | {{ book.genreLabel }}
             li.data-list__item
-              span.label-text.archive-book__muted Завершено
+              span.label-text.archive-book__muted {{ $t('archiveBook.completed') }}
               span.label-text {{ book.completedLabel }}
             li.data-list__item
-              span.label-text.archive-book__muted Встреча
+              span.label-text.archive-book__muted {{ $t('archiveBook.meeting') }}
               span.label-text {{ meeting ? formatDateLabel(meeting.date ?? undefined) : book.meetingLabel }}
             li.data-list__item
-              span.label-text.archive-book__muted Оценка
+              span.label-text.archive-book__muted {{ $t('archiveBook.rating') }}
               span.label-text {{ book.rating.toFixed(1) }}/10
             li.data-list__item
-              span.label-text.archive-book__muted Отзывов
+              span.label-text.archive-book__muted {{ $t('archiveBook.reviewsCount') }}
               span.label-text {{ book.reviews.length }}
 
         section.panel.archive-book__meeting(v-if="meeting")
           .section-header.section-header--compact
-            span.label-text Встреча в архиве
+            span.label-text {{ $t('archiveBook.meetingArchive') }}
             CalendarDays.archive-book__icon
           h3.archive-book__meeting-title {{ meeting.title }}
           ul.data-list
             li.data-list__item
-              span.label-text.archive-book__muted Дата
+              span.label-text.archive-book__muted {{ $t('archiveBook.date') }}
               span.label-text {{ formatDateLabel(meeting.date ?? undefined) }} · {{ formatTimeLabel(meeting.time ?? undefined) }}
             li.data-list__item
-              span.label-text.archive-book__muted Формат
+              span.label-text.archive-book__muted {{ $t('archiveBook.format') }}
               span.label-text.archive-book__meeting-format
                 Monitor.archive-book__icon(v-if="meeting.isOnline")
                 MapPin.archive-book__icon(v-else)
-                | {{ meeting.isOnline ? 'Онлайн' : meeting.place }}
+                | {{ meeting.isOnline ? $t('archiveBook.online') : meeting.place }}
             li.data-list__item
-              span.label-text.archive-book__muted Участники
+              span.label-text.archive-book__muted {{ $t('archiveBook.participants') }}
               span.label-text {{ meeting.attendingCount }}/{{ meeting.rsvpCount }}
           RouterLink.button.button--secondary.label-text.archive-book__meeting-link(:to="`/meetings/${meeting.id}`")
             CalendarDays.archive-book__icon
-            | Открыть встречу
+            | {{ $t('archiveBook.openMeeting') }}
 
         RouterLink.button.button--secondary.label-text.archive-book__back(to="/archive")
           ArrowLeft.archive-book__icon
-          | Вернуться в архив
+          | {{ $t('archiveBook.backBtn') }}
 
   section.panel.archive-book__missing(v-else)
     .section-header.section-header--compact
-      h1 Книга не найдена
-    p.body-text Возможно, ссылка устарела или книга ещё не добавлена в архив.
-    RouterLink.button.button--primary.label-text(to="/archive") Вернуться в архив
+      h1 {{ $t('archiveBook.notFound') }}
+    p.body-text {{ $t('archiveBook.notFoundText') }}
+    RouterLink.button.button--primary.label-text(to="/archive") {{ $t('archiveBook.backToArchive') }}
 </template>
 
 <style scoped>

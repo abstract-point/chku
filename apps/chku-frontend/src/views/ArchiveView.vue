@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { CalendarCheck, ChevronDown, MessageSquare, Search, Star } from '@lucide/vue'
 import { useArchiveQuery } from '@/queries/archiveQueries'
 import type { ArchiveBookGenre } from '@/types/club'
@@ -10,6 +11,7 @@ type SortMode = 'newest' | 'oldest' | 'rating'
 const searchQuery = ref('')
 const selectedGenre = ref<ArchiveBookGenre | ''>('')
 const selectedMember = ref('')
+const { t } = useI18n()
 const sortMode = ref<SortMode>('newest')
 const currentPage = ref(1)
 const pageSize = 6
@@ -95,54 +97,54 @@ function getGenreBadgeClass(genre: ArchiveBookGenre) {
 }
 
 function ratingLabel(rating: number | undefined) {
-  return typeof rating === 'number' ? `${rating.toFixed(1)}/10` : 'нет'
+  return typeof rating === 'number' ? `${rating.toFixed(1)}/10` : t('profile.ratingNone')
 }
 </script>
 
 <template lang="pug">
 main.archive.container
   .archive__header
-    h1.archive__title Архив
+    h1.archive__title {{ $t('archive.title') }}
     span.archive__count
       strong {{ archiveBooks.length }}
-      |  циклов завершено
+      |  {{ $t('archive.cycles', { n: archiveBooks.length }).replace(/^\d+\s*/, '') }}
 
-  .archive__controls(aria-label="Фильтры архива")
+  .archive__controls(:aria-label="t('archive.filtersAria')")
     label.archive__search
       Search.archive__search-icon(:size="18" aria-hidden="true")
       input.field-control(
         v-model="searchQuery"
         type="search"
-        placeholder="Поиск по книге, автору или участнику"
-        aria-label="Поиск по архиву"
+        :placeholder="t('archive.searchPlaceholder')"
+        :aria-label="t('archive.searchAria')"
         @input="resetPage"
       )
 
     .archive__filters
       label.archive__select-wrap
-        select.archive__select.field-control(v-model="selectedGenre" aria-label="Фильтр по жанру" @change="resetPage")
-          option(value="") Все жанры
+        select.archive__select.field-control(v-model="selectedGenre" :aria-label="t('archive.genreAria')" @change="resetPage")
+          option(value="") {{ $t('archive.allGenres') }}
           option(v-for="genre in genreOptions" :key="genre.value" :value="genre.value") {{ genre.label }}
         ChevronDown(:size="16" aria-hidden="true")
       label.archive__select-wrap
-        select.archive__select.field-control(v-model="selectedMember" aria-label="Фильтр по участнику" @change="resetPage")
-          option(value="") Все участники
+        select.archive__select.field-control(v-model="selectedMember" :aria-label="t('archive.memberAria')" @change="resetPage")
+          option(value="") {{ $t('archive.allMembers') }}
           option(v-for="member in memberOptions" :key="member" :value="member") {{ member }}
         ChevronDown(:size="16" aria-hidden="true")
       label.archive__select-wrap
-        select.archive__select.field-control(v-model="sortMode" aria-label="Сортировка архива" @change="resetPage")
-          option(value="newest") Сначала новые
-          option(value="oldest") Сначала старые
-          option(value="rating") По рейтингу
+        select.archive__select.field-control(v-model="sortMode" :aria-label="t('archive.sortAria')" @change="resetPage")
+          option(value="newest") {{ $t('archive.sortNewest') }}
+          option(value="oldest") {{ $t('archive.sortOldest') }}
+          option(value="rating") {{ $t('archive.sortRating') }}
         ChevronDown(:size="16" aria-hidden="true")
 
   section.panel(v-if="archiveQuery.isLoading.value" aria-live="polite")
-    p.body-text Загружаем архив...
+    p.body-text {{ $t('common.loadingArchive') }}
   section.panel(v-else-if="archiveQuery.error.value" aria-live="polite")
-    p.body-text Не удалось загрузить архив.
+    p.body-text {{ $t('common.errorArchive') }}
   TransitionGroup.archive__grid(name="list" tag="div" v-else-if="paginatedBooks.length")
     RouterLink.archive-card(v-for="book in paginatedBooks" :key="book.slug" :to="`/archive/${book.slug}`")
-      .archive-card__cover(:style="{ '--cover-color': book.coverColor }" :aria-label="`Обложка книги ${book.title}`")
+      .archive-card__cover(:style="{ '--cover-color': book.coverColor }" :aria-label="t('archive.coverAria', { title: book.title })")
         span.archive-card__cover-title {{ book.coverTitle }}
       .archive-card__info
         .archive-card__meta
@@ -152,34 +154,34 @@ main.archive.container
         h2.archive-card__title {{ book.title }}
         p.body-text.archive-card__author {{ book.author }}
         .archive-card__details
-          span.label-text Завершено: {{ book.completedLabel }}
-          span.label-text Предложил(а): {{ book.proposedBy }}
-        .archive-card__stats(aria-label="Статистика цикла")
+          span.label-text {{ $t('archive.completed', { label: book.completedLabel }) }}
+          span.label-text {{ $t('archive.proposedBy', { name: book.proposedBy }) }}
+        .archive-card__stats(:aria-label="t('archive.statsAria')")
           span.archive-card__stat.label-text
             Star(:size="15" aria-hidden="true")
             span {{ ratingLabel(book.averageRating ?? book.rating) }}
           span.archive-card__stat.label-text
             Star(:size="15" aria-hidden="true")
-            span {{ book.ratingsCount ?? book.reviews.length }} оценок
+            span {{ $t('archive.ratingsN', { n: book.ratingsCount ?? book.reviews.length }) }}
           span.archive-card__stat.label-text
             MessageSquare(:size="15" aria-hidden="true")
-            span {{ book.reviewsCount ?? book.reviews.length }} отзывов
+            span {{ $t('archive.reviewsN', { n: book.reviewsCount ?? book.reviews.length }) }}
           span.archive-card__stat.label-text
             CalendarCheck(:size="15" aria-hidden="true")
             span {{ book.attendingCount ?? 0 }}/{{ book.rsvpCount ?? 0 }} RSVP
 
   section.panel.archive__empty(v-else aria-live="polite")
     .section-header.section-header--compact
-      h2 Ничего не найдено
-    p.body-text Попробуй изменить запрос, жанр или участника.
-    button.button.button--secondary.label-text(type="button" @click="resetFilters") Сбросить фильтры
+      h2 {{ $t('archive.noResults') }}
+    p.body-text {{ $t('archive.noResultsText') }}
+    button.button.button--secondary.label-text(type="button" @click="resetFilters") {{ $t('archive.resetFilters') }}
 
-  nav.archive__pagination(v-if="totalPages > 1" aria-label="Страницы архива")
+  nav.archive__pagination(v-if="totalPages > 1" :aria-label="t('archive.paginationAria')")
     button.archive__page.label-text(
       type="button"
       :disabled="currentPage === 1"
       @click="currentPage -= 1"
-    ) Назад
+    ) {{ $t('archive.back') }}
     button.archive__page.label-text(
       v-for="page in pageNumbers"
       :key="page"
@@ -192,7 +194,7 @@ main.archive.container
       type="button"
       :disabled="currentPage === totalPages"
       @click="currentPage += 1"
-    ) Вперёд
+    ) {{ $t('archive.forward') }}
 </template>
 
 <style scoped>
