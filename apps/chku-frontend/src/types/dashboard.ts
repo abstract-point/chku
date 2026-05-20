@@ -71,6 +71,8 @@ export type MeetingDetail = {
   cycleId: number
   dateLabel: string
   timeLabel: string
+  date?: string
+  time?: string
   place?: string
   isOnline: boolean
   placeAddress?: string
@@ -81,6 +83,7 @@ export type MeetingDetail = {
   canStart: boolean
   canFinish: boolean
   missingRatingMemberIds: number[]
+  missingReadingMemberIds: number[]
   rsvpStatus: 'attending' | 'not_attending' | 'pending'
   attendees: MeetingAttendee[]
   book: MeetingBook

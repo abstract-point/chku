@@ -97,6 +97,7 @@ export type ApiMeeting = {
   canStart?: boolean
   canFinish?: boolean
   missingRatingMemberIds?: number[]
+  missingReadingMemberIds?: number[]
   rsvps?: ApiMeetingRsvp[]
   reschedules?: ApiMeetingReschedule[]
   book?: ApiBook
