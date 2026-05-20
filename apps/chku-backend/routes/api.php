@@ -69,6 +69,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('meetings/{meeting}/start', [MeetingController::class, 'start']);
     Route::post('meetings/{meeting}/finish', [MeetingController::class, 'finish']);
     Route::patch('meetings/{meeting}/rsvps/me', [MeetingController::class, 'updateMyRsvp']);
+    Route::delete('meetings/{meeting}/rsvps/{member}', [MeetingController::class, 'destroyRsvp']);
     Route::post('meetings/{meeting}/topics', [MeetingController::class, 'storeTopic']);
 
     Route::get('candidates/active', [BookCandidateController::class, 'active']);
