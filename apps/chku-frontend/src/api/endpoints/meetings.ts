@@ -44,6 +44,10 @@ export const meetingsApi = {
     return http.patch<unknown, ApiMeeting>(`/meetings/${id}/rsvps/me`, { status })
   },
 
+  async removeRsvp(meetingId: string | number, memberId: number) {
+    return http.delete<unknown, { message: string }>(`/meetings/${meetingId}/rsvps/${memberId}`)
+  },
+
   async addTopic(id: string | number, topic: string) {
     return http.post<unknown, ApiMeeting>(`/meetings/${id}/topics`, { topic })
   },

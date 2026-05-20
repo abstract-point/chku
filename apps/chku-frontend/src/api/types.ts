@@ -7,6 +7,7 @@ export type ApiMember = {
   memberSince: string
   favoriteGenreId?: number | null
   favoriteGenre: string
+  isAdmin?: boolean
   stats?: {
     read: number
     proposed: number

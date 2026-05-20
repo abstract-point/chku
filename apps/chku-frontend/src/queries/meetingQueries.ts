@@ -26,6 +26,18 @@ export function useUpdateMeetingRsvpMutation(id: MaybeRefOrGetter<string>) {
   })
 }
 
+export function useRemoveMeetingRsvpMutation(id: MaybeRefOrGetter<string>) {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: (memberId: number) => meetingsApi.removeRsvp(toValue(id), memberId),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: queryKeys.meeting(toValue(id)) })
+      client.invalidateQueries({ queryKey: queryKeys.dashboard })
+    },
+  })
+}
+
 export function useAddMeetingTopicMutation(id: MaybeRefOrGetter<string>) {
   const client = useQueryClient()
 

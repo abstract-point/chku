@@ -11,6 +11,7 @@ export function mapMeetingDetail(meeting: ApiMeeting, currentUserId?: number): M
       status: rsvp.status,
       favoriteGenre: rsvp.member.favoriteGenre,
       memberSince: rsvp.member.memberSince,
+      isAdmin: rsvp.member.isAdmin,
     })) ?? []
 
   return {

@@ -55,6 +55,7 @@ export type MeetingAttendee = {
   status: 'attending' | 'not_attending' | 'pending'
   favoriteGenre?: string
   memberSince?: string
+  isAdmin?: boolean
 }
 
 export type MeetingBook = {
