@@ -227,6 +227,18 @@ export type ApiArchiveBook = {
   rsvpCount?: number
   synopsis: string
   meetingLabel: string
+  meeting?: {
+    id: number
+    title: string
+    date?: string | null
+    time?: string | null
+    place?: string | null
+    link?: string | null
+    isOnline: boolean
+    status: 'scheduled' | 'started' | 'finished'
+    attendingCount: number
+    rsvpCount: number
+  } | null
   discussionPrompt: string
   coverColor: string
   reviews: {

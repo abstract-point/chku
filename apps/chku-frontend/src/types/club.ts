@@ -96,6 +96,19 @@ export type ArchiveDiscussionMessage = {
   text: string
 }
 
+export type ArchiveMeeting = {
+  id: number
+  title: string
+  date?: string | null
+  time?: string | null
+  place?: string | null
+  link?: string | null
+  isOnline: boolean
+  status: 'scheduled' | 'started' | 'finished'
+  attendingCount: number
+  rsvpCount: number
+}
+
 export type ArchiveBook = {
   slug: string
   title: string
@@ -116,6 +129,7 @@ export type ArchiveBook = {
   rsvpCount?: number
   synopsis: string
   meetingLabel: string
+  meeting?: ArchiveMeeting | null
   discussionPrompt: string
   coverColor: string
   reviews: ArchiveBookReview[]

@@ -22,6 +22,18 @@ export const archiveBooks = [
     synopsis:
       'Закрытый круг студентов-классиков в маленьком колледже постепенно превращает эстетическое увлечение древностью в моральную катастрофу.',
     meetingLabel: '24 сентября 2023, Дом культуры',
+    meeting: {
+      id: 1,
+      title: 'Сентябрьская встреча',
+      date: '2023-09-24',
+      time: '19:00',
+      place: 'Дом культуры',
+      link: null,
+      isOnline: false,
+      status: 'finished',
+      attendingCount: 4,
+      rsvpCount: 5,
+    },
     discussionPrompt:
       'Где проходит граница между интеллектуальной игрой и ответственностью за поступок?',
     coverColor: '#3a405a',
