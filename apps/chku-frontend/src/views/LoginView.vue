@@ -292,7 +292,6 @@ main.login
 }
 
 .login__submit:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
 }
 

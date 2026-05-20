@@ -204,9 +204,4 @@ AppModal(:is-open="isOpen" title="Завершение встречи и цик�
   color: var(--danger);
   margin-bottom: var(--space-lg);
 }
-
-.button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 </style>
