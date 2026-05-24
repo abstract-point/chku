@@ -1,18 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Controllers;
 
+use App\Enums\BookCandidateStatusEnum;
 use App\Enums\MemberBookQueueItemStatusEnum;
 use App\Http\Resources\MemberBookQueueItemResource;
 use App\Models\Book;
 use App\Models\Genre;
 use App\Models\MemberBookQueueItem;
+use App\Services\BookCoverDownloadService;
 use App\Services\BookSelectionStateMachine;
 use App\Services\CurrentMemberService;
 use App\Services\MemberBookQueueService;
 use App\Services\TurnOrderService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
@@ -20,6 +21,10 @@ use Illuminate\Validation\Rule;
 
 final class MemberBookQueueController extends Controller
 {
+    public function __construct(
+        private BookCoverDownloadService $coverDownloadService,
+    ) {}
+
     public function index(CurrentMemberService $currentMember, MemberBookQueueService $queue): AnonymousResourceCollection
     {
         return MemberBookQueueItemResource::collection(
@@ -47,6 +52,7 @@ final class MemberBookQueueController extends Controller
             'description' => ['nullable', 'string', 'max:2000'],
             'reason' => ['nullable', 'string', 'max:2000'],
             'coverUrl' => ['nullable', 'url', 'max:2048'],
+            'coverFile' => ['nullable', 'image', 'max:5120'],
         ]);
 
         $member = $currentMember->get();
@@ -55,6 +61,8 @@ final class MemberBookQueueController extends Controller
             ['slug' => $this->uniqueSlug($payload['title'])],
             $this->bookPayload($payload),
         );
+
+        $this->attachCover($book, $payload);
 
         $item = $queue->createAtHead(
             $member,
@@ -174,7 +182,19 @@ final class MemberBookQueueController extends Controller
             'description' => $payload['description'] ?? null,
             'genre_id' => Genre::where('slug', 'fiction')->value('id'),
             'cover_color' => '#3a405a',
-            'cover_url' => $payload['coverUrl'] ?? null,
         ];
+    }
+
+    private function attachCover(Book $book, array $payload): void
+    {
+        if (! empty($payload['coverFile'])) {
+            $this->coverDownloadService->storeUploaded($book, $payload['coverFile'], 'manual_upload');
+
+            return;
+        }
+
+        if (! empty($payload['coverUrl'])) {
+            $this->coverDownloadService->downloadAndStore($book, $payload['coverUrl'], 'search_result');
+        }
     }
 }

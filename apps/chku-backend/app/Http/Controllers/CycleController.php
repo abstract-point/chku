@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Controllers;
 
 use App\Enums\ReadingCycleStatusEnum;
@@ -9,7 +7,9 @@ use App\Http\Resources\CycleResource;
 use App\Models\Book;
 use App\Models\Genre;
 use App\Models\ReadingCycle;
+use App\Services\BookCoverDownloadService;
 use App\Services\CurrentMemberService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
@@ -17,6 +17,10 @@ use Illuminate\Validation\Rule;
 
 final class CycleController extends Controller
 {
+    public function __construct(
+        private BookCoverDownloadService $coverDownloadService,
+    ) {}
+
     public function index(CurrentMemberService $currentMember): AnonymousResourceCollection
     {
         $member = $currentMember->get();
@@ -56,6 +60,7 @@ final class CycleController extends Controller
             'description' => ['nullable', 'string', 'max:2000'],
             'genreId' => ['nullable', 'integer', Rule::exists('genres', 'id')],
             'coverUrl' => ['nullable', 'url', 'max:2048'],
+            'coverFile' => ['nullable', 'image', 'max:5120'],
         ];
 
         if ($isAdmin) {
@@ -68,6 +73,8 @@ final class CycleController extends Controller
 
         $book = $cycle->book;
         $book->update($this->bookPayload($payload, $book, $isAdmin));
+
+        $this->attachCover($book, $payload);
 
         return new CycleResource(
             $this->baseQuery($member->club_id)
@@ -116,7 +123,6 @@ final class CycleController extends Controller
             'description' => $payload['description'] ?? null,
             'genre_id' => $payload['genreId'] ?? Genre::where('slug', 'fiction')->value('id'),
             'slug' => $this->uniqueSlug($payload['title'], $book->id),
-            'cover_url' => $payload['coverUrl'] ?? null,
         ];
 
         if ($isAdmin) {
@@ -126,6 +132,19 @@ final class CycleController extends Controller
         }
 
         return $data;
+    }
+
+    private function attachCover(Book $book, array $payload): void
+    {
+        if (! empty($payload['coverFile'])) {
+            $this->coverDownloadService->storeUploaded($book, $payload['coverFile'], 'manual_upload');
+
+            return;
+        }
+
+        if (! empty($payload['coverUrl'])) {
+            $this->coverDownloadService->downloadAndStore($book, $payload['coverUrl'], 'search_result');
+        }
     }
 
     private function uniqueSlug(string $title, int $bookId): string
