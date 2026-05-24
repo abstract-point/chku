@@ -13,11 +13,12 @@ return new class extends Migration
             $table->foreignId('club_id')->constrained()->cascadeOnDelete();
             $table->foreignId('book_id')->constrained()->cascadeOnDelete();
             $table->foreignId('proposer_id')->constrained('club_members')->cascadeOnDelete();
-            $table->unsignedSmallInteger('cycle_number')->unique();
+            $table->unsignedSmallInteger('cycle_number');
             $table->string('status');
             $table->text('discussion_prompt')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
+            $table->unique(['club_id', 'cycle_number']);
         });
     }
 

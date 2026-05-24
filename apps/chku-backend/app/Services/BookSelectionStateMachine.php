@@ -120,7 +120,7 @@ final class BookSelectionStateMachine
                     'club_id' => $candidate->proposer->club_id,
                     'book_id' => $candidate->book_id,
                     'proposer_id' => $candidate->proposer_id,
-                    'cycle_number' => (int) ReadingCycle::max('cycle_number') + 1,
+                    'cycle_number' => $this->nextCycleNumber($candidate->proposer->club_id),
                     'status' => ReadingCycleStatusEnum::Proposed,
                 ]);
             }
@@ -245,7 +245,7 @@ final class BookSelectionStateMachine
             'club_id' => $selector->club_id,
             'book_id' => $item->book_id,
             'proposer_id' => $selector->id,
-            'cycle_number' => (int) ReadingCycle::max('cycle_number') + 1,
+            'cycle_number' => $this->nextCycleNumber($selector->club_id),
             'status' => ReadingCycleStatusEnum::Proposed,
         ]);
 
@@ -299,7 +299,7 @@ final class BookSelectionStateMachine
                 'club_id' => $candidate->proposer->club_id,
                 'book_id' => $item->book_id,
                 'proposer_id' => $candidate->proposer_id,
-                'cycle_number' => (int) ReadingCycle::max('cycle_number') + 1,
+                'cycle_number' => $this->nextCycleNumber($candidate->proposer->club_id),
                 'status' => ReadingCycleStatusEnum::Proposed,
             ]);
         }
@@ -345,6 +345,11 @@ final class BookSelectionStateMachine
             ->whereIn('club_member_id', $activeMemberIds)
             ->get()
             ->pluck('response', 'club_member_id');
+    }
+
+    private function nextCycleNumber(int $clubId): int
+    {
+        return (int) ReadingCycle::where('club_id', $clubId)->max('cycle_number') + 1;
     }
 
     private function activeCandidate(int $clubId): ?BookCandidate
