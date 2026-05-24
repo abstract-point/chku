@@ -266,11 +266,14 @@ vi.mock('@/queries/cycleQueries', () => ({
 }))
 
 vi.mock('@/queries/bookLookupQueries', () => ({
-  useOpenLibraryCoversQuery: () => queryResult([
+  useBookCoverSearchQuery: () => queryResult([
     {
+      source: 'open_library',
+      title: 'Test Book',
+      authors: ['Test Author'],
       coverUrl: 'https://covers.openlibrary.org/b/id/123-L.jpg',
       thumbnailUrl: 'https://covers.openlibrary.org/b/id/123-M.jpg',
-      coverId: '123',
+      confidence: 90,
     },
   ]),
 }))
