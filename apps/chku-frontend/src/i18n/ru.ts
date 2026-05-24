@@ -58,7 +58,7 @@ export default {
   auth: {
     loginTitle: 'Вход в систему',
     email: 'Email',
-    emailPlaceholder: 'you@example.com',
+    emailPlaceholder: "you{'@'}example.com",
     password: 'Пароль',
     passwordPlaceholder: 'Введите пароль',
     showPassword: 'Показать пароль',
