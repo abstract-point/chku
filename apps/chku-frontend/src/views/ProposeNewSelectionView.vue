@@ -5,7 +5,7 @@ import { BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Send, Trash2, X } fr
 import AppTabs from '@/components/ui/AppTabs.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
-import OpenLibraryCoverPicker from '@/components/books/OpenLibraryCoverPicker.vue'
+import BookCoverPicker from '@/components/books/BookCoverPicker.vue'
 import {
   useBookQueueQuery,
   useCreateBookQueueItemMutation,
@@ -35,6 +35,7 @@ const form = reactive({
   description: '',
   reason: '',
   coverUrl: null as string | null,
+  coverFile: null as File | null,
 })
 const formErrors = useFormErrors()
 const items = computed(() => queueQuery.items.value)
@@ -48,6 +49,7 @@ function resetForm() {
   form.description = ''
   form.reason = ''
   form.coverUrl = null
+  form.coverFile = null
   formErrors.clearAllErrors()
 }
 
@@ -61,6 +63,7 @@ function submitBook() {
       description: form.description.trim(),
       reason: form.reason.trim(),
       coverUrl: form.coverUrl,
+      coverFile: form.coverFile,
     },
     {
       onSuccess: resetForm,
@@ -179,7 +182,12 @@ main.proposal.container
             :aria-invalid="formErrors.hasError('reason')"
           )
 
-        OpenLibraryCoverPicker(v-model="form.coverUrl" :title="form.title" :author="form.author")
+        BookCoverPicker(
+          v-model:coverUrl="form.coverUrl"
+          v-model:coverFile="form.coverFile"
+          :title="form.title"
+          :author="form.author"
+        )
 
         .proposal__actions
           button.button.button--primary.label-text(type="submit" :disabled="createQueueItem.isPending.value")

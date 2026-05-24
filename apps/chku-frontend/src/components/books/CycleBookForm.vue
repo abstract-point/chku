@@ -4,7 +4,7 @@ import { Save, X } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
-import OpenLibraryCoverPicker from '@/components/books/OpenLibraryCoverPicker.vue'
+import BookCoverPicker from '@/components/books/BookCoverPicker.vue'
 import { useFormErrors } from '@/composables/useFormErrors'
 import { useUpdateCycleBookMutation } from '@/queries/cycleQueries'
 
@@ -37,9 +37,10 @@ const form = reactive({
   description: '',
   genreId: null as number | null,
   coverUrl: null as string | null,
+  coverFile: null as File | null,
 })
 
-watch(
+  watch(
   () => props.book,
   (book) => {
     form.title = book.title
@@ -47,6 +48,7 @@ watch(
     form.description = book.description ?? ''
     form.genreId = book.genre?.id ?? null
     form.coverUrl = book.coverUrl ?? null
+    form.coverFile = null
   },
   { immediate: true },
 )
@@ -60,6 +62,7 @@ function saveBook() {
       description: form.description.trim() || null,
       genreId: form.genreId,
       coverUrl: form.coverUrl,
+      coverFile: form.coverFile,
     },
     {
       onSuccess: () => {
@@ -104,7 +107,12 @@ form.cycle-book-form(@submit.prevent="saveBook" novalidate)
       :placeholder="t('books.descPlaceholder')"
       :aria-invalid="formErrors.hasError('description')"
     )
-  OpenLibraryCoverPicker(v-model="form.coverUrl" :title="form.title" :author="form.author")
+  BookCoverPicker(
+    v-model:coverUrl="form.coverUrl"
+    v-model:coverFile="form.coverFile"
+    :title="form.title"
+    :author="form.author"
+  )
   .cycle-book-form__actions
     button.button.button--primary.label-text(type="submit" :disabled="updateBook.isPending.value")
       Save.cycle-book-form__icon
