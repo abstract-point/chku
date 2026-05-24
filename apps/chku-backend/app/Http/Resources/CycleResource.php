@@ -2,13 +2,14 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\BookCandidateStatusEnum;
 use App\Enums\MeetingRsvpStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
 use App\Support\MemberAvatar;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ArchiveBookResource extends JsonResource
+class CycleResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -16,21 +17,24 @@ class ArchiveBookResource extends JsonResource
         $genre = $book?->genre;
         $avgRating = $this->ratings->avg('rating') ?? 0;
         $meeting = $this->relationLoaded('meeting') ? $this->meeting : null;
-        $rsvps = $this->meeting?->rsvps;
+        $rsvps = $meeting?->rsvps;
         $attendingCount = $rsvps?->where('status', MeetingRsvpStatusEnum::Attending)->count() ?? 0;
         $rsvpCount = $rsvps?->count() ?? 0;
+        $candidate = $this->bookCandidate;
         $cycleIsCompleted = $this->status === ReadingCycleStatusEnum::Completed;
 
         return [
-            'slug' => $book?->slug,
-            'title' => $book?->title,
-            'coverTitle' => $book?->title,
-            'author' => $book?->author,
-            'genre' => $genre?->slug,
-            'genreLabel' => $genre?->name,
+            'id' => $this->id,
             'cycleNumber' => $this->cycle_number,
             'cycleLabel' => "Цикл #{$this->cycle_number}",
+            'status' => $this->status->value,
+            'statusLabel' => $this->statusLabel(),
             'completedLabel' => $this->completed_at?->translatedFormat('F Y'),
+            'canEditBook' => $this->canEditBook($request),
+            'book' => new BookResource($this->whenLoaded('book')),
+            'coverTitle' => $book?->title,
+            'genre' => $genre?->slug,
+            'genreLabel' => $genre?->name,
             'proposedBy' => $this->whenLoaded('proposer', fn () => $this->proposer->user?->name),
             'proposerAvatarUrl' => $this->whenLoaded('proposer', fn () => MemberAvatar::url($this->proposer)),
             'rating' => round($avgRating, 1),
@@ -39,8 +43,7 @@ class ArchiveBookResource extends JsonResource
             'reviewsCount' => $this->reviews->count(),
             'attendingCount' => $attendingCount,
             'rsvpCount' => $rsvpCount,
-            'synopsis' => $book?->description,
-            'meetingLabel' => $this->whenLoaded('meeting', fn () => $this->meeting->date?->format('d F Y') . ', ' . $this->meeting->place),
+            'meetingLabel' => $this->whenLoaded('meeting', fn () => $meeting?->date?->format('d F Y') . ', ' . $meeting?->place),
             'meeting' => $meeting ? [
                 'id' => $meeting->id,
                 'title' => $meeting->title,
@@ -55,10 +58,35 @@ class ArchiveBookResource extends JsonResource
                 'attendingCount' => $attendingCount,
                 'rsvpCount' => $rsvpCount,
             ] : null,
+            'candidate' => $candidate ? new BookCandidateResource($candidate) : null,
+            'memberProgress' => ReadingProgressResource::collection($this->whenLoaded('readingProgress')),
             'discussionPrompt' => $this->discussion_prompt,
-            'coverColor' => $book?->cover_color,
             'reviews' => ReviewResource::collection($this->whenLoaded('reviews')),
             'discussion' => DiscussionMessageResource::collection($this->whenLoaded('discussionMessages')),
         ];
+    }
+
+    private function statusLabel(): string
+    {
+        return match ($this->status) {
+            ReadingCycleStatusEnum::Proposed => 'На проверке',
+            ReadingCycleStatusEnum::Active => 'Читаем сейчас',
+            ReadingCycleStatusEnum::Completed => 'Завершен',
+        };
+    }
+
+    private function canEditBook(Request $request): bool
+    {
+        $user = $request->user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasAnyRole(['admin', 'developer'])) {
+            return true;
+        }
+
+        return $this->status !== ReadingCycleStatusEnum::Completed
+            && $user->clubMember?->id === $this->proposer_id;
     }
 }

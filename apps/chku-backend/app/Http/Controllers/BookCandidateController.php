@@ -22,6 +22,7 @@ final class BookCandidateController extends Controller
         $candidate = BookCandidate::with([
             'book.genre',
             'proposer.user',
+            'readingCycle',
             'responses.clubMember.user',
         ])
             ->whereIn('status', [
@@ -69,6 +70,7 @@ final class BookCandidateController extends Controller
         return new BookCandidateResource($candidate->load([
             'book.genre',
             'proposer.user',
+            'readingCycle',
             'responses.clubMember.user',
         ]));
     }
@@ -86,6 +88,7 @@ final class BookCandidateController extends Controller
         return new BookCandidateResource($candidate->load([
             'book.genre',
             'proposer.user',
+            'readingCycle',
             'responses.clubMember.user',
         ]));
     }

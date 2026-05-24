@@ -53,6 +53,7 @@ final class DashboardService
         $activeCandidate = BookCandidate::with([
             'book.genre',
             'proposer.user',
+            'readingCycle',
             'responses.clubMember.user',
         ])
             ->whereIn('status', ['pending', 'awaiting_owner_confirmation'])

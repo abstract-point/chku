@@ -1,11 +1,11 @@
 <?php
 
-use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BookCandidateController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\ClubMemberController;
+use App\Http\Controllers\CycleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MeetingController;
@@ -60,8 +60,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('members', [ClubMemberController::class, 'store']);
     Route::post('members/{member}/deactivate', [ClubMemberController::class, 'deactivate']);
 
-    Route::get('archive', [ArchiveController::class, 'index']);
-    Route::get('archive/{slug}', [ArchiveController::class, 'show']);
+    Route::get('cycles', [CycleController::class, 'index']);
+    Route::get('cycles/{cycleNumber}', [CycleController::class, 'show']);
+    Route::patch('cycles/{cycleNumber}/book', [CycleController::class, 'updateBook']);
 
     Route::get('meetings/{meeting}', [MeetingController::class, 'show']);
     Route::post('meetings', [MeetingController::class, 'store']);

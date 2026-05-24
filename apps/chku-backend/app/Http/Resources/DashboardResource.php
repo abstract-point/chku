@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\DTOs\DashboardData;
+use App\Enums\ReadingCycleStatusEnum;
 use App\Support\MemberAvatar;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -20,6 +21,7 @@ class DashboardResource extends JsonResource
         $nextSelector = $this->resource->nextSelector;
         $isNextSelector = $nextSelector?->id === $this->resource->currentMember->id;
         $activeCandidateProposerId = $this->resource->activeCandidate?->proposer_id;
+        $proposedCycle = $this->resource->activeCandidate?->readingCycle;
 
         return [
             'club' => new ClubResource($this->resource->club),
@@ -29,10 +31,14 @@ class DashboardResource extends JsonResource
                 'author' => $book->author,
                 'selectedBy' => $currentCycle->proposer?->user?->name,
                 'description' => $book->description,
+                'coverUrl' => $book->cover_url,
+                'coverColor' => $book->cover_color,
+                'genre' => $book->genre ? new GenreResource($book->genre) : null,
                 'progress' => $progress?->progress_percent ?? 0,
                 'progressLabel' => $this->formatProgressLabel($progress),
                 'cycleNumber' => $currentCycle->cycle_number,
                 'cycleStatus' => $currentCycle->status->value,
+                'canEditBook' => $this->canEditBook($request, $currentCycle),
             ] : null,
             'memberProgress' => $this->resource->memberProgress
                 ?->sortByDesc(fn ($p) => $p->progress_percent ?? 0)
@@ -77,8 +83,8 @@ class DashboardResource extends JsonResource
                     ? $this->resource->activeCandidate->status->value
                     : ($currentCycle ? 'reading' : 'awaiting_next_book'),
                 'currentCycleStatus' => $currentCycle?->status->value,
-                'currentCycleId' => $currentCycle?->id,
-                'currentCycleNumber' => $currentCycle?->cycle_number,
+                'currentCycleId' => $currentCycle?->id ?? $proposedCycle?->id,
+                'currentCycleNumber' => $currentCycle?->cycle_number ?? $proposedCycle?->cycle_number,
                 'nextSelector' => $nextSelector ? new MemberResource($nextSelector) : null,
                 'nextSelectorName' => $nextSelector?->user?->name,
                 'nextSelectorQueueEmpty' => $this->resource->nextSelectorQueueEmpty,
@@ -126,5 +132,20 @@ class DashboardResource extends JsonResource
             'abandoned' => 'Бросил',
             default => $progress->status->value,
         };
+    }
+
+    private function canEditBook(Request $request, ?\App\Models\ReadingCycle $cycle): bool
+    {
+        $user = $request->user();
+        if (! $user || ! $cycle) {
+            return false;
+        }
+
+        if ($user->hasAnyRole(['admin', 'developer'])) {
+            return true;
+        }
+
+        return $cycle->status !== ReadingCycleStatusEnum::Completed
+            && $user->clubMember?->id === $cycle->proposer_id;
     }
 }

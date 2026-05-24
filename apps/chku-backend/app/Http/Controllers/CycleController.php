@@ -1,0 +1,144 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers;
+
+use App\Enums\ReadingCycleStatusEnum;
+use App\Http\Resources\CycleResource;
+use App\Models\Book;
+use App\Models\Genre;
+use App\Models\ReadingCycle;
+use App\Services\CurrentMemberService;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+
+final class CycleController extends Controller
+{
+    public function index(CurrentMemberService $currentMember): AnonymousResourceCollection
+    {
+        $member = $currentMember->get();
+
+        return CycleResource::collection(
+            $this->baseQuery($member->club_id)
+                ->orderByRaw("CASE WHEN status IN ('proposed', 'active') THEN 0 ELSE 1 END")
+                ->orderByDesc('cycle_number')
+                ->get()
+        );
+    }
+
+    public function show(CurrentMemberService $currentMember, int $cycleNumber): CycleResource
+    {
+        $member = $currentMember->get();
+
+        return new CycleResource(
+            $this->baseQuery($member->club_id)
+                ->where('cycle_number', $cycleNumber)
+                ->firstOrFail()
+        );
+    }
+
+    public function updateBook(Request $request, CurrentMemberService $currentMember, int $cycleNumber): CycleResource
+    {
+        $member = $currentMember->get();
+        $cycle = $this->baseQuery($member->club_id)
+            ->where('cycle_number', $cycleNumber)
+            ->firstOrFail();
+
+        abort_unless($this->canEditBook($request, $cycle), 403);
+
+        $isAdmin = $request->user()?->hasAnyRole(['admin', 'developer']) ?? false;
+        $rules = [
+            'title' => ['required', 'string', 'max:255'],
+            'author' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'genreId' => ['nullable', 'integer', Rule::exists('genres', 'id')],
+            'coverUrl' => ['nullable', 'url', 'max:2048'],
+        ];
+
+        if ($isAdmin) {
+            $rules += [
+                'coverColor' => ['nullable', 'string', 'max:32'],
+            ];
+        }
+
+        $payload = $request->validate($rules);
+
+        $book = $cycle->book;
+        $book->update($this->bookPayload($payload, $book, $isAdmin));
+
+        return new CycleResource(
+            $this->baseQuery($member->club_id)
+                ->where('cycle_number', $cycleNumber)
+                ->firstOrFail()
+        );
+    }
+
+    private function baseQuery(int $clubId)
+    {
+        return ReadingCycle::with([
+            'book.genre',
+            'proposer.user',
+            'meeting',
+            'meeting.rsvps',
+            'bookCandidate.book.genre',
+            'bookCandidate.proposer.user',
+            'bookCandidate.responses.clubMember.user',
+            'readingProgress.clubMember.user',
+            'reviews.clubMember.user',
+            'discussionMessages.clubMember.user',
+            'ratings',
+        ])->where('club_id', $clubId);
+    }
+
+    private function canEditBook(Request $request, ReadingCycle $cycle): bool
+    {
+        $user = $request->user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasAnyRole(['admin', 'developer'])) {
+            return true;
+        }
+
+        return $cycle->status !== ReadingCycleStatusEnum::Completed
+            && $user->clubMember?->id === $cycle->proposer_id;
+    }
+
+    private function bookPayload(array $payload, Book $book, bool $isAdmin): array
+    {
+        $data = [
+            'title' => $payload['title'],
+            'author' => $payload['author'],
+            'description' => $payload['description'] ?? null,
+            'genre_id' => $payload['genreId'] ?? Genre::where('slug', 'fiction')->value('id'),
+            'slug' => $this->uniqueSlug($payload['title'], $book->id),
+            'cover_url' => $payload['coverUrl'] ?? null,
+        ];
+
+        if ($isAdmin) {
+            $data += [
+                'cover_color' => $payload['coverColor'] ?? $book->cover_color,
+            ];
+        }
+
+        return $data;
+    }
+
+    private function uniqueSlug(string $title, int $bookId): string
+    {
+        $base = Str::slug($title) ?: 'book';
+        $slug = $base;
+        $index = 2;
+
+        while (Book::where('slug', $slug)->whereKeyNot($bookId)->exists()) {
+            $slug = "{$base}-{$index}";
+            $index++;
+        }
+
+        return $slug;
+    }
+}

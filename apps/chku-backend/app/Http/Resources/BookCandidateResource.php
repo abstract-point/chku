@@ -14,6 +14,7 @@ class BookCandidateResource extends JsonResource
         return [
             'id' => $this->id,
             'queueItemId' => $this->member_book_queue_item_id,
+            'cycleNumber' => $this->readingCycle?->cycle_number,
             'book' => new BookResource($this->whenLoaded('book')),
             'proposer' => new MemberResource($this->whenLoaded('proposer')),
             'reason' => $this->reason,
@@ -22,6 +23,8 @@ class BookCandidateResource extends JsonResource
             'responses' => BookCandidateResponseResource::collection($this->whenLoaded('responses')),
             'canConfirm' => $this->status->value === 'awaiting_owner_confirmation'
                 && $currentMemberId === $this->proposer_id,
+            'canEditBook' => ($request->user()?->hasAnyRole(['admin', 'developer']) ?? false)
+                || $currentMemberId === $this->proposer_id,
             'createdAt' => $this->created_at,
         ];
     }

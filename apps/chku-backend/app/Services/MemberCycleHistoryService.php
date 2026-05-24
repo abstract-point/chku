@@ -43,7 +43,6 @@ final class MemberCycleHistoryService
         $averageRating = $cycle->ratings->avg('rating');
 
         return [
-            'slug' => $cycle->book?->slug,
             'title' => $cycle->book?->title,
             'coverTitle' => $cycle->book?->title,
             'author' => $cycle->book?->author,
