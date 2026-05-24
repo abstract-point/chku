@@ -77,7 +77,7 @@ final class MemberBookQueueController extends Controller
             $stateMachine->syncPendingCandidateWithQueueHead($member);
         }
 
-        return new MemberBookQueueItemResource($item->load('book.genre'));
+        return new MemberBookQueueItemResource($item->load('book.genre', 'book.primaryCover'));
     }
 
     public function update(
@@ -94,7 +94,7 @@ final class MemberBookQueueController extends Controller
 
         $item->update($payload);
 
-        return new MemberBookQueueItemResource($item->refresh()->load('book.genre'));
+        return new MemberBookQueueItemResource($item->refresh()->load('book.genre', 'book.primaryCover'));
     }
 
     public function destroy(
@@ -106,7 +106,7 @@ final class MemberBookQueueController extends Controller
         $this->authorizeOwner($item, $currentMember->get()->id);
         $item = $queue->removeFromLiveQueue($item, MemberBookQueueItemStatusEnum::Removed);
 
-        return new MemberBookQueueItemResource($item->refresh()->load('book.genre'));
+        return new MemberBookQueueItemResource($item->refresh()->load('book.genre', 'book.primaryCover'));
     }
 
     public function reorder(
@@ -151,7 +151,7 @@ final class MemberBookQueueController extends Controller
             $stateMachine->makeQueueItemCandidate($item);
         }
 
-        return new MemberBookQueueItemResource($item->refresh()->load('book.genre'));
+        return new MemberBookQueueItemResource($item->refresh()->load('book.genre', 'book.primaryCover'));
     }
 
     private function authorizeOwner(MemberBookQueueItem $item, int $memberId): void

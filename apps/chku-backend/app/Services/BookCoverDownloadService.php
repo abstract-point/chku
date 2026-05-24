@@ -53,10 +53,8 @@ final class BookCoverDownloadService
         $thumbPath = "book-covers/{$uuid}-thumb.jpg";
 
         $disk = Storage::disk('public');
-        $fullLocalPath = $disk->path($fullPath);
-        $thumbLocalPath = $disk->path($thumbPath);
-
-        $meta = $this->imageService->saveToDisk($processed, $fullLocalPath, $thumbLocalPath);
+        $disk->put($fullPath, $processed['full']['content'], 'public');
+        $disk->put($thumbPath, $processed['thumbnail']['content'], 'public');
 
         // Remove old covers
         $book->covers()->each(function (BookCover $cover) use ($disk) {
@@ -68,10 +66,10 @@ final class BookCoverDownloadService
         return $book->covers()->create([
             'cover_path' => $fullPath,
             'thumbnail_path' => $thumbPath,
-            'cover_mime' => $meta['full']['mime'],
-            'cover_width' => $meta['full']['width'],
-            'cover_height' => $meta['full']['height'],
-            'cover_size' => $meta['full']['size'],
+            'cover_mime' => $processed['full']['mime'],
+            'cover_width' => $processed['full']['width'],
+            'cover_height' => $processed['full']['height'],
+            'cover_size' => $processed['full']['size'],
             'cover_source' => $source,
         ]);
     }

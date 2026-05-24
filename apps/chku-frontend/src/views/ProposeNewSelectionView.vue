@@ -183,7 +183,7 @@ main.proposal.container
           )
 
         BookCoverPicker(
-          v-model:coverUrl="form.coverUrl"
+          v-model="form.coverUrl"
           v-model:coverFile="form.coverFile"
           :title="form.title"
           :author="form.author"

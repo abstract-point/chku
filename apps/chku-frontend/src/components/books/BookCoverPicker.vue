@@ -64,6 +64,10 @@ const isLoading = computed(() => coversQuery.isFetching.value || isWaitingForDeb
 
 function selectCover(coverUrl?: string | null) {
   if (!coverUrl) return
+  if (coverUrl === props.modelValue) {
+    clearCover()
+    return
+  }
   emit('update:coverFile', null)
   emit('update:modelValue', coverUrl)
 }

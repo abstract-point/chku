@@ -29,31 +29,25 @@ final class BookCoverImageService
 
         imagedestroy($srcImage);
 
-        return [
-            'full' => $full,
-            'thumbnail' => $thumb,
-        ];
-    }
+        $fullContent = $this->jpegToBinary($full['resource'], self::JPEG_QUALITY);
+        $thumbContent = $this->jpegToBinary($thumb['resource'], self::JPEG_QUALITY);
 
-    public function saveToDisk(array $processed, string $fullPath, string $thumbPath): array
-    {
-        $this->saveJpeg($processed['full']['resource'], $fullPath);
-        $this->saveJpeg($processed['thumbnail']['resource'], $thumbPath);
-
-        imagedestroy($processed['full']['resource']);
-        imagedestroy($processed['thumbnail']['resource']);
+        imagedestroy($full['resource']);
+        imagedestroy($thumb['resource']);
 
         return [
             'full' => [
-                'width' => $processed['full']['width'],
-                'height' => $processed['full']['height'],
-                'size' => filesize($fullPath),
+                'content' => $fullContent,
+                'width' => $full['width'],
+                'height' => $full['height'],
+                'size' => strlen($fullContent),
                 'mime' => 'image/jpeg',
             ],
             'thumbnail' => [
-                'width' => $processed['thumbnail']['width'],
-                'height' => $processed['thumbnail']['height'],
-                'size' => filesize($thumbPath),
+                'content' => $thumbContent,
+                'width' => $thumb['width'],
+                'height' => $thumb['height'],
+                'size' => strlen($thumbContent),
                 'mime' => 'image/jpeg',
             ],
         ];
@@ -87,13 +81,10 @@ final class BookCoverImageService
         };
     }
 
-    private function saveJpeg(\GdImage $image, string $path): void
+    private function jpegToBinary(\GdImage $image, int $quality): string
     {
-        $dir = dirname($path);
-        if (! is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
-        imagejpeg($image, $path, self::JPEG_QUALITY);
+        ob_start();
+        imagejpeg($image, null, $quality);
+        return ob_get_clean();
     }
 }

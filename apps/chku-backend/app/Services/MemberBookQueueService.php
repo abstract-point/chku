@@ -22,7 +22,7 @@ final class MemberBookQueueService
         $memberId = $member instanceof ClubMember ? $member->id : $member;
 
         return MemberBookQueueItem::query()
-            ->with(['book.genre', 'candidates.responses.clubMember'])
+            ->with(['book.genre', 'book.primaryCover', 'candidates.responses.clubMember'])
             ->where('club_member_id', $memberId)
             ->where('status', MemberBookQueueItemStatusEnum::Rejected)
             ->orderByDesc('updated_at')
@@ -50,7 +50,7 @@ final class MemberBookQueueService
         $statusValues = array_map(fn (MemberBookQueueItemStatusEnum $status): string => $status->value, $statuses);
 
         $items = MemberBookQueueItem::query()
-            ->with('book.genre')
+            ->with(['book.genre', 'book.primaryCover'])
             ->where('club_member_id', $memberId)
             ->whereIn('status', $statusValues)
             ->get();

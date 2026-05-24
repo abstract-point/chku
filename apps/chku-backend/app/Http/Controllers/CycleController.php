@@ -87,6 +87,7 @@ final class CycleController extends Controller
     {
         return ReadingCycle::with([
             'book.genre',
+            'book.primaryCover',
             'proposer.user',
             'meeting',
             'meeting.rsvps',
