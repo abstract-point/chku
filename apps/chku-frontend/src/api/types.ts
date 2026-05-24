@@ -20,7 +20,6 @@ export type ApiMember = {
 }
 
 export type ApiProfileBook = {
-  slug?: string | null
   title: string
   coverTitle: string
   author: string
@@ -49,6 +48,8 @@ export type ApiBook = {
   coverTitle?: string
   author: string
   description?: string
+  coverColor?: string | null
+  coverUrl?: string | null
   genre?: {
     id: number
     slug: string
@@ -56,11 +57,18 @@ export type ApiBook = {
   }
 }
 
+export type ApiOpenLibraryCover = {
+  coverId: string
+  coverUrl?: string | null
+  thumbnailUrl?: string | null
+}
+
 export type ApiCandidateResponseValue = 'not_read' | 'read' | 'pending'
 
 export type ApiBookCandidate = {
   id: number
   queueItemId?: number | null
+  cycleNumber?: number | null
   book: ApiBook
   proposer: ApiMember
   reason: string
@@ -68,6 +76,7 @@ export type ApiBookCandidate = {
   status: 'pending' | 'awaiting_owner_confirmation' | 'approved' | 'rejected'
   responses: ApiBookCandidateResponse[]
   canConfirm?: boolean
+  canEditBook?: boolean
   createdAt: string
 }
 
@@ -142,6 +151,10 @@ export type ApiDashboard = {
     author: string
     selectedBy: string
     description: string
+    coverColor?: string | null
+    coverUrl?: string | null
+    genre?: ApiBook['genre'] | null
+    canEditBook: boolean
     progress: number
     progressLabel: string
     cycleNumber: number
@@ -209,16 +222,18 @@ export type ApiGenre = {
   name: string
 }
 
-export type ApiArchiveBook = {
-  slug: string
-  title: string
-  coverTitle: string
-  author: string
-  genre: 'fiction' | 'nonfiction' | 'scifi'
-  genreLabel: string
+export type ApiCycle = {
+  id: number
   cycleNumber: number
   cycleLabel: string
-  completedLabel: string
+  status: 'proposed' | 'active' | 'completed'
+  statusLabel: string
+  canEditBook: boolean
+  book: ApiBook
+  coverTitle: string
+  genre: 'fiction' | 'nonfiction' | 'scifi'
+  genreLabel: string
+  completedLabel?: string | null
   proposedBy: string
   proposerAvatarUrl?: string | null
   rating: number
@@ -227,8 +242,7 @@ export type ApiArchiveBook = {
   reviewsCount?: number
   attendingCount?: number
   rsvpCount?: number
-  synopsis: string
-  meetingLabel: string
+  meetingLabel?: string | null
   meeting?: {
     id: number
     title: string
@@ -241,8 +255,9 @@ export type ApiArchiveBook = {
     attendingCount: number
     rsvpCount: number
   } | null
+  candidate?: ApiBookCandidate | null
+  memberProgress: ApiReadingProgress[]
   discussionPrompt: string
-  coverColor: string
   reviews: {
     memberName: string
     memberAvatarUrl?: string | null

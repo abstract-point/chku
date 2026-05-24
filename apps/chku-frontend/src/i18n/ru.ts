@@ -332,8 +332,8 @@ export default {
   },
 
   archive: {
-    title: 'Архив',
-    cycles: '{n} циклов завершено',
+    title: 'Архив циклов',
+    cycles: '{n} циклов',
     filtersAria: 'Фильтры архива',
     searchPlaceholder: 'Поиск по книге, автору или участнику',
     searchAria: 'Поиск по архиву',
@@ -389,6 +389,16 @@ export default {
     participants: 'Участники',
     openMeeting: 'Открыть встречу',
     backBtn: 'Вернуться в архив',
+  },
+
+  cycle: {
+    notFound: 'Цикл не найден',
+    notFoundText: 'Возможно, цикл ещё не создан или ссылка устарела.',
+    editBook: 'Редактировать книгу',
+    verification: 'Проверка книги',
+    progress: 'Прогресс чтения',
+    openDashboard: 'Открыть дашборд',
+    openCycle: 'Открыть цикл',
   },
 
   members: {
@@ -535,6 +545,12 @@ export default {
     descPlaceholder: 'Коротко опиши, о чём книга.',
     reasonLabel: 'Почему эта книга?',
     reasonPlaceholder: 'Какие темы она может открыть для клуба?',
+    coverHint: 'Введите название и автора, чтобы загрузить обложки.',
+    loadingCovers: 'Загружаем обложки…',
+    noCoversFound: 'Open Library не нашла обложки для этой книги.',
+    coverLoadError: 'Не удалось загрузить обложки.',
+    clearCover: 'Убрать обложку',
+    coverOption: 'Вариант обложки',
     adding: 'Добавляем…',
     addToQueue: 'Добавить в очередь',
     queueTitle: 'Очередь',

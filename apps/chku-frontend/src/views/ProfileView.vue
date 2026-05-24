@@ -142,8 +142,8 @@ main.profile.container
           component.profile__book(
             v-for="book in readingHistory"
             :key="`${book.cycleNumber}-${book.title}`"
-            :is="book.slug ? RouterLink : 'article'"
-            :to="book.slug ? `/archive/${book.slug}` : undefined"
+            :is="RouterLink"
+            :to="`/cycles/${book.cycleNumber}`"
           )
             .book-cover.profile__book-cover(:style="{ '--cover-color': book.coverColor ?? undefined }")
               span.book-cover__content {{ book.coverTitle }}

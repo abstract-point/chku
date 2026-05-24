@@ -2,8 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import MainLayout from '@/components/layouts/MainLayout.vue'
 import { fetchAuthSession, getCachedAuthSession } from '@/queries/authQueries'
 import i18n from '@/i18n'
-import ArchiveBookView from '../views/ArchiveBookView.vue'
 import ArchiveView from '../views/ArchiveView.vue'
+import CycleDetailView from '../views/CycleDetailView.vue'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import MemberDetailView from '../views/MemberDetailView.vue'
@@ -75,9 +75,9 @@ const router = createRouter({
           meta: { title: t('router.archive') },
         },
         {
-          path: 'archive/:slug',
-          name: 'archive-book',
-          component: ArchiveBookView,
+          path: 'cycles/:cycleNumber',
+          name: 'cycle-detail',
+          component: CycleDetailView,
           meta: { title: t('router.archive') },
         },
         {

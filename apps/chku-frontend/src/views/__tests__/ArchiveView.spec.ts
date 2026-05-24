@@ -17,14 +17,16 @@ describe('ArchiveView', () => {
   it('renders archive heading and book cards', () => {
     const wrapper = mountArchive()
 
-    expect(wrapper.text()).toContain('Архив')
-    expect(wrapper.text()).toContain('8 циклов завершено')
+    expect(wrapper.text()).toContain('Архив циклов')
+    expect(wrapper.text()).toContain('9 циклов')
+    expect(wrapper.text()).toContain('Цветы для Элджернона')
     expect(wrapper.text()).toContain('Тайная история')
     expect(wrapper.text()).toContain('Дюна')
     expect(wrapper.text()).toContain('2 оценок')
     expect(wrapper.text()).toContain('2 отзывов')
     expect(wrapper.text()).toContain('4/5 RSVP')
-    expect(wrapper.findComponent(RouterLinkStub).props('to')).toBe('/archive/ten-istoriya')
+    expect(wrapper.findComponent(RouterLinkStub).props('to')).toBe('/')
+    expect(wrapper.find('.archive-card--current').exists()).toBe(true)
   })
 
   it('filters books by search query', async () => {
@@ -54,7 +56,8 @@ describe('ArchiveView', () => {
     await selects[2]!.setValue('rating')
 
     const links = wrapper.findAllComponents(RouterLinkStub)
-    expect(links[0]!.props('to')).toBe('/archive/ten-istoriya')
+    expect(links[0]!.props('to')).toBe('/')
+    expect(links[1]!.props('to')).toBe('/cycles/41')
     expect(wrapper.text()).toContain('9.2/10')
   })
 

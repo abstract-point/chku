@@ -24,12 +24,12 @@ main.dashboard.container
       DashboardBookSelectionCycle(
         v-if="dashboardQuery.data.value.activeCandidate"
         :candidate="dashboardQuery.data.value.activeCandidate"
+        :cycle-number="dashboardQuery.data.value.lifecycle?.currentCycleNumber"
       )
       DashboardCurrentCycle(
         v-else-if="dashboardQuery.data.value.currentBook"
         :book="dashboardQuery.data.value.currentBook"
         :members="dashboardQuery.data.value.memberProgress"
-        :next-selector-name="dashboardQuery.data.value.lifecycle?.nextSelectorName"
       )
       section.panel(v-else)
         .section-header.section-header--compact

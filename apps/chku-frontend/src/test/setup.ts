@@ -39,6 +39,7 @@ import { members } from '@/data/members'
 export const activeCandidate = {
   id: 1,
   queueItemId: 1,
+  cycleNumber: 42,
   book: {
     id: 1,
     slug: 'taynaya-istoriya',
@@ -73,6 +74,7 @@ export const activeCandidate = {
     },
   ],
   canConfirm: false,
+  canEditBook: false,
   createdAt: '2023-10-01T00:00:00.000000Z',
 }
 
@@ -230,10 +232,28 @@ vi.mock('@/queries/profileQueries', () => ({
   useCurrentUserReadingHistoryQuery: () => queryResult(members[0]!.readingHistory),
 }))
 
-vi.mock('@/queries/archiveQueries', () => ({
-  useArchiveQuery: () => queryResult(archiveBooks),
-  useArchiveBookQuery: (slug: unknown) => {
-    const data = computed(() => archiveBooks.find((book) => book.slug === String(toValue(slug))))
+vi.mock('@/queries/cycleQueries', () => ({
+  useCyclesQuery: () => queryResult([
+    {
+      ...archiveBooks[0]!,
+      id: 42,
+      cycleNumber: 42,
+      cycleLabel: 'Цикл #42',
+      status: 'active' as const,
+      statusLabel: 'Читаем сейчас',
+      completedLabel: null,
+      book: {
+        ...archiveBooks[0]!.book,
+        title: 'Цветы для Элджернона',
+        author: 'Дэниел Киз',
+      },
+    },
+    ...archiveBooks,
+  ]),
+  useCycleQuery: (cycleNumber: unknown) => {
+    const data = computed(() =>
+      archiveBooks.find((cycle) => cycle.cycleNumber === Number(toValue(cycleNumber))),
+    )
     const error = computed(() => (data.value ? null : new Error('Not found')))
 
     return {
@@ -242,6 +262,17 @@ vi.mock('@/queries/archiveQueries', () => ({
       error,
     }
   },
+  useUpdateCycleBookMutation: () => mutationResult(),
+}))
+
+vi.mock('@/queries/bookLookupQueries', () => ({
+  useOpenLibraryCoversQuery: () => queryResult([
+    {
+      coverUrl: 'https://covers.openlibrary.org/b/id/123-L.jpg',
+      thumbnailUrl: 'https://covers.openlibrary.org/b/id/123-M.jpg',
+      coverId: '123',
+    },
+  ]),
 }))
 
 vi.mock('@/queries/meetingQueries', () => ({

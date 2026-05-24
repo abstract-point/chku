@@ -12,7 +12,9 @@ export const queryKeys = {
   genres: ['genres'] as const,
   members: ['members'] as const,
   member: (id: number) => ['members', id] as const,
-  archive: ['archive'] as const,
-  archiveBook: (slug: string) => ['archive', slug] as const,
+  cycles: ['cycles'] as const,
+  cycle: (cycleNumber: string | number) => ['cycles', String(cycleNumber)] as const,
+  openLibraryCovers: (title: string, author: string) =>
+    ['books', 'open-library', 'covers', title, author] as const,
   meeting: (id: string | number) => ['meetings', String(id)] as const,
 }

@@ -1,6 +1,6 @@
-import type { ArchiveBook } from '@/types/club'
+import type { ArchiveBookGenre, ArchiveCycle, ArchiveMeeting } from '@/types/club'
 
-export const archiveBooks = [
+const archiveBookFixtures = [
   {
     slug: 'ten-istoriya',
     title: 'Тайная история',
@@ -382,4 +382,46 @@ export const archiveBooks = [
       },
     ],
   },
-] satisfies ArchiveBook[]
+]
+
+export const archiveBooks = archiveBookFixtures.map((book, index) => ({
+  id: index + 1,
+  cycleNumber: book.cycleNumber,
+  cycleLabel: book.cycleLabel,
+  status: 'completed' as const,
+  statusLabel: 'Завершен',
+  canEditBook: false,
+  book: {
+    id: index + 1,
+    slug: book.slug,
+    title: book.title,
+    author: book.author,
+    description: book.synopsis,
+    coverColor: book.coverColor,
+    coverUrl: null,
+    genre: {
+      id: index + 1,
+      slug: book.genre,
+      name: book.genreLabel,
+    },
+  },
+  coverTitle: book.coverTitle,
+  genre: book.genre as ArchiveBookGenre,
+  genreLabel: book.genreLabel,
+  completedLabel: book.completedLabel,
+  proposedBy: book.proposedBy,
+  proposerAvatarUrl: book.proposerAvatarUrl,
+  rating: book.rating,
+  averageRating: book.averageRating,
+  ratingsCount: book.ratingsCount,
+  reviewsCount: book.reviewsCount,
+  attendingCount: book.attendingCount,
+  rsvpCount: book.rsvpCount,
+  meetingLabel: book.meetingLabel,
+  meeting: book.meeting ? ({ ...book.meeting, status: book.meeting.status as ArchiveMeeting['status'] }) : null,
+  candidate: null,
+  memberProgress: [],
+  discussionPrompt: book.discussionPrompt,
+  reviews: book.reviews,
+  discussion: book.discussion,
+})) satisfies ArchiveCycle[]

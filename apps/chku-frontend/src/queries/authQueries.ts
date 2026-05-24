@@ -133,7 +133,7 @@ export function useUpdateAvatarMutation() {
       void client.invalidateQueries({ queryKey: queryKeys.members })
       void client.invalidateQueries({ queryKey: queryKeys.member(member.id) })
       void client.invalidateQueries({ queryKey: queryKeys.dashboard })
-      void client.invalidateQueries({ queryKey: queryKeys.archive })
+      void client.invalidateQueries({ queryKey: queryKeys.cycles })
     },
   })
 }

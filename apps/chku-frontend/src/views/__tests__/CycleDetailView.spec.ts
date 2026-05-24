@@ -2,27 +2,30 @@ import { describe, expect, it, vi } from 'vitest'
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import { ref } from 'vue'
 
-import ArchiveBookView from '../ArchiveBookView.vue'
+import CycleDetailView from '../CycleDetailView.vue'
 
 const route = ref({
   params: {
-    slug: 'duna',
+    cycleNumber: '40',
   },
 })
 
 vi.mock('vue-router', () => ({
   RouterLink: RouterLinkStub,
   useRoute: () => route.value,
+  useRouter: () => ({
+    replace: vi.fn(),
+  }),
 }))
 
-function mountArchiveBook(slug = 'duna') {
+function mountCycle(cycleNumber = '40') {
   route.value = {
     params: {
-      slug,
+      cycleNumber,
     },
   }
 
-  return mount(ArchiveBookView, {
+  return mount(CycleDetailView, {
     global: {
       stubs: {
         RouterLink: RouterLinkStub,
@@ -31,9 +34,9 @@ function mountArchiveBook(slug = 'duna') {
   })
 }
 
-describe('ArchiveBookView', () => {
-  it('renders archived book details, reviews and discussion', () => {
-    const wrapper = mountArchiveBook('ten-istoriya')
+describe('CycleDetailView', () => {
+  it('renders completed cycle details, reviews and discussion', () => {
+    const wrapper = mountCycle('41')
 
     expect(wrapper.text()).toContain('Тайная история')
     expect(wrapper.text()).toContain('Донна Тартт')
@@ -43,13 +46,15 @@ describe('ArchiveBookView', () => {
     expect(wrapper.text()).toContain('Обсуждение')
     expect(wrapper.text()).toContain('Где проходит граница')
     expect(wrapper.text()).toContain('Встреча в архиве')
-    expect(wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/meetings/1')).toBe(true)
+    expect(
+      wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/meetings/1'),
+    ).toBe(true)
   })
 
-  it('renders fallback for unknown book slug', () => {
-    const wrapper = mountArchiveBook('unknown-book')
+  it('renders fallback for unknown cycle number', () => {
+    const wrapper = mountCycle('999')
 
-    expect(wrapper.text()).toContain('Книга не найдена')
+    expect(wrapper.text()).toContain('Цикл не найден')
     expect(wrapper.findComponent(RouterLinkStub).props('to')).toBe('/archive')
   })
 })

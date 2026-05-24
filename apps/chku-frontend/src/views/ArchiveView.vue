@@ -3,8 +3,8 @@ import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { CalendarCheck, ChevronDown, MessageSquare, Search, Star } from '@lucide/vue'
-import { useArchiveQuery } from '@/queries/archiveQueries'
-import type { ArchiveBookGenre } from '@/types/club'
+import { useCyclesQuery } from '@/queries/cycleQueries'
+import type { ArchiveBookGenre, ArchiveCycle } from '@/types/club'
 
 type SortMode = 'newest' | 'oldest' | 'rating'
 
@@ -15,41 +15,44 @@ const { t } = useI18n()
 const sortMode = ref<SortMode>('newest')
 const currentPage = ref(1)
 const pageSize = 6
-const archiveQuery = useArchiveQuery()
-const archiveBooks = computed(() => archiveQuery.data.value ?? [])
+const cyclesQuery = useCyclesQuery()
+const archiveCycles = computed(() => cyclesQuery.data.value ?? [])
 
 const genreOptions = computed(() => {
   const genres = new Map<ArchiveBookGenre, string>()
 
-  for (const book of archiveBooks.value) {
-    genres.set(book.genre, book.genreLabel)
+  for (const cycle of archiveCycles.value) {
+    genres.set(cycle.genre, cycle.genreLabel)
   }
 
   return [...genres.entries()].map(([value, label]) => ({ value, label }))
 })
 
 const memberOptions = computed(() => {
-  return [...new Set(archiveBooks.value.map((book) => book.proposedBy))].sort((left, right) =>
+  return [...new Set(archiveCycles.value.map((cycle) => cycle.proposedBy))].sort((left, right) =>
     left.localeCompare(right, 'ru'),
   )
 })
 
-const filteredBooks = computed(() => {
+const filteredCycles = computed(() => {
   const normalizedQuery = searchQuery.value.trim().toLocaleLowerCase('ru')
 
-  return archiveBooks.value
-    .filter((book) => {
+  return archiveCycles.value
+    .filter((cycle) => {
       const matchesQuery =
         !normalizedQuery ||
-        [book.title, book.author, book.proposedBy].some((value) =>
+        [cycle.book.title, cycle.book.author, cycle.proposedBy].some((value) =>
           value.toLocaleLowerCase('ru').includes(normalizedQuery),
         )
-      const matchesGenre = !selectedGenre.value || book.genre === selectedGenre.value
-      const matchesMember = !selectedMember.value || book.proposedBy === selectedMember.value
+      const matchesGenre = !selectedGenre.value || cycle.genre === selectedGenre.value
+      const matchesMember = !selectedMember.value || cycle.proposedBy === selectedMember.value
 
       return matchesQuery && matchesGenre && matchesMember
     })
     .sort((left, right) => {
+      if (left.status !== 'completed' && right.status === 'completed') return -1
+      if (left.status === 'completed' && right.status !== 'completed') return 1
+
       if (sortMode.value === 'oldest') {
         return left.cycleNumber - right.cycleNumber
       }
@@ -62,16 +65,16 @@ const filteredBooks = computed(() => {
     })
 })
 
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredBooks.value.length / pageSize)))
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredCycles.value.length / pageSize)))
 
-const paginatedBooks = computed(() => {
+const paginatedCycles = computed(() => {
   if (currentPage.value > totalPages.value) {
     currentPage.value = totalPages.value
   }
 
   const startIndex = (currentPage.value - 1) * pageSize
 
-  return filteredBooks.value.slice(startIndex, startIndex + pageSize)
+  return filteredCycles.value.slice(startIndex, startIndex + pageSize)
 })
 
 const pageNumbers = computed(() =>
@@ -99,6 +102,10 @@ function getGenreBadgeClass(genre: ArchiveBookGenre) {
 function ratingLabel(rating: number | undefined) {
   return typeof rating === 'number' ? `${rating.toFixed(1)}/10` : t('profile.ratingNone')
 }
+
+function cycleLink(cycle: ArchiveCycle) {
+  return cycle.status === 'completed' ? `/cycles/${cycle.cycleNumber}` : '/'
+}
 </script>
 
 <template lang="pug">
@@ -106,8 +113,8 @@ main.archive.container
   .archive__header
     h1.archive__title {{ $t('archive.title') }}
     span.archive__count
-      strong {{ archiveBooks.length }}
-      |  {{ $t('archive.cycles', { n: archiveBooks.length }).replace(/^\d+\s*/, '') }}
+      strong {{ archiveCycles.length }}
+      |  {{ $t('archive.cycles', { n: archiveCycles.length }).replace(/^\d+\s*/, '') }}
 
   .archive__controls(:aria-label="t('archive.filtersAria')")
     label.archive__search
@@ -138,37 +145,44 @@ main.archive.container
           option(value="rating") {{ $t('archive.sortRating') }}
         ChevronDown(:size="16" aria-hidden="true")
 
-  section.panel(v-if="archiveQuery.isLoading.value" aria-live="polite")
+  section.panel(v-if="cyclesQuery.isLoading.value" aria-live="polite")
     p.body-text {{ $t('common.loadingArchive') }}
-  section.panel(v-else-if="archiveQuery.error.value" aria-live="polite")
+  section.panel(v-else-if="cyclesQuery.error.value" aria-live="polite")
     p.body-text {{ $t('common.errorArchive') }}
-  TransitionGroup.archive__grid(name="list" tag="div" v-else-if="paginatedBooks.length")
-    RouterLink.archive-card(v-for="book in paginatedBooks" :key="book.slug" :to="`/archive/${book.slug}`")
-      .archive-card__cover(:style="{ '--cover-color': book.coverColor }" :aria-label="t('archive.coverAria', { title: book.title })")
-        span.archive-card__cover-title {{ book.coverTitle }}
+  TransitionGroup.archive__grid(name="list" tag="div" v-else-if="paginatedCycles.length")
+    RouterLink.archive-card(
+      v-for="cycle in paginatedCycles"
+      :key="cycle.cycleNumber"
+      :to="cycleLink(cycle)"
+      :class="{ 'archive-card--current': cycle.status !== 'completed' }"
+    )
+      .archive-card__cover(:style="{ '--cover-color': cycle.book.coverColor }" :aria-label="t('archive.coverAria', { title: cycle.book.title })")
+        img.archive-card__cover-image(v-if="cycle.book.coverUrl" :src="cycle.book.coverUrl" :alt="cycle.book.title")
+        span.archive-card__cover-title(v-else) {{ cycle.coverTitle }}
       .archive-card__info
         .archive-card__meta
-          span.label-text {{ book.cycleLabel }}
-          span.badge.label-text(:class="getGenreBadgeClass(book.genre)")
-            | {{ book.genreLabel }}
-        h2.archive-card__title {{ book.title }}
-        p.body-text.archive-card__author {{ book.author }}
+          span.label-text {{ cycle.cycleLabel }}
+          span.badge.label-text(:class="cycle.status === 'completed' ? getGenreBadgeClass(cycle.genre) : 'badge--action'")
+            | {{ cycle.status === 'completed' ? cycle.genreLabel : cycle.statusLabel }}
+        h2.archive-card__title {{ cycle.book.title }}
+        p.body-text.archive-card__author {{ cycle.book.author }}
         .archive-card__details
-          span.label-text {{ $t('archive.completed', { label: book.completedLabel }) }}
-          span.label-text {{ $t('archive.proposedBy', { name: book.proposedBy }) }}
+          span.label-text(v-if="cycle.completedLabel") {{ $t('archive.completed', { label: cycle.completedLabel }) }}
+          span.label-text(v-else) {{ cycle.statusLabel }}
+          span.label-text {{ $t('archive.proposedBy', { name: cycle.proposedBy }) }}
         .archive-card__stats(:aria-label="t('archive.statsAria')")
           span.archive-card__stat.label-text
             Star(:size="15" aria-hidden="true")
-            span {{ ratingLabel(book.averageRating ?? book.rating) }}
+            span {{ ratingLabel(cycle.averageRating ?? cycle.rating) }}
           span.archive-card__stat.label-text
             Star(:size="15" aria-hidden="true")
-            span {{ $t('archive.ratingsN', { n: book.ratingsCount ?? book.reviews.length }) }}
+            span {{ $t('archive.ratingsN', { n: cycle.ratingsCount ?? cycle.reviews.length }) }}
           span.archive-card__stat.label-text
             MessageSquare(:size="15" aria-hidden="true")
-            span {{ $t('archive.reviewsN', { n: book.reviewsCount ?? book.reviews.length }) }}
+            span {{ $t('archive.reviewsN', { n: cycle.reviewsCount ?? cycle.reviews.length }) }}
           span.archive-card__stat.label-text
             CalendarCheck(:size="15" aria-hidden="true")
-            span {{ book.attendingCount ?? 0 }}/{{ book.rsvpCount ?? 0 }} RSVP
+            span {{ cycle.attendingCount ?? 0 }}/{{ cycle.rsvpCount ?? 0 }} RSVP
 
   section.panel.archive__empty(v-else aria-live="polite")
     .section-header.section-header--compact
@@ -307,6 +321,17 @@ main.archive.container
   transform: translateY(-2px);
 }
 
+.archive-card--current {
+  border-color: var(--accent-border);
+  background:
+    linear-gradient(180deg, var(--accent-bg), rgba(255, 255, 255, 0.016)),
+    var(--bg-surface);
+}
+
+.archive-card--current:hover {
+  border-color: var(--accent);
+}
+
 .archive-card__cover {
   position: relative;
   display: flex;
@@ -351,6 +376,14 @@ main.archive.container
   line-height: 1.55;
   text-transform: uppercase;
   white-space: pre-line;
+}
+
+.archive-card__cover-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .archive-card__info {

@@ -86,8 +86,8 @@ main.member-detail.container(v-else-if="member")
         component.member-detail__book(
           v-for="book in member.readingHistory"
           :key="book.title"
-          :is="book.slug ? RouterLink : 'article'"
-          :to="book.slug ? `/archive/${book.slug}` : undefined"
+          :is="RouterLink"
+          :to="`/cycles/${book.cycleNumber}`"
         )
           .book-cover.member-detail__book-cover(:style="{ '--cover-color': book.coverColor ?? undefined }")
             span.book-cover__content {{ book.coverTitle }}

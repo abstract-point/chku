@@ -4,6 +4,14 @@ export type CurrentBook = {
   author: string
   selectedBy: string
   description: string
+  coverColor?: string | null
+  coverUrl?: string | null
+  genre?: {
+    id: number
+    slug: string
+    name: string
+  } | null
+  canEditBook: boolean
   progress: number
   progressLabel: string
   cycleNumber: number

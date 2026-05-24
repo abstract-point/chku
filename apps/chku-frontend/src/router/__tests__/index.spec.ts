@@ -21,7 +21,7 @@ describe('router', () => {
     await router.push('/archive')
     expect(router.currentRoute.value.name).toBe('archive')
 
-    await router.push('/archive/duna')
-    expect(router.currentRoute.value.name).toBe('archive-book')
+    await router.push('/cycles/40')
+    expect(router.currentRoute.value.name).toBe('cycle-detail')
   })
 })

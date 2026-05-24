@@ -35,6 +35,7 @@ export type BookQueueItem = {
   status: 'queued' | 'in_verification' | 'approved' | 'rejected' | 'removed'
   title: string
   author: string
+  coverUrl?: string | null
   description?: string | null
   reason?: string | null
   rejectionInfo?: {
@@ -64,7 +65,6 @@ export type MemberProfile = {
 }
 
 export type ProfileBook = {
-  slug?: string | null
   title: string
   coverTitle: string
   author: string
@@ -109,16 +109,37 @@ export type ArchiveMeeting = {
   rsvpCount: number
 }
 
-export type ArchiveBook = {
-  slug: string
-  title: string
-  coverTitle: string
-  author: string
-  genre: ArchiveBookGenre
-  genreLabel: string
+export type OpenLibraryCover = {
+  coverId: string
+  coverUrl?: string | null
+  thumbnailUrl?: string | null
+}
+
+export type ArchiveCycle = {
+  id: number
   cycleNumber: number
   cycleLabel: string
-  completedLabel: string
+  status: 'proposed' | 'active' | 'completed'
+  statusLabel: string
+  canEditBook: boolean
+  book: {
+    id: number
+    slug: string
+    title: string
+    author: string
+    description?: string | null
+    coverColor?: string | null
+    coverUrl?: string | null
+    genre?: {
+      id: number
+      slug: string
+      name: string
+    }
+  }
+  coverTitle: string
+  genre: ArchiveBookGenre
+  genreLabel: string
+  completedLabel?: string | null
   proposedBy: string
   proposerAvatarUrl?: string | null
   rating: number
@@ -127,11 +148,36 @@ export type ArchiveBook = {
   reviewsCount?: number
   attendingCount?: number
   rsvpCount?: number
-  synopsis: string
-  meetingLabel: string
+  meetingLabel?: string | null
   meeting?: ArchiveMeeting | null
+  candidate?: {
+    id: number
+    status: 'pending' | 'awaiting_owner_confirmation' | 'approved' | 'rejected'
+    reason?: string | null
+    description?: string | null
+    responses: {
+      id: number
+      member: {
+        id: number
+        name: string
+        avatarUrl?: string | null
+      }
+      response: 'not_read' | 'read' | 'pending'
+    }[]
+  } | null
+  memberProgress: {
+    id: number
+    member: {
+      id: number
+      name: string
+      avatarUrl?: string | null
+    }
+    status: 'not_started' | 'reading' | 'finished' | 'abandoned'
+    progressPercent: number | null
+    currentPage: number | null
+    notes: string | null
+  }[]
   discussionPrompt: string
-  coverColor: string
   reviews: ArchiveBookReview[]
   discussion: ArchiveDiscussionMessage[]
 }

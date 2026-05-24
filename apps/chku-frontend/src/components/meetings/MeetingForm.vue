@@ -9,7 +9,7 @@ import AppTextarea from '@/components/ui/AppTextarea.vue'
 import AppRadioGroup from '@/components/ui/AppRadioGroup.vue'
 import type { MeetingDetail } from '@/types/dashboard'
 
-const { t } = useI18n()
+const { t, tm } = useI18n()
 
 const props = defineProps<{
   meeting?: MeetingDetail
@@ -41,7 +41,7 @@ const dayOptions = computed(() => [
   ...Array.from({ length: 31 }, (_, i) => ({ label: String(i + 1), value: i + 1 })),
 ])
 
-const monthOptions = computed(() => t('meetings.months').map((name: string, i: number) => ({ label: name, value: i + 1 })))
+const monthOptions = computed(() => tm('meetings.months').map((name: string, i: number) => ({ label: name, value: i + 1 })))
 
 const years = computed(() => {
   const current = new Date().getFullYear()

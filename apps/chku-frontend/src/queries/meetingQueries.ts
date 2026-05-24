@@ -93,7 +93,7 @@ export function useFinishMeetingMutation(id: MaybeRefOrGetter<string>) {
       client.invalidateQueries({ queryKey: queryKeys.meeting(toValue(id)) })
       client.invalidateQueries({ queryKey: queryKeys.dashboard })
       client.invalidateQueries({ queryKey: queryKeys.activeCandidate })
-      client.invalidateQueries({ queryKey: queryKeys.archive })
+      client.invalidateQueries({ queryKey: queryKeys.cycles })
     },
   })
 }
