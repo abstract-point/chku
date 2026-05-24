@@ -11,7 +11,8 @@ class BookCoverResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'path' => $this->cover_path,
+            'url' => $this->url,
+            'thumbnailUrl' => $this->thumbnail_url,
             'mime' => $this->cover_mime,
             'width' => $this->cover_width,
             'height' => $this->cover_height,

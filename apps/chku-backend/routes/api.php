@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BookCandidateController;
+use App\Http\Controllers\BookCoverController;
 use App\Http\Controllers\BookLookupController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\ClubMemberController;
@@ -14,6 +16,7 @@ use App\Http\Controllers\MemberBookQueueController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReadingCycleController;
 use App\Http\Controllers\ReadingProgressController;
+use App\Http\Controllers\SessionController;
 use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,11 +45,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('club', [ClubController::class, 'show']);
     Route::get('dashboard', [DashboardController::class, 'index']);
-    Route::get('books/open-library/covers', [BookLookupController::class, 'covers']);
     Route::patch('reading-progress/me', [ReadingProgressController::class, 'updateCurrent']);
     Route::put('reading-cycles/current/rating-review', [ReadingCycleController::class, 'updateCurrentRatingReview']);
     Route::post('reading-cycles/current/complete', [ReadingCycleController::class, 'completeCurrent']);
     Route::get('genres', [GenreController::class, 'index']);
+
+    Route::get('books/covers/search', [BookLookupController::class, 'search']);
+    Route::post('books/{book}/covers', [BookCoverController::class, 'store']);
 
     Route::get('me/book-queue', [MemberBookQueueController::class, 'index']);
     Route::get('me/book-queue/rejected', [MemberBookQueueController::class, 'rejected']);
@@ -65,6 +70,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('cycles', [CycleController::class, 'index']);
     Route::get('cycles/{cycleNumber}', [CycleController::class, 'show']);
     Route::patch('cycles/{cycleNumber}/book', [CycleController::class, 'updateBook']);
+
+
 
     Route::get('meetings/{meeting}', [MeetingController::class, 'show']);
     Route::post('meetings', [MeetingController::class, 'store']);
