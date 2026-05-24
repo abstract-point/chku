@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('progress_percent')->nullable();
             $table->unsignedInteger('current_page')->nullable();
             $table->text('notes')->nullable();
+            $table->timestamp('finished_at')->nullable();
             $table->timestamps();
 
             $table->unique(['reading_cycle_id', 'club_member_id']);

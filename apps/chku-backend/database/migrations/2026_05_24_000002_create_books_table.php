@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->string('cover_color')->nullable();
-            $table->string('cover_url')->nullable();
             $table->timestamps();
         });
     }

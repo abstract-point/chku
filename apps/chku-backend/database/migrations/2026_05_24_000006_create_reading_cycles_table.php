@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('discussion_prompt')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
+
             $table->unique(['club_id', 'cycle_number']);
         });
     }

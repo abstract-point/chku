@@ -16,6 +16,9 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamp('deactivated_at')->nullable();
             $table->date('joined_at');
+            $table->unsignedInteger('gold_owls_count')->default(0);
+            $table->unsignedInteger('silver_owls_count')->default(0);
+            $table->unsignedInteger('bronze_owls_count')->default(0);
             $table->timestamps();
 
             $table->unique(['club_id', 'user_id']);

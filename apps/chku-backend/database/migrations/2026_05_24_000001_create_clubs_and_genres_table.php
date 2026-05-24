@@ -14,10 +14,18 @@ return new class extends Migration
             $table->string('short_name');
             $table->timestamps();
         });
+
+        Schema::create('genres', function (Blueprint $table) {
+            $table->id();
+            $table->string('slug')->unique();
+            $table->string('name');
+            $table->timestamps();
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('genres');
         Schema::dropIfExists('clubs');
     }
 };

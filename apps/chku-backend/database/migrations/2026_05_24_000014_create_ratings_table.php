@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('reading_cycle_id')->constrained()->cascadeOnDelete();
             $table->foreignId('club_member_id')->constrained()->cascadeOnDelete();
-            $table->unsignedTinyInteger('rating');
+            $table->decimal('rating', 3, 1);
             $table->timestamps();
 
             $table->unique(['reading_cycle_id', 'club_member_id']);

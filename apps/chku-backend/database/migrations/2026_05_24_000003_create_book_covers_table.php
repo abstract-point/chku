@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('book_id')->constrained()->cascadeOnDelete();
             $table->string('cover_path');
+            $table->string('thumbnail_path');
             $table->string('cover_mime')->nullable();
             $table->unsignedSmallInteger('cover_width')->nullable();
             $table->unsignedSmallInteger('cover_height')->nullable();
