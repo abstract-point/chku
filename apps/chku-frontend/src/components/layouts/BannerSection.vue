@@ -72,7 +72,7 @@ const bannerConfigs: BannerConfig[] = [
       nextMeeting.value.status !== 'finished' &&
       (nextMeeting.value.status === 'started' ||
         isMeetingTimeReached(nextMeeting.value.date, nextMeeting.value.time)),
-    hideOn: ['home', 'meeting-detail'],
+    hideOn: ['meeting-detail'],
     props: () => ({ meeting: nextMeeting.value }),
   },
   {
