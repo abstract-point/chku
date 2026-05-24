@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'genre_id',
@@ -55,7 +54,7 @@ class Book extends Model
     public function getCoverUrlAttribute(): ?string
     {
         if ($this->relationLoaded('primaryCover') && $this->primaryCover) {
-            return Storage::disk('public')->url($this->primaryCover->cover_path);
+            return '/storage/'.$this->primaryCover->cover_path;
         }
 
         return null;
