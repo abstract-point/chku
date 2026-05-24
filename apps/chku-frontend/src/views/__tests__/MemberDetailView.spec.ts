@@ -49,7 +49,7 @@ describe('MemberDetailView', () => {
     expect(wrapper.text()).toContain('Ревью: есть')
     expect(wrapper.text()).toContain('Встреча: был(а)')
     expect(
-      wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/archive/ten-istoriya'),
+      wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/cycles/41'),
     ).toBe(true)
   })
 

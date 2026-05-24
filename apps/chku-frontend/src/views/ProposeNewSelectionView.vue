@@ -4,8 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Send, Trash2, X } from '@lucide/vue'
 import AppTabs from '@/components/ui/AppTabs.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
-import AppInput from '@/components/ui/AppInput.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
+import OpenLibraryCoverPicker from '@/components/books/OpenLibraryCoverPicker.vue'
 import {
   useBookQueueQuery,
   useCreateBookQueueItemMutation,
@@ -34,6 +34,7 @@ const form = reactive({
   author: '',
   description: '',
   reason: '',
+  coverUrl: null as string | null,
 })
 const formErrors = useFormErrors()
 const items = computed(() => queueQuery.items.value)
@@ -46,6 +47,7 @@ function resetForm() {
   form.author = ''
   form.description = ''
   form.reason = ''
+  form.coverUrl = null
   formErrors.clearAllErrors()
 }
 
@@ -58,6 +60,7 @@ function submitBook() {
       author: form.author.trim(),
       description: form.description.trim(),
       reason: form.reason.trim(),
+      coverUrl: form.coverUrl,
     },
     {
       onSuccess: resetForm,
@@ -147,7 +150,7 @@ main.proposal.container
         Plus.proposal__button-icon
       form.proposal__form-fields(@submit.prevent="submitBook" novalidate)
         AppFormField(:label="t('books.titleLabel')" label-for="book-title" required :error="formErrors.getError('title')")
-          AppInput#book-title(
+          input#book-title.field-control.proposal__text-input(
             v-model="form.title"
             type="text"
             :placeholder="t('books.titlePlaceholder')"
@@ -155,7 +158,7 @@ main.proposal.container
           )
 
         AppFormField(:label="t('books.authorLabel')" label-for="book-author" required :error="formErrors.getError('author')")
-          AppInput#book-author(
+          input#book-author.field-control.proposal__text-input(
             v-model="form.author"
             type="text"
             :placeholder="t('books.authorPlaceholder')"
@@ -175,6 +178,8 @@ main.proposal.container
             :placeholder="t('books.reasonPlaceholder')"
             :aria-invalid="formErrors.hasError('reason')"
           )
+
+        OpenLibraryCoverPicker(v-model="form.coverUrl" :title="form.title" :author="form.author")
 
         .proposal__actions
           button.button.button--primary.label-text(type="submit" :disabled="createQueueItem.isPending.value")
@@ -370,6 +375,11 @@ main.proposal.container
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+}
+
+.proposal__text-input {
+  width: 100%;
+  padding-left: 1rem;
 }
 
 .proposal__actions {

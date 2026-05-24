@@ -46,6 +46,19 @@ describe('ProposeNewSelectionView', () => {
     expect(wrapper.text()).toContain('Название книги*')
   })
 
+  it('selects an Open Library cover without changing book fields', async () => {
+    setActivePinia(createPinia())
+    const wrapper = mountProposal()
+
+    await wrapper.get('#book-title').setValue('Дюна')
+    await wrapper.get('#book-author').setValue('Фрэнк Герберт')
+    await wrapper.find('.open-library-cover-picker__cover').trigger('click')
+
+    expect((wrapper.get('#book-title').element as HTMLInputElement).value).toBe('Дюна')
+    expect((wrapper.get('#book-author').element as HTMLInputElement).value).toBe('Фрэнк Герберт')
+    expect(wrapper.find('.open-library-cover-picker__cover--selected').exists()).toBe(true)
+  })
+
   it('shows edit buttons for queue items', () => {
     setActivePinia(createPinia())
     const wrapper = mountProposal()

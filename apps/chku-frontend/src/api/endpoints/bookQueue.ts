@@ -6,6 +6,7 @@ export type BookQueuePayload = {
   author: string
   description?: string
   reason?: string
+  coverUrl?: string | null
 }
 
 export const bookQueueApi = {
