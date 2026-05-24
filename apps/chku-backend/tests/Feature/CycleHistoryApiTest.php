@@ -6,6 +6,7 @@ use App\Models\ReadingCycle;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class CycleHistoryApiTest extends TestCase
@@ -118,5 +119,39 @@ class CycleHistoryApiTest extends TestCase
         $response->assertOk();
         $response->assertJsonPath('data.book.coverUrl', 'https://covers.openlibrary.org/b/id/123-L.jpg');
         $response->assertJsonMissingPath('data.book.metadata');
+    }
+
+    public function test_open_library_cover_search_is_normalized(): void
+    {
+        Http::fake([
+            'openlibrary.org/search.json*' => Http::response([
+                'docs' => [[
+                    'cover_i' => 12345,
+                ]],
+            ]),
+        ]);
+
+        $this->seed(DatabaseSeeder::class);
+        $user = User::where('email', 'pavel@example.com')->firstOrFail();
+
+        $response = $this->actingAs($user)->getJson('/api/books/open-library/covers?title=Dune&author=Frank%20Herbert');
+
+        $response->assertOk();
+        $response->assertJsonPath('data.0.coverId', '12345');
+        $response->assertJsonPath('data.0.coverUrl', 'https://covers.openlibrary.org/b/id/12345-L.jpg');
+        $response->assertJsonPath('data.0.thumbnailUrl', 'https://covers.openlibrary.org/b/id/12345-M.jpg');
+    }
+
+    public function test_open_library_cover_search_requires_title_and_author(): void
+    {
+        Http::fake();
+
+        $this->seed(DatabaseSeeder::class);
+        $user = User::where('email', 'pavel@example.com')->firstOrFail();
+
+        $response = $this->actingAs($user)->getJson('/api/books/open-library/covers?title=Dune');
+
+        $response->assertUnprocessable();
+        Http::assertNothingSent();
     }
 }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BookCandidateController;
+use App\Http\Controllers\BookLookupController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\ClubMemberController;
 use App\Http\Controllers\CycleController;
@@ -41,6 +42,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('club', [ClubController::class, 'show']);
     Route::get('dashboard', [DashboardController::class, 'index']);
+    Route::get('books/open-library/covers', [BookLookupController::class, 'covers']);
     Route::patch('reading-progress/me', [ReadingProgressController::class, 'updateCurrent']);
     Route::put('reading-cycles/current/rating-review', [ReadingCycleController::class, 'updateCurrentRatingReview']);
     Route::post('reading-cycles/current/complete', [ReadingCycleController::class, 'completeCurrent']);
