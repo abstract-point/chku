@@ -8,6 +8,7 @@ export type CycleBookPayload = {
   genreId?: number | null
   coverColor?: string | null
   coverUrl?: string | null
+  coverFile?: File | null
 }
 
 export const cycleApi = {
@@ -20,6 +21,17 @@ export const cycleApi = {
   },
 
   async updateBook(cycleNumber: number | string, payload: CycleBookPayload) {
+    if (payload.coverFile) {
+      const fd = new FormData()
+      fd.append('title', payload.title)
+      fd.append('author', payload.author)
+      if (payload.description) fd.append('description', payload.description)
+      if (payload.genreId) fd.append('genreId', String(payload.genreId))
+      if (payload.coverColor) fd.append('coverColor', payload.coverColor)
+      if (payload.coverUrl) fd.append('coverUrl', payload.coverUrl)
+      fd.append('coverFile', payload.coverFile)
+      return http.patchForm<unknown, ApiCycle>(`/cycles/${cycleNumber}/book`, fd)
+    }
     return http.patch<unknown, ApiCycle>(`/cycles/${cycleNumber}/book`, payload)
   },
 }
