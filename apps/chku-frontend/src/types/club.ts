@@ -109,12 +109,6 @@ export type ArchiveMeeting = {
   rsvpCount: number
 }
 
-export type OpenLibraryCover = {
-  coverId: string
-  coverUrl?: string | null
-  thumbnailUrl?: string | null
-}
-
 export type ArchiveCycle = {
   id: number
   cycleNumber: number

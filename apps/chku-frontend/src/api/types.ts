@@ -45,7 +45,6 @@ export type ApiBook = {
   id: number
   slug: string
   title: string
-  coverTitle?: string
   author: string
   description?: string
   coverColor?: string | null
@@ -57,10 +56,14 @@ export type ApiBook = {
   }
 }
 
-export type ApiOpenLibraryCover = {
-  coverId: string
-  coverUrl?: string | null
+export type ApiBookCoverSearchResult = {
+  source: 'google_books' | 'open_library'
+  title: string | null
+  authors: string[]
+  isbn?: string | null
+  coverUrl: string
   thumbnailUrl?: string | null
+  confidence: number
 }
 
 export type ApiCandidateResponseValue = 'not_read' | 'read' | 'pending'
