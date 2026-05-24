@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Check, Clock3, X } from '@lucide/vue'
+import { computed, ref } from 'vue'
+import { Check, Clock3, Pencil, X } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
+import CycleBookForm from '@/components/books/CycleBookForm.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import type { ApiBookCandidate, ApiBookCandidateResponse } from '@/api/types'
 import { useAuthSession } from '@/queries/authQueries'
@@ -10,13 +11,16 @@ import { useCandidateResponseMutation, useConfirmCandidateMutation } from '@/que
 const { t } = useI18n()
 const props = defineProps<{
   candidate: ApiBookCandidate
+  cycleNumber?: number | null
 }>()
 
 const { user } = useAuthSession()
 const responseMutation = useCandidateResponseMutation()
 const confirmMutation = useConfirmCandidateMutation()
+const isBookFormOpen = ref(false)
 const isPending = computed(() => responseMutation.isPending.value || confirmMutation.isPending.value)
 const coverTitleLines = computed(() => props.candidate.book.title.split('\n'))
+const editCycleNumber = computed(() => props.candidate.cycleNumber ?? props.cycleNumber ?? null)
 const currentResponse = computed(() =>
   props.candidate.responses.find((response) => response.member.id === user.value?.id),
 )
@@ -83,48 +87,65 @@ function confirm() {
 section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
   .section-header
     h2#book-selection-title {{ $t('dash.bookSelection') }}
-    span.label-text {{ statusLabel }}
+    button.button.button--secondary.label-text(
+      v-if="candidate.canEditBook && editCycleNumber && !isBookFormOpen"
+      type="button"
+      @click="isBookFormOpen = true"
+    )
+      Pencil.book-selection__button-icon
+      | {{ $t('cycle.editBook') }}
+    span.label-text(v-else) {{ statusLabel }}
 
   article.current-book
-    .book-cover.current-book__cover(:aria-label="$t('archive.coverAria', { title: candidate.book.title })")
-      .book-cover__content
+    .book-cover.current-book__cover(:style="{ backgroundColor: candidate.book.coverColor ?? undefined }" :aria-label="$t('archive.coverAria', { title: candidate.book.title })")
+      img.current-book__cover-image(v-if="candidate.book.coverUrl" :src="candidate.book.coverUrl" :alt="candidate.book.title")
+      .book-cover__content(v-else)
         span.current-book__cover-label.label-text {{ $t('dash.proposedBy', { name: candidate.proposer.name }) }}
         template(v-for="line in coverTitleLines" :key="line")
           | {{ line }}
           br
 
     .current-book__details
-      .current-book__meta
-        h1 {{ candidate.book.title }}
-        p.subtitle-italic {{ candidate.book.author }}
-      p.body-text.current-book__description
-        | {{ candidate.description || candidate.book.description }}
-      .panel.panel--filled.book-selection__reason(v-if="candidate.reason")
-        span.label-text {{ $t('dash.whyThisBook') }}
-        p.body-text {{ candidate.reason }}
-      .book-selection__actions(v-if="canRespond || candidate.canConfirm")
-        button.button.button--secondary.label-text(
-          v-if="canRespond"
-          type="button"
-          :disabled="isPending"
-          @click="respond('read')"
-        ) {{ $t('dash.iveRead') }}
-        button.button.button--inverted.label-text(
-          v-if="canRespond"
-          type="button"
-          :disabled="isPending"
-          @click="respond('not_read')"
-        ) {{ $t('dash.notRead') }}
-        button.button.button--primary.label-text(
-          v-if="candidate.canConfirm"
-          type="button"
-          :disabled="isPending"
-          @click="confirm"
-        ) {{ $t('dash.confirmBook') }}
-      p.body-text.book-selection__note(v-else-if="candidate.status === 'awaiting_owner_confirmation'")
-        | {{ $t('dash.waitingOwner') }}
-      p.body-text.book-selection__note(v-else-if="currentResponse && currentResponse.response !== 'pending'")
-        | {{ $t('dash.responseSaved', { response: responseLabel(currentResponse.response) }) }}
+      CycleBookForm(
+        v-if="isBookFormOpen && editCycleNumber"
+        :cycle-number="editCycleNumber"
+        :book="candidate.book"
+        id-prefix="candidate-book"
+        @cancel="isBookFormOpen = false"
+        @saved="isBookFormOpen = false"
+      )
+      template(v-else)
+        .current-book__meta
+          h1 {{ candidate.book.title }}
+          p.subtitle-italic {{ candidate.book.author }}
+        p.body-text.current-book__description
+          | {{ candidate.description || candidate.book.description }}
+        .panel.panel--filled.book-selection__reason(v-if="candidate.reason")
+          span.label-text {{ $t('dash.whyThisBook') }}
+          p.body-text {{ candidate.reason }}
+        .book-selection__actions(v-if="canRespond || candidate.canConfirm")
+          button.button.button--secondary.label-text(
+            v-if="canRespond"
+            type="button"
+            :disabled="isPending"
+            @click="respond('read')"
+          ) {{ $t('dash.iveRead') }}
+          button.button.button--inverted.label-text(
+            v-if="canRespond"
+            type="button"
+            :disabled="isPending"
+            @click="respond('not_read')"
+          ) {{ $t('dash.notRead') }}
+          button.button.button--primary.label-text(
+            v-if="candidate.canConfirm"
+            type="button"
+            :disabled="isPending"
+            @click="confirm"
+          ) {{ $t('dash.confirmBook') }}
+        p.body-text.book-selection__note(v-else-if="candidate.status === 'awaiting_owner_confirmation'")
+          | {{ $t('dash.waitingOwner') }}
+        p.body-text.book-selection__note(v-else-if="currentResponse && currentResponse.response !== 'pending'")
+          | {{ $t('dash.responseSaved', { response: responseLabel(currentResponse.response) }) }}
 
   .section-header.dashboard__section-spaced
     h3 {{ $t('dash.clubResponses') }}
@@ -164,7 +185,17 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
 }
 
 .current-book__cover {
+  position: relative;
+  overflow: hidden;
   width: 100%;
+}
+
+.current-book__cover-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .current-book__cover-label {
@@ -253,6 +284,11 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
 
 .book-selection__response-status--pending {
   color: var(--text-muted);
+}
+
+.book-selection__button-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 @media (max-width: 760px) {

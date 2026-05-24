@@ -2,8 +2,10 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import AppModal from '@/components/ui/AppModal.vue'
+import { Pencil } from '@lucide/vue'
+import CycleBookForm from '@/components/books/CycleBookForm.vue'
 import DashboardReadingProgressForm from '@/components/dashboard/DashboardReadingProgressForm.vue'
+import AppModal from '@/components/ui/AppModal.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useUpdateReadingProgressMutation } from '@/queries/dashboardQueries'
 import type { BookProgressMember, CurrentBook } from '@/types/dashboard'
@@ -12,11 +14,11 @@ const { t } = useI18n()
 const props = defineProps<{
   book: CurrentBook
   members: BookProgressMember[]
-  nextSelectorName?: string | null
 }>()
 
 const coverTitleLines = computed(() => props.book.coverTitle.split('\n'))
 const isProgressFormOpen = ref(false)
+const isBookFormOpen = ref(false)
 const isConfirmModalOpen = ref(false)
 const pendingProgressPercent = ref(0)
 const updateProgressMutation = useUpdateReadingProgressMutation()
@@ -28,13 +30,6 @@ const progressErrorMessage = computed(() =>
 const cycleHeaderLabel = computed(() => {
   if (props.book.cycleStatus === 'active') {
     return t('dash.cycleNum', { n: props.book.cycleNumber })
-  }
-  return null
-})
-
-const nextSelectorLabel = computed(() => {
-  if (props.nextSelectorName) {
-    return t('dash.nextSelector', { name: props.nextSelectorName })
   }
   return null
 })
@@ -114,24 +109,40 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   .section-header
     h2#current-cycle-title {{ $t('dash.currentCycle') }}
     span.label-text(v-if="cycleHeaderLabel") {{ cycleHeaderLabel }}
-    span.label-text(v-if="nextSelectorLabel") {{ nextSelectorLabel }}
+    button.button.button--secondary.label-text(
+      v-if="book.canEditBook && !isBookFormOpen"
+      type="button"
+      @click="isBookFormOpen = true"
+    )
+      Pencil.current-book__button-icon
+      | {{ $t('cycle.editBook') }}
 
   article.current-book
-    .book-cover.current-book__cover(:aria-label="$t('archive.coverAria', { title: book.title })")
-      .book-cover__content
+    .book-cover.current-book__cover(:style="{ backgroundColor: book.coverColor ?? undefined }" :aria-label="$t('archive.coverAria', { title: book.title })")
+      img.current-book__cover-image(v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title")
+      .book-cover__content(v-else)
         span.current-book__cover-label.label-text {{ $t('dash.selectedBy', { name: book.selectedBy }) }}
         template(v-for="line in coverTitleLines" :key="line")
           | {{ line }}
           br
 
     .current-book__details
-      .current-book__meta
-        h1 {{ book.title }}
-        p.subtitle-italic {{ book.author }}
-      p.body-text.current-book__description
-        | {{ book.description }}
+      CycleBookForm(
+        v-if="isBookFormOpen"
+        :cycle-number="book.cycleNumber"
+        :book="book"
+        id-prefix="dashboard-book"
+        @cancel="isBookFormOpen = false"
+        @saved="isBookFormOpen = false"
+      )
+      template(v-else)
+        .current-book__meta
+          h1 {{ book.title }}
+          p.subtitle-italic {{ book.author }}
+        p.body-text.current-book__description
+          | {{ book.description }}
 
-      .panel.panel--filled.current-book__progress
+      .panel.panel--filled.current-book__progress(v-if="!isBookFormOpen")
         template(v-if="book.progress === 100")
           .current-book__progress-header
             span.label-text {{ $t('dash.myProgress') }}
@@ -182,7 +193,8 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
           .progress__bar(:style="{ '--progress-value': `${member.progress}%` }")
         span.label-text {{ member.progress }}%
       span.label-text(v-else) {{ $t('dash.notStarted') }}
-  RouterLink.button.button--ghost.label-text.club-progress__link(to="/members") {{ $t('dash.allMembers') }}
+  .club-progress__links
+    RouterLink.button.button--ghost.label-text(to="/members") {{ $t('dash.allMembers') }}
 
   AppModal(
     :is-open="isConfirmModalOpen"
@@ -224,7 +236,17 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 }
 
 .current-book__cover {
+  position: relative;
+  overflow: hidden;
   width: 100%;
+}
+
+.current-book__cover-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .current-book__cover-label {
@@ -232,6 +254,11 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   margin-bottom: var(--space-sm);
   font-size: 0.5rem;
   opacity: 0.7;
+}
+
+.current-book__button-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .current-book__details {
@@ -323,9 +350,14 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   filter: invert(68%) sepia(40%) saturate(600%) hue-rotate(345deg) brightness(90%);
 }
 
-.club-progress__link {
-  width: 100%;
+.club-progress__links {
+  display: grid;
+  gap: var(--space-sm);
   margin-top: var(--space-md);
+}
+
+.club-progress__links .button {
+  width: 100%;
 }
 
 .member-status {
