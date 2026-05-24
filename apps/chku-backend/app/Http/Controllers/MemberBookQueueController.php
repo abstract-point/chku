@@ -46,19 +46,14 @@ final class MemberBookQueueController extends Controller
             'author' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'reason' => ['nullable', 'string', 'max:2000'],
+            'coverUrl' => ['nullable', 'url', 'max:2048'],
         ]);
 
         $member = $currentMember->get();
 
         $book = Book::firstOrCreate(
             ['slug' => $this->uniqueSlug($payload['title'])],
-            [
-                'title' => $payload['title'],
-                'author' => $payload['author'],
-                'description' => $payload['description'] ?? null,
-                'genre_id' => Genre::where('slug', 'fiction')->value('id'),
-                'cover_color' => '#3a405a',
-            ],
+            $this->bookPayload($payload),
         );
 
         $item = $queue->createAtHead(
@@ -168,5 +163,18 @@ final class MemberBookQueueController extends Controller
         }
 
         return $slug;
+    }
+
+    private function bookPayload(array $payload): array
+    {
+        return [
+            'title' => $payload['title'],
+            'author' => $payload['author'],
+            'slug' => $this->uniqueSlug($payload['title']),
+            'description' => $payload['description'] ?? null,
+            'genre_id' => Genre::where('slug', 'fiction')->value('id'),
+            'cover_color' => '#3a405a',
+            'cover_url' => $payload['coverUrl'] ?? null,
+        ];
     }
 }

@@ -14,9 +14,9 @@ return new class extends Migration
             $table->string('title');
             $table->string('author');
             $table->string('slug')->unique();
-            $table->string('isbn')->nullable()->unique();
             $table->text('description')->nullable();
             $table->string('cover_color')->nullable();
+            $table->string('cover_url')->nullable();
             $table->timestamps();
         });
     }

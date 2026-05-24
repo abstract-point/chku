@@ -9,7 +9,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['genre_id', 'title', 'author', 'slug', 'isbn', 'description', 'cover_color'])]
+#[Fillable([
+    'genre_id',
+    'title',
+    'author',
+    'slug',
+    'description',
+    'cover_color',
+    'cover_url',
+])]
 class Book extends Model
 {
     use HasFactory;

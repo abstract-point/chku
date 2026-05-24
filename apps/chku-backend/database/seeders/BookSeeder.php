@@ -18,7 +18,7 @@ class BookSeeder extends Seeder
             ['title' => 'Думай медленно... решай быстро', 'author' => 'Даниэль Канеман', 'slug' => 'dumai-medlenno-reshai-bystro', 'genre' => 'nonfiction', 'color' => '#6f7f4b', 'desc' => 'Исследование двух режимов мышления и когнитивных искажений.'],
             ['title' => 'Солярис', 'author' => 'Станислав Лем', 'slug' => 'solyaris', 'genre' => 'scifi', 'color' => '#46656b', 'desc' => 'Контакт с внеземным океаном оказывается разговором с собственными памятью и совестью.'],
             ['title' => 'Лавр', 'author' => 'Евгений Водолазкин', 'slug' => 'lavr', 'genre' => 'fiction', 'color' => '#7b5f4a', 'desc' => 'Роман о страннике Арсении, который проходит путь любви, вины и служения.'],
-            ['title' => 'Дюна', 'author' => 'Фрэнк Герберт', 'slug' => 'duna', 'genre' => 'scifi', 'color' => '#4a5d4e', 'desc' => 'Политика, экология и религиозный миф на пустынной планете Арракис.'],
+            ['title' => 'Дюна', 'author' => 'Фрэнк Герберт', 'slug' => 'duna', 'genre' => 'scifi', 'color' => '#4a5d4e', 'desc' => 'Политика, экология и религиозный миф на пустынной планете Арракис.', 'coverUrl' => 'https://covers.openlibrary.org/b/id/8108690-L.jpg'],
             ['title' => '1984', 'author' => 'Джордж Оруэлл', 'slug' => '1984', 'genre' => 'fiction', 'color' => '#2c363f', 'desc' => 'Антиутопия о языке, страхе и государственном контроле.'],
             ['title' => 'Тёмная башня', 'author' => 'Стивен Кинг', 'slug' => 'temnaya-bashnya', 'genre' => 'fiction', 'color' => '#5c3a21', 'desc' => 'Стрелок идёт через пустошь к Тёмной башне, которая связывает все миры.'],
             ['title' => 'Цветы для Элджернона', 'author' => 'Дэниел Киз', 'slug' => 'cvety-dlya-elzherona', 'genre' => 'scifi', 'color' => '#6b4c8a', 'desc' => 'История умственно отсталого человека, который обретает гениальность и теряет её.'],
@@ -36,6 +36,7 @@ class BookSeeder extends Seeder
                 'genre_id' => Genre::where('slug', $data['genre'])->value('id'),
                 'description' => $data['desc'],
                 'cover_color' => $data['color'],
+                'cover_url' => $data['coverUrl'] ?? null,
             ]);
         }
     }

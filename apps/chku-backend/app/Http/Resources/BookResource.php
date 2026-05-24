@@ -14,9 +14,9 @@ class BookResource extends JsonResource
             'title' => $this->title,
             'author' => $this->author,
             'slug' => $this->slug,
-            'isbn' => $this->isbn,
             'description' => $this->description,
             'coverColor' => $this->cover_color,
+            'coverUrl' => $this->cover_url,
             'genre' => new GenreResource($this->whenLoaded('genre')),
             'covers' => BookCoverResource::collection($this->whenLoaded('covers')),
         ];
