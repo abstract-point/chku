@@ -56,16 +56,6 @@ export type ApiBook = {
   }
 }
 
-export type ApiBookCoverSearchResult = {
-  source: 'google_books' | 'open_library'
-  title: string | null
-  authors: string[]
-  isbn?: string | null
-  coverUrl: string
-  thumbnailUrl?: string | null
-  confidence: number
-}
-
 export type ApiCandidateResponseValue = 'not_read' | 'read' | 'pending'
 
 export type ApiBookCandidate = {

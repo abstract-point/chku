@@ -265,19 +265,6 @@ vi.mock('@/queries/cycleQueries', () => ({
   useUpdateCycleBookMutation: () => mutationResult(),
 }))
 
-vi.mock('@/queries/bookLookupQueries', () => ({
-  useBookCoverSearchQuery: () => queryResult([
-    {
-      source: 'open_library',
-      title: 'Test Book',
-      authors: ['Test Author'],
-      coverUrl: 'https://covers.openlibrary.org/b/id/123-L.jpg',
-      thumbnailUrl: 'https://covers.openlibrary.org/b/id/123-M.jpg',
-      confidence: 90,
-    },
-  ]),
-}))
-
 vi.mock('@/queries/meetingQueries', () => ({
   useMeetingQuery: (_id: unknown, _currentUserId?: unknown) => {
     const data = computed(() =>

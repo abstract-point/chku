@@ -14,7 +14,5 @@ export const queryKeys = {
   member: (id: number) => ['members', id] as const,
   cycles: ['cycles'] as const,
   cycle: (cycleNumber: string | number) => ['cycles', String(cycleNumber)] as const,
-  bookCoverSearch: (title: string, author: string, isbn: string | null) =>
-    ['books', 'covers', 'search', title, author, isbn ?? 'none'] as const,
   meeting: (id: string | number) => ['meetings', String(id)] as const,
 }
