@@ -353,7 +353,9 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .two-factor-setup__body {
   margin-top: var(--space-md);
 }
@@ -376,9 +378,13 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 
 .two-factor-setup__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--space-xl);
   align-items: stretch;
+
+  @include tablet {
+    grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  }
 }
 
 .two-factor-setup__left {
@@ -389,8 +395,14 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 
 .two-factor-setup__qr-row {
   display: flex;
+  flex-direction: column;
   gap: var(--space-lg);
   align-items: flex-start;
+
+  @include tablet {
+    flex-direction: row;
+    align-items: flex-start;
+  }
 }
 
 .two-factor-setup__qr-card {
@@ -398,12 +410,21 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
   background: #ffffff;
-  width: fit-content;
+  width: 100%;
+  max-width: 16rem;
   box-shadow: inset 0 0 0 1px rgba(5, 6, 7, 0.05);
+
+  @include tablet {
+    width: fit-content;
+  }
 }
 
 .two-factor-setup__qr {
-  width: 13rem;
+  width: 100%;
+
+  @include tablet {
+    width: 13rem;
+  }
 }
 
 .two-factor-setup__qr :deep(svg) {
@@ -481,8 +502,13 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 }
 
 .two-factor-setup__divider {
+  display: none;
   background: var(--border);
   align-self: stretch;
+
+  @include tablet {
+    display: block;
+  }
 }
 
 .two-factor-setup__right {
@@ -521,17 +547,23 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 }
 
 .two-factor-setup__digit {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3rem;
+  height: 3rem;
   padding: 0;
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
   background: var(--bg-surface);
   color: var(--text-main);
   font-family: var(--font-mono);
-  font-size: 1.25rem;
+  font-size: 1rem;
   text-align: center;
   outline: none;
+
+  @include tablet {
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1.25rem;
+  }
 }
 
 .two-factor-setup__digit:focus {
@@ -644,34 +676,5 @@ section.panel.two-factor-setup(aria-labelledby="two-factor-title")
 .two-factor-setup__message {
   color: var(--accent-dim);
   font-size: 0.85rem;
-}
-
-@media (max-width: 760px) {
-  .two-factor-setup__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .two-factor-setup__divider {
-    display: none;
-  }
-
-  .two-factor-setup__qr-row {
-    flex-direction: column;
-  }
-
-  .two-factor-setup__qr-card {
-    width: 100%;
-    max-width: 16rem;
-  }
-
-  .two-factor-setup__qr {
-    width: 100%;
-  }
-
-  .two-factor-setup__digit {
-    width: 3rem;
-    height: 3rem;
-    font-size: 1rem;
-  }
 }
 </style>

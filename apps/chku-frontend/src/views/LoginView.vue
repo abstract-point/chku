@@ -119,7 +119,9 @@ main.login
         | {{ twoFactorChallengeMutation.isPending.value ? $t('auth.verifying') : $t('auth.verifyBtn') }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .login {
   position: relative;
   display: flex;
@@ -127,9 +129,14 @@ main.login
   align-items: center;
   justify-content: center;
   min-height: 100dvh;
-  padding: var(--space-xl);
-  gap: var(--space-xl);
+  padding: var(--space-md);
+  gap: var(--space-lg);
   overflow: hidden;
+
+  @include tablet {
+    padding: var(--space-xl);
+    gap: var(--space-xl);
+  }
 }
 
 .login::before {
@@ -179,13 +186,17 @@ main.login
   z-index: 1;
   width: 100%;
   max-width: 28rem;
-  padding: var(--space-xl);
+  padding: var(--space-lg);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-panel);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
     var(--bg-surface);
   box-shadow: var(--shadow-soft);
+
+  @include tablet {
+    padding: var(--space-xl);
+  }
 }
 
 .login__title {
@@ -248,10 +259,18 @@ main.login
 
 .login__options {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: var(--space-lg);
   font-size: 0.85rem;
+  gap: var(--space-sm);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+  }
 }
 
 .login__forgot {
@@ -295,22 +314,5 @@ main.login
 
 .login__submit:disabled {
   cursor: not-allowed;
-}
-
-@media (max-width: 640px) {
-  .login {
-    padding: var(--space-md);
-    gap: var(--space-lg);
-  }
-
-  .login__panel {
-    padding: var(--space-lg);
-  }
-
-  .login__options {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-sm);
-  }
 }
 </style>

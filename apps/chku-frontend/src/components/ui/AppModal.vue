@@ -50,17 +50,24 @@ Teleport(to="#modal-portal")
           slot(name="footer")
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .app-modal__backdrop {
   position: fixed;
   inset: 0;
   z-index: 1000;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  padding: var(--space-lg);
+  padding: 0;
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(4px);
+
+  @include tablet {
+    align-items: center;
+    padding: var(--space-lg);
+  }
 }
 
 .app-modal {
@@ -68,12 +75,17 @@ Teleport(to="#modal-portal")
   flex-direction: column;
   width: 100%;
   max-width: 44rem;
-  max-height: calc(100vh - var(--space-xl) * 2);
+  max-height: calc(100vh - var(--space-lg));
   overflow: hidden;
   border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-panel);
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
   background: var(--bg-panel);
   box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
+
+  @include tablet {
+    max-height: calc(100vh - var(--space-xl) * 2);
+    border-radius: var(--radius-panel);
+  }
 }
 
 .app-modal__header {
@@ -81,8 +93,12 @@ Teleport(to="#modal-portal")
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-md) var(--space-lg);
   border-bottom: var(--border-width) solid var(--border);
+
+  @include tablet {
+    padding: var(--space-lg) var(--space-xl);
+  }
 }
 
 .app-modal__title {
@@ -119,43 +135,34 @@ Teleport(to="#modal-portal")
 .app-modal__body {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-md) var(--space-lg);
+
+  @include tablet {
+    padding: var(--space-lg) var(--space-xl);
+  }
 }
 
 .app-modal__footer {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-sm);
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-md) var(--space-lg);
   border-top: var(--border-width) solid var(--border);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    padding: var(--space-lg) var(--space-xl);
+  }
 }
 
-@media (max-width: 640px) {
-  .app-modal__backdrop {
-    align-items: flex-end;
-    padding: 0;
-  }
+.app-modal__footer .button {
+  width: 100%;
 
-  .app-modal {
-    max-height: calc(100vh - var(--space-lg));
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-  }
-
-  .app-modal__header,
-  .app-modal__body,
-  .app-modal__footer {
-    padding: var(--space-md) var(--space-lg);
-  }
-
-  .app-modal__footer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .app-modal__footer .button {
-    width: 100%;
+  @include tablet {
+    width: auto;
   }
 }
 

@@ -14,15 +14,24 @@ section.app-banner(:class="`app-banner--${variant ?? 'warn'}`" aria-labelledby="
     slot(name="actions")
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .app-banner {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-lg);
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-lg);
   border-radius: var(--radius-panel);
   background:
     linear-gradient(180deg, rgba(216, 137, 43, 0.08), rgba(216, 137, 43, 0.018)), var(--bg-panel);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+    padding: var(--space-lg) var(--space-xl);
+  }
 }
 
 .app-banner--info {
@@ -62,23 +71,19 @@ section.app-banner(:class="`app-banner--${variant ?? 'warn'}`" aria-labelledby="
 .app-banner__actions {
   display: flex;
   flex: 0 0 auto;
+  flex-direction: column;
   gap: var(--space-sm);
+
+  @include tablet {
+    flex-direction: row;
+  }
 }
 
-@media (max-width: 760px) {
-  .app-banner {
-    align-items: stretch;
-    flex-direction: column;
-    padding: var(--space-lg);
-  }
+.app-banner__actions .button {
+  width: 100%;
 
-  .app-banner__actions {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .app-banner__actions .button {
-    width: 100%;
+  @include tablet {
+    width: auto;
   }
 }
 </style>

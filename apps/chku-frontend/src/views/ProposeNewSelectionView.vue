@@ -335,7 +335,9 @@ main.proposal.container
                   | · {{ $t('books.readBy', { members: item.rejectionInfo.rejectedByMembers.join(', ') }) }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .proposal__header {
   margin-bottom: var(--space-xl);
 }
@@ -351,10 +353,15 @@ main.proposal.container
 }
 
 .proposal__grid {
-  display: grid;
-  grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.4fr);
+  display: flex;
+  flex-direction: column;
   gap: var(--space-xl);
   align-items: start;
+
+  @include desktop {
+    display: grid;
+    grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.4fr);
+  }
 }
 
 .proposal__field {
@@ -417,7 +424,7 @@ main.proposal.container
 .proposal__book {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
@@ -429,6 +436,10 @@ main.proposal.container
     border-color 0.2s ease,
     transform 0.2s ease,
     box-shadow 0.2s ease;
+
+  @include tablet {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
 }
 
 .proposal__book:hover {
@@ -464,10 +475,15 @@ main.proposal.container
 
 .proposal__book-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--space-sm);
+  grid-template-columns: 1fr;
+  gap: var(--space-xs);
   align-items: start;
   min-width: 0;
+
+  @include tablet {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-sm);
+  }
 }
 
 .proposal__book-title-wrap {
@@ -524,14 +540,23 @@ main.proposal.container
 
 .proposal__book-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--space-xs);
   padding: var(--space-xs);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
   background: var(--bg-panel);
   align-self: start;
+  width: 100%;
+
+  @include tablet {
+    flex-direction: column;
+    align-items: center;
+    width: auto;
+  }
 }
 
 .proposal__book-actions .button {
@@ -542,6 +567,11 @@ main.proposal.container
   align-items: center;
   justify-content: center;
   touch-action: manipulation;
+
+  @include mobile-only {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
 }
 
 .proposal__action-text {
@@ -553,13 +583,31 @@ main.proposal.container
   flex-wrap: wrap;
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+  flex-direction: column;
+
+  @include tablet {
+    flex-direction: row;
+  }
+}
+
+.proposal__edit-actions .button {
+  width: 100%;
+  justify-content: center;
+
+  @include tablet {
+    width: auto;
+  }
 }
 
 .proposal__queue-summary {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
+
+  @include tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .proposal__summary-item {
@@ -607,51 +655,5 @@ main.proposal.container
   white-space: nowrap;
   align-self: start;
   margin-top: 0.15rem;
-}
-
-@media (max-width: 960px) {
-  .proposal__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .proposal__queue-summary {
-    grid-template-columns: 1fr;
-  }
-
-  .proposal__book {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .proposal__book--rejected {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .proposal__book-header {
-    grid-template-columns: 1fr;
-    gap: var(--space-xs);
-  }
-
-  .proposal__book-actions {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    width: 100%;
-  }
-
-  .proposal__book-actions .button {
-    min-height: 2.75rem;
-    min-width: 2.75rem;
-  }
-
-  .proposal__edit-actions {
-    flex-direction: column;
-  }
-
-  .proposal__edit-actions .button {
-    width: 100%;
-    justify-content: center;
-  }
 }
 </style>

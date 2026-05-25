@@ -121,7 +121,9 @@ main.add-member.container
           | {{ createMemberMutation.isPending.value ? $t('common.saving') : 'Создать участника' }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .add-member__title {
   font-size: clamp(1.8rem, 4vw, 2.2rem);
 }
@@ -160,8 +162,12 @@ main.add-member.container
 
 .add-member__fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-md);
+
+  @include tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .add-member__error {
@@ -176,20 +182,13 @@ main.add-member.container
 
 .add-member__actions {
   display: flex;
+  flex-direction: column-reverse;
   gap: var(--space-md);
   justify-content: flex-end;
   margin-top: var(--space-xl);
-}
 
-@media (max-width: 760px) {
-  .add-member__fields {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 520px) {
-  .add-member__actions {
-    flex-direction: column-reverse;
+  @include tablet {
+    flex-direction: row;
   }
 }
 </style>

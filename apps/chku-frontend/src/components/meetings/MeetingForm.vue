@@ -213,7 +213,9 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
     | {{ isSubmitting ? $t('meetings.formSaving') : (isEdit ? $t('meetings.formSaveChanges') : $t('meetings.formCreate')) }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .meeting-form {
   display: grid;
   gap: var(--space-lg);
@@ -226,14 +228,22 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
 
 .meeting-form__datetime-row {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr;
   gap: var(--space-md);
+
+  @include tablet {
+    grid-template-columns: 2fr 1fr;
+  }
 }
 
 .meeting-form__date-selects {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--space-sm);
+
+  @include tablet {
+    grid-template-columns: auto 1fr auto;
+  }
 }
 
 .meeting-form__topics-list {
@@ -283,15 +293,5 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
 
 .meeting-form__submit {
   justify-self: start;
-}
-
-@media (max-width: 640px) {
-  .meeting-form__datetime-row {
-    grid-template-columns: 1fr;
-  }
-
-  .meeting-form__date-selects {
-    grid-template-columns: 1fr 1fr;
-  }
 }
 </style>
