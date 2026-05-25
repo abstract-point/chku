@@ -418,7 +418,9 @@ export const archiveBooks = archiveBookFixtures.map((book, index) => ({
   attendingCount: book.attendingCount,
   rsvpCount: book.rsvpCount,
   meetingLabel: book.meetingLabel,
-  meeting: book.meeting ? ({ ...book.meeting, status: book.meeting.status as ArchiveMeeting['status'] }) : null,
+  meeting: book.meeting
+    ? { ...book.meeting, status: book.meeting.status as ArchiveMeeting['status'] }
+    : null,
   candidate: null,
   memberProgress: [],
   discussionPrompt: book.discussionPrompt,
