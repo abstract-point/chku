@@ -9,9 +9,9 @@ export type BookChoiceEvent = {
   responses?: {
     id: number
     member: {
-    id: number
-    name: string
-    avatarUrl?: string | null
+      id: number
+      name: string
+      avatarUrl?: string | null
     }
     response: 'not_read' | 'read' | 'pending'
   }[]

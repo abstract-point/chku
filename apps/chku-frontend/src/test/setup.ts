@@ -177,8 +177,7 @@ vi.mock('@/queries/authQueries', () => ({
     isAuthenticated: computed(() => authSession.value !== null),
     isAdmin: computed(
       () =>
-        authSession.value.roles.includes('admin') ||
-        authSession.value.roles.includes('developer'),
+        authSession.value.roles.includes('admin') || authSession.value.roles.includes('developer'),
     ),
     isDeveloper: computed(() => authSession.value.roles.includes('developer')),
     twoFactorEnabled: computed(() => authSession.value.twoFactorEnabled ?? false),
@@ -204,11 +203,12 @@ vi.mock('@/queries/dashboardQueries', () => ({
 }))
 
 vi.mock('@/queries/clubQueries', () => ({
-  useClubQuery: () => queryResult({
-    id: 1,
-    name: 'Читальный клуб умничек',
-    shortName: 'ЧКУ',
-  }),
+  useClubQuery: () =>
+    queryResult({
+      id: 1,
+      name: 'Читальный клуб умничек',
+      shortName: 'ЧКУ',
+    }),
 }))
 
 vi.mock('@/queries/memberQueries', () => ({
@@ -233,23 +233,24 @@ vi.mock('@/queries/profileQueries', () => ({
 }))
 
 vi.mock('@/queries/cycleQueries', () => ({
-  useCyclesQuery: () => queryResult([
-    {
-      ...archiveBooks[0]!,
-      id: 42,
-      cycleNumber: 42,
-      cycleLabel: 'Цикл #42',
-      status: 'active' as const,
-      statusLabel: 'Читаем сейчас',
-      completedLabel: null,
-      book: {
-        ...archiveBooks[0]!.book,
-        title: 'Цветы для Элджернона',
-        author: 'Дэниел Киз',
+  useCyclesQuery: () =>
+    queryResult([
+      {
+        ...archiveBooks[0]!,
+        id: 42,
+        cycleNumber: 42,
+        cycleLabel: 'Цикл #42',
+        status: 'active' as const,
+        statusLabel: 'Читаем сейчас',
+        completedLabel: null,
+        book: {
+          ...archiveBooks[0]!.book,
+          title: 'Цветы для Элджернона',
+          author: 'Дэниел Киз',
+        },
       },
-    },
-    ...archiveBooks,
-  ]),
+      ...archiveBooks,
+    ]),
   useCycleQuery: (cycleNumber: unknown) => {
     const data = computed(() =>
       archiveBooks.find((cycle) => cycle.cycleNumber === Number(toValue(cycleNumber))),
