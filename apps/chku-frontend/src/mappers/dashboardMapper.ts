@@ -5,7 +5,9 @@ import type { MeetingSummary } from '@/types/dashboard'
 
 export function mapMeetingSummary(meeting: ApiMeeting): MeetingSummary {
   const weekday = meeting.date
-    ? new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(new Date(`${meeting.date}T00:00:00`))
+    ? new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(
+        new Date(`${meeting.date}T00:00:00`),
+      )
     : i18n.global.t('dates.unknownDay')
 
   return {

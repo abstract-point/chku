@@ -1,13 +1,21 @@
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { meetingsApi, type CreateMeetingPayload, type UpdateMeetingPayload } from '@/api/endpoints/meetings'
+import {
+  meetingsApi,
+  type CreateMeetingPayload,
+  type UpdateMeetingPayload,
+} from '@/api/endpoints/meetings'
 import { mapMeetingDetail } from '@/mappers/meetingMapper'
 import { queryKeys } from '@/queries/keys'
 
-export function useMeetingQuery(id: MaybeRefOrGetter<string>, currentUserId?: MaybeRefOrGetter<number | undefined>) {
+export function useMeetingQuery(
+  id: MaybeRefOrGetter<string>,
+  currentUserId?: MaybeRefOrGetter<number | undefined>,
+) {
   return useQuery({
     queryKey: computed(() => queryKeys.meeting(toValue(id))),
-    queryFn: async () => mapMeetingDetail(await meetingsApi.show(toValue(id)), toValue(currentUserId)),
+    queryFn: async () =>
+      mapMeetingDetail(await meetingsApi.show(toValue(id)), toValue(currentUserId)),
     enabled: computed(() => toValue(id).length > 0),
     staleTime: 60_000,
   })
