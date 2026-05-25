@@ -6,7 +6,11 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
-import { useUpdateAvatarMutation, useUpdatePasswordMutation, useUpdateProfileMutation } from '@/queries/authQueries'
+import {
+  useUpdateAvatarMutation,
+  useUpdatePasswordMutation,
+  useUpdateProfileMutation,
+} from '@/queries/authQueries'
 import { useGenresQuery } from '@/queries/genreQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
 import { useFormErrors } from '@/composables/useFormErrors'

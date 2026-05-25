@@ -131,7 +131,11 @@ function isEditable(item: BookQueueItem) {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(iso).toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 }
 </script>
 
@@ -419,8 +423,7 @@ main.proposal.container
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.01)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.01)), var(--bg-panel);
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -430,22 +433,22 @@ main.proposal.container
 
 .proposal__book:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-panel), 0 0.5rem 2rem rgba(0, 0, 0, 0.18);
+  box-shadow:
+    var(--shadow-panel),
+    0 0.5rem 2rem rgba(0, 0, 0, 0.18);
   border-color: var(--border-strong);
 }
 
 .proposal__book--active {
   border-color: var(--accent-border);
   background:
-    linear-gradient(180deg, rgba(67, 224, 125, 0.055), rgba(67, 224, 125, 0.018)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(67, 224, 125, 0.055), rgba(67, 224, 125, 0.018)), var(--bg-panel);
 }
 
 .proposal__book--next {
   border-color: var(--warn-border);
   background:
-    linear-gradient(180deg, rgba(216, 137, 43, 0.07), rgba(216, 137, 43, 0.018)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(216, 137, 43, 0.07), rgba(216, 137, 43, 0.018)), var(--bg-panel);
 }
 
 .proposal__book--rejected {

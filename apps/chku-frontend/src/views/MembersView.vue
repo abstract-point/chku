@@ -2,7 +2,14 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { MoreHorizontal, Plus, Search, SlidersHorizontal, UserRoundCheck, UserRoundMinus } from '@lucide/vue'
+import {
+  MoreHorizontal,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  UserRoundCheck,
+  UserRoundMinus,
+} from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDeactivateMemberMutation, useMembersQuery } from '@/queries/memberQueries'
@@ -238,8 +245,7 @@ main.members.container
 .member-card:hover {
   border-color: var(--border-strong);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)), var(--bg-panel);
   transform: translateY(-0.15rem);
 }
 
