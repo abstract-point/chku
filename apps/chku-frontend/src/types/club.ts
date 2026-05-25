@@ -36,6 +36,7 @@ export type BookQueueItem = {
   title: string
   author: string
   coverUrl?: string | null
+  coverColor?: string | null
   description?: string | null
   reason?: string | null
   rejectionInfo?: {

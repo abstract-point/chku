@@ -16,6 +16,7 @@ function mapQueueItem(item: ApiMemberBookQueueItem): BookQueueItem {
     title: item.book.title,
     author: item.book.author,
     coverUrl: item.book.coverUrl,
+    coverColor: item.book.coverColor,
     description: item.description ?? item.book.description,
     reason: item.reason,
   }
