@@ -5,7 +5,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BookCandidateController;
 use App\Http\Controllers\BookCoverController;
-use App\Http\Controllers\BookLookupController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\ClubMemberController;
 use App\Http\Controllers\CycleController;
@@ -50,7 +49,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('reading-cycles/current/complete', [ReadingCycleController::class, 'completeCurrent']);
     Route::get('genres', [GenreController::class, 'index']);
 
-    Route::get('books/covers/search', [BookLookupController::class, 'search']);
     Route::post('books/{book}/covers', [BookCoverController::class, 'store']);
 
     Route::get('me/book-queue', [MemberBookQueueController::class, 'index']);
