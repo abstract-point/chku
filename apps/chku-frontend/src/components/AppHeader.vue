@@ -1,17 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import {
-  BookMarked,
-  ChevronDown,
-  LogOut,
-  Menu,
-  Moon,
-  Settings,
-  Sun,
-  User,
-  X,
-} from '@lucide/vue'
+import { BookMarked, ChevronDown, LogOut, Menu, Moon, Settings, Sun, User, X } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
 import AppLogo from '@/components/AppLogo.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -37,15 +27,15 @@ const roleLabel = computed(() => {
   return t('nav.roleMember')
 })
 
-function getPreferredTheme() {
+function getPreferredTheme(): 'light' | 'dark' {
   const storedTheme = localStorage.getItem('chku-theme')
 
   if (storedTheme === 'dark' || storedTheme === 'light') {
     return storedTheme
   }
 
-  if (!window.matchMedia) {
-    return 'dark'
+  if (window.matchMedia?.('(prefers-color-scheme: light)').matches) {
+    return 'light'
   }
 
   return 'dark'
@@ -115,7 +105,7 @@ header.app-header
       type="button"
       :aria-label="$t('nav.openMenu')"
       :aria-expanded="isNavDrawerOpen"
-      @click="isNavDrawerOpen ? closeDrawers() : openNavDrawer()"
+      @click.stop="isNavDrawerOpen ? closeDrawers() : openNavDrawer()"
     )
       Menu(v-if="!isNavDrawerOpen" :size="22")
       X(v-else :size="22")
@@ -134,7 +124,7 @@ header.app-header
       type="button"
       :aria-label="$t('nav.openUserMenu')"
       :aria-expanded="isUserDrawerOpen"
-      @click="isUserDrawerOpen ? closeDrawers() : openUserDrawer()"
+      @click.stop="isUserDrawerOpen ? closeDrawers() : openUserDrawer()"
     )
       UserAvatar(:name="user.name" :avatar-url="user.avatarUrl" size="sm")
 
