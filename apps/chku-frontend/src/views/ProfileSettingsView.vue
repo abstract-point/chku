@@ -214,15 +214,21 @@ main.profile-settings.container
     TwoFactorSetup.profile-settings__section--wide
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .profile-settings__title {
   font-size: clamp(1.8rem, 4vw, 2.2rem);
 }
 
 .profile-settings__grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-lg);
+
+  @include tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .profile-settings__section {
@@ -269,11 +275,5 @@ main.profile-settings.container
   border: var(--border-width) solid rgba(224, 95, 95, 0.28);
   background: var(--danger-bg);
   color: var(--danger);
-}
-
-@media (max-width: 760px) {
-  .profile-settings__grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

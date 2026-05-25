@@ -121,11 +121,17 @@ section.panel.container(v-else aria-live="polite")
   RouterLink.button.button--secondary.label-text(to="/members") {{ $t('memberDetail.backToList') }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .member-detail__grid {
   display: grid;
-  grid-template-columns: minmax(18rem, 1fr) minmax(0, 2fr);
+  grid-template-columns: 1fr;
   gap: var(--space-xl);
+
+  @include desktop {
+    grid-template-columns: minmax(18rem, 1fr) minmax(0, 2fr);
+  }
 }
 
 .member-detail__sidebar {
@@ -136,8 +142,14 @@ section.panel.container(v-else aria-live="polite")
 
 .member-detail__hero {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-lg);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .member-detail__name {
@@ -146,8 +158,12 @@ section.panel.container(v-else aria-live="polite")
 
 .member-detail__stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--space-md);
+
+  @include tablet {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .member-detail__stat {
@@ -202,12 +218,17 @@ section.panel.container(v-else aria-live="polite")
 
 .member-detail__book {
   display: flex;
+  align-items: flex-start;
   gap: var(--space-md);
   padding: var(--space-lg) 0;
   border-bottom: var(--border-width) solid var(--border);
   color: inherit;
   text-decoration: none;
   transition: color 0.2s ease;
+
+  @include tablet {
+    align-items: stretch;
+  }
 }
 
 a.member-detail__book:hover .member-detail__book-title {
@@ -254,9 +275,13 @@ a.member-detail__book:hover .member-detail__book-title {
 
 .member-detail__book-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+
+  @include tablet {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .member-detail__book-stat {
@@ -273,30 +298,5 @@ a.member-detail__book:hover .member-detail__book-title {
 
 .member-detail__empty {
   max-width: 36rem;
-}
-
-@media (max-width: 960px) {
-  .member-detail__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .member-detail__hero {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .member-detail__stats {
-    grid-template-columns: 1fr;
-  }
-
-  .member-detail__book {
-    align-items: flex-start;
-  }
-
-  .member-detail__book-stats {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

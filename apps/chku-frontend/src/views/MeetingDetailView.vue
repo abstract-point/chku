@@ -444,7 +444,8 @@ main.meeting-detail.container
     RouterLink.button.button--primary.label-text(to="/") {{ $t('meetings.backToDash') }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
 .meeting-detail__breadcrumb {
   display: flex;
   flex-wrap: wrap;
@@ -472,9 +473,13 @@ main.meeting-detail.container
 
 .meeting-detail__grid {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--space-xl);
   align-items: start;
+
+  @include desktop {
+    grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  }
 }
 
 .meeting-detail__main {
@@ -533,9 +538,25 @@ main.meeting-detail.container
 
 .meeting-detail__admin-actions {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-sm);
   flex-wrap: wrap;
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .button {
+    align-self: stretch;
+    width: 100%;
+
+    @include tablet {
+      align-self: auto;
+      width: auto;
+    }
+  }
 }
 
 .meeting-detail__admin-alerts {
@@ -550,8 +571,12 @@ main.meeting-detail.container
 
 .meeting-detail__info-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-md);
+
+  @include tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .meeting-detail__info-item {
@@ -658,13 +683,20 @@ main.meeting-detail.container
 
 .meeting-detail__rating-prompt {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-lg);
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-lg);
   border: var(--border-width) solid var(--warn-border);
   border-radius: var(--radius-panel);
   background:
     linear-gradient(180deg, rgba(216, 137, 43, 0.08), rgba(216, 137, 43, 0.018)), var(--bg-panel);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+    padding: var(--space-lg) var(--space-xl);
+  }
 }
 
 .meeting-detail__rating-prompt-icon {
@@ -716,9 +748,25 @@ main.meeting-detail.container
 
 .meeting-detail__rating-actions {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-sm);
   flex-wrap: wrap;
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .button {
+    align-self: stretch;
+    width: 100%;
+
+    @include tablet {
+      align-self: auto;
+      width: auto;
+    }
+  }
 }
 
 .meeting-detail__rating-input-group {
@@ -811,7 +859,24 @@ main.meeting-detail.container
 
 .meeting-detail__add-topic-row {
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-sm);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .button {
+    align-self: stretch;
+    width: 100%;
+
+    @include tablet {
+      align-self: auto;
+      width: auto;
+    }
+  }
 }
 
 .meeting-detail__input {
@@ -889,35 +954,5 @@ main.meeting-detail.container
   margin-top: var(--space-md);
 }
 
-@media (max-width: 960px) {
-  .meeting-detail__grid {
-    grid-template-columns: 1fr;
-  }
 
-  .meeting-detail__info-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .meeting-detail__admin-actions,
-  .meeting-detail__add-topic-row,
-  .meeting-detail__rating-actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .meeting-detail__admin-actions .button,
-  .meeting-detail__add-topic-row .button,
-  .meeting-detail__rating-actions .button {
-    align-self: stretch;
-    width: 100%;
-  }
-
-  .meeting-detail__rating-prompt {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: var(--space-lg);
-  }
-}
 </style>

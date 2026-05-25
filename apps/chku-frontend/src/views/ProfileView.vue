@@ -183,11 +183,17 @@ main.profile.container
         | {{ $t('profile.viewArchive') }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .profile__grid {
   display: grid;
-  grid-template-columns: minmax(18rem, 1fr) minmax(0, 2fr);
+  grid-template-columns: 1fr;
   gap: var(--space-xl);
+
+  @include desktop {
+    grid-template-columns: minmax(18rem, 1fr) minmax(0, 2fr);
+  }
 }
 
 .profile__sidebar {
@@ -198,8 +204,14 @@ main.profile.container
 
 .profile__hero {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-lg);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .profile__name {
@@ -242,8 +254,12 @@ main.profile.container
 
 .profile__stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--space-md);
+
+  @include tablet {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .profile__stat {
@@ -339,6 +355,7 @@ main.profile.container
 
 .profile__book {
   display: flex;
+  align-items: flex-start;
   gap: var(--space-md);
   padding: var(--space-lg) 0;
   border-bottom: var(--border-width) solid var(--border);
@@ -347,6 +364,10 @@ main.profile.container
   transition:
     color 0.2s ease,
     transform 0.2s ease;
+
+  @include tablet {
+    align-items: stretch;
+  }
 }
 
 .profile__book:hover {
@@ -397,9 +418,13 @@ a.profile__book:hover .profile__book-title {
 
 .profile__book-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+
+  @include tablet {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .profile__book-stat {
@@ -420,30 +445,5 @@ a.profile__book:hover .profile__book-title {
 
 .profile__archive-link {
   margin-top: var(--space-md);
-}
-
-@media (max-width: 960px) {
-  .profile__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .profile__hero {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .profile__stats {
-    grid-template-columns: 1fr;
-  }
-
-  .profile__book {
-    align-items: flex-start;
-  }
-
-  .profile__book-stats {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

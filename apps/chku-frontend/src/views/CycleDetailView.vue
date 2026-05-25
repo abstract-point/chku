@@ -181,7 +181,8 @@ main.cycle-detail.container
           | {{ $t('archiveBook.backBtn') }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
 .cycle-detail__breadcrumb,
 .cycle-detail__member,
 .cycle-detail__rating,
@@ -204,7 +205,7 @@ main.cycle-detail.container
 
 .cycle-detail__hero {
   display: grid;
-  grid-template-columns: 18rem minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--space-xl);
   margin-bottom: var(--space-xl);
   padding: var(--space-lg);
@@ -212,12 +213,20 @@ main.cycle-detail.container
   border-radius: var(--radius-panel);
   background: var(--bg-surface);
   box-shadow: var(--shadow-panel);
+
+  @include tablet {
+    grid-template-columns: 18rem minmax(0, 1fr);
+  }
 }
 
 .cycle-detail__cover {
   position: relative;
-  width: 100%;
+  width: min(100%, 14rem);
   overflow: hidden;
+
+  @include tablet {
+    width: 100%;
+  }
 }
 
 .cycle-detail__cover-image {
@@ -267,8 +276,12 @@ main.cycle-detail.container
 
 .cycle-detail__content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
+  grid-template-columns: 1fr;
   gap: var(--space-xl);
+
+  @include tablet {
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
+  }
 }
 
 .cycle-detail__main,
@@ -305,14 +318,5 @@ main.cycle-detail.container
   justify-content: center;
 }
 
-@media (max-width: 900px) {
-  .cycle-detail__hero,
-  .cycle-detail__content {
-    grid-template-columns: 1fr;
-  }
 
-  .cycle-detail__cover {
-    width: min(100%, 14rem);
-  }
-}
 </style>
