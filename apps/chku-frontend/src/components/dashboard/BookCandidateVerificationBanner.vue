@@ -2,7 +2,10 @@
 import { computed } from 'vue'
 import { CircleAlert } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
-import { useCandidateResponseMutation, useConfirmCandidateMutation } from '@/queries/candidateQueries'
+import {
+  useCandidateResponseMutation,
+  useConfirmCandidateMutation,
+} from '@/queries/candidateQueries'
 import type { BookChoiceEvent } from '@/types/club'
 
 const { t } = useI18n()
@@ -12,7 +15,9 @@ const props = defineProps<{
 
 const responseMutation = useCandidateResponseMutation()
 const confirmMutation = useConfirmCandidateMutation()
-const isPending = computed(() => responseMutation.isPending.value || confirmMutation.isPending.value)
+const isPending = computed(
+  () => responseMutation.isPending.value || confirmMutation.isPending.value,
+)
 const pendingCount = computed(
   () => props.choice.responses?.filter((response) => response.response === 'pending').length ?? 0,
 )
@@ -70,8 +75,7 @@ section.book-candidate-banner(aria-labelledby="verification-title")
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-panel);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)), var(--bg-panel);
   box-shadow: var(--shadow-panel);
   color: var(--text-main);
 }

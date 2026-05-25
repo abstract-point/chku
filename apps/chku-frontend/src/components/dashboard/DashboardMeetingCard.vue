@@ -17,7 +17,9 @@ const { user } = useAuthSession()
 const rsvpMutation = useUpdateMeetingRsvpMutation(() => props.meeting.id)
 
 const myRsvpStatus = computed(() =>
-  user.value ? (props.meeting.attendees.find((a) => a.id === user.value!.id)?.status ?? 'pending') : 'pending',
+  user.value
+    ? (props.meeting.attendees.find((a) => a.id === user.value!.id)?.status ?? 'pending')
+    : 'pending',
 )
 
 const attendingMembers = computed(() =>

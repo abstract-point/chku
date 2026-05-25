@@ -6,7 +6,10 @@ import CycleBookForm from '@/components/books/CycleBookForm.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import type { ApiBookCandidate, ApiBookCandidateResponse } from '@/api/types'
 import { useAuthSession } from '@/queries/authQueries'
-import { useCandidateResponseMutation, useConfirmCandidateMutation } from '@/queries/candidateQueries'
+import {
+  useCandidateResponseMutation,
+  useConfirmCandidateMutation,
+} from '@/queries/candidateQueries'
 
 const { t } = useI18n()
 const props = defineProps<{
@@ -18,7 +21,9 @@ const { user } = useAuthSession()
 const responseMutation = useCandidateResponseMutation()
 const confirmMutation = useConfirmCandidateMutation()
 const isBookFormOpen = ref(false)
-const isPending = computed(() => responseMutation.isPending.value || confirmMutation.isPending.value)
+const isPending = computed(
+  () => responseMutation.isPending.value || confirmMutation.isPending.value,
+)
 const coverTitleLines = computed(() => props.candidate.book.title.split('\n'))
 const editCycleNumber = computed(() => props.candidate.cycleNumber ?? props.cycleNumber ?? null)
 const currentResponse = computed(() =>

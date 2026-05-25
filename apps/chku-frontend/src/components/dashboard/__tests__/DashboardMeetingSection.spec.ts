@@ -31,7 +31,11 @@ describe('DashboardMeetingSection', () => {
 
     expect(wrapper.text()).toContain('Следующая встреча')
     expect(wrapper.text()).toContain('18 октября')
-    expect(wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/meetings/october-42')).toBe(true)
+    expect(
+      wrapper
+        .findAllComponents(RouterLinkStub)
+        .some((link) => link.props('to') === '/meetings/october-42'),
+    ).toBe(true)
   })
 
   it('renders started meeting state', () => {

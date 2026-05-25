@@ -15,12 +15,12 @@ const isCurrentTurn = (member: TurnOrderMember) => member.status === 'Текущ
 const isNextTurn = (member: TurnOrderMember) => member.status === 'Выбирает следующую'
 
 const currentProcessMember = computed(() =>
-  props.members.find((m) => m.isCurrentCycleProposer || m.isChoosingNow || isCurrentTurn(m) || m.active),
+  props.members.find(
+    (m) => m.isCurrentCycleProposer || m.isChoosingNow || isCurrentTurn(m) || m.active,
+  ),
 )
 
-const queueMembers = computed(() =>
-  props.members.filter((m) => m !== currentProcessMember.value),
-)
+const queueMembers = computed(() => props.members.filter((m) => m !== currentProcessMember.value))
 
 const currentProcessBadge = computed(() => {
   if (!currentProcessMember.value) return null
