@@ -13,11 +13,9 @@ class BookCoverResource extends JsonResource
             'id' => $this->id,
             'url' => $this->url,
             'thumbnailUrl' => $this->thumbnail_url,
-            'mime' => $this->cover_mime,
             'width' => $this->cover_width,
             'height' => $this->cover_height,
             'size' => $this->cover_size,
-            'source' => $this->cover_source,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
         ];

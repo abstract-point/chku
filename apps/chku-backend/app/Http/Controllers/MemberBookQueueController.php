@@ -51,7 +51,6 @@ final class MemberBookQueueController extends Controller
             'author' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'reason' => ['nullable', 'string', 'max:2000'],
-            'coverUrl' => ['nullable', 'url', 'max:2048'],
             'coverFile' => ['nullable', 'image', 'max:5120'],
         ]);
 
@@ -188,13 +187,7 @@ final class MemberBookQueueController extends Controller
     private function attachCover(Book $book, array $payload): void
     {
         if (! empty($payload['coverFile'])) {
-            $this->coverDownloadService->storeUploaded($book, $payload['coverFile'], 'manual_upload');
-
-            return;
-        }
-
-        if (! empty($payload['coverUrl'])) {
-            $this->coverDownloadService->downloadAndStore($book, $payload['coverUrl'], 'search_result');
+            $this->coverDownloadService->storeUploaded($book, $payload['coverFile']);
         }
     }
 }

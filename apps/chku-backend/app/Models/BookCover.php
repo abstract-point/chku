@@ -11,11 +11,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'book_id',
     'cover_path',
     'thumbnail_path',
-    'cover_mime',
     'cover_width',
     'cover_height',
     'cover_size',
-    'cover_source',
 ])]
 class BookCover extends Model
 {

@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Book;
 use App\Models\BookCover;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -15,32 +14,12 @@ final class BookCoverDownloadService
         private BookCoverImageService $imageService,
     ) {}
 
-    public function downloadAndStore(Book $book, string $coverUrl, string $source): ?BookCover
+    public function storeUploaded(Book $book, UploadedFile $file): ?BookCover
     {
-        $tempPath = tempnam(sys_get_temp_dir(), 'cover_');
-
-        try {
-            $response = Http::timeout(10)->get($coverUrl);
-            if (! $response->successful()) {
-                return null;
-            }
-
-            file_put_contents($tempPath, $response->body());
-
-            return $this->processAndStore($book, $tempPath, $source);
-        } finally {
-            if (file_exists($tempPath)) {
-                unlink($tempPath);
-            }
-        }
+        return $this->processAndStore($book, $file->getRealPath());
     }
 
-    public function storeUploaded(Book $book, UploadedFile $file, string $source): ?BookCover
-    {
-        return $this->processAndStore($book, $file->getRealPath(), $source);
-    }
-
-    private function processAndStore(Book $book, string $sourcePath, string $source): ?BookCover
+    private function processAndStore(Book $book, string $sourcePath): ?BookCover
     {
         try {
             $processed = $this->imageService->processFile($sourcePath);
@@ -66,11 +45,9 @@ final class BookCoverDownloadService
         return $book->covers()->create([
             'cover_path' => $fullPath,
             'thumbnail_path' => $thumbPath,
-            'cover_mime' => $processed['full']['mime'],
             'cover_width' => $processed['full']['width'],
             'cover_height' => $processed['full']['height'],
             'cover_size' => $processed['full']['size'],
-            'cover_source' => $source,
         ]);
     }
 }

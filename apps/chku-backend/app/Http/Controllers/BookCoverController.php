@@ -23,7 +23,6 @@ final class BookCoverController extends Controller
         $cover = $this->downloadService->storeUploaded(
             $book,
             $payload['cover'],
-            'manual_upload',
         );
 
         if (! $cover) {
