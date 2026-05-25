@@ -150,39 +150,39 @@ main.archive.container
   section.panel(v-else-if="cyclesQuery.error.value" aria-live="polite")
     p.body-text {{ $t('common.errorArchive') }}
   TransitionGroup.archive__grid(name="list" tag="div" v-else-if="paginatedCycles.length")
-    RouterLink.archive-card(
+    RouterLink.archive-card-wrapper(
       v-for="cycle in paginatedCycles"
       :key="cycle.cycleNumber"
       :to="cycleLink(cycle)"
-      :class="{ 'archive-card--current': cycle.status !== 'completed' }"
     )
-      .archive-card__cover(:style="{ '--cover-color': cycle.book.coverColor }" :aria-label="t('archive.coverAria', { title: cycle.book.title })")
-        img.archive-card__cover-image(v-if="cycle.book.coverUrl" :src="cycle.book.coverUrl" :alt="cycle.book.title")
-        span.archive-card__cover-title(v-else) {{ cycle.coverTitle }}
-      .archive-card__info
-        .archive-card__meta
-          span.label-text {{ cycle.cycleLabel }}
-          span.badge.label-text(:class="cycle.status === 'completed' ? getGenreBadgeClass(cycle.genre) : 'badge--action'")
-            | {{ cycle.status === 'completed' ? cycle.genreLabel : cycle.statusLabel }}
-        h2.archive-card__title {{ cycle.book.title }}
-        p.body-text.archive-card__author {{ cycle.book.author }}
-        .archive-card__details
-          span.label-text(v-if="cycle.completedLabel") {{ $t('archive.completed', { label: cycle.completedLabel }) }}
-          span.label-text(v-else) {{ cycle.statusLabel }}
-          span.label-text {{ $t('archive.proposedBy', { name: cycle.proposedBy }) }}
-        .archive-card__stats(:aria-label="t('archive.statsAria')")
-          span.archive-card__stat.label-text
-            Star(:size="15" aria-hidden="true")
-            span {{ ratingLabel(cycle.averageRating ?? cycle.rating) }}
-          span.archive-card__stat.label-text
-            Star(:size="15" aria-hidden="true")
-            span {{ $t('archive.ratingsN', { n: cycle.ratingsCount ?? cycle.reviews.length }) }}
-          span.archive-card__stat.label-text
-            MessageSquare(:size="15" aria-hidden="true")
-            span {{ $t('archive.reviewsN', { n: cycle.reviewsCount ?? cycle.reviews.length }) }}
-          span.archive-card__stat.label-text
-            CalendarCheck(:size="15" aria-hidden="true")
-            span {{ cycle.attendingCount ?? 0 }}/{{ cycle.rsvpCount ?? 0 }} RSVP
+      .archive-card(:class="{ 'archive-card--current': cycle.status !== 'completed' }")
+        .archive-card__cover(:style="{ '--cover-color': cycle.book.coverColor }" :aria-label="t('archive.coverAria', { title: cycle.book.title })")
+          img.archive-card__cover-image(v-if="cycle.book.coverUrl" :src="cycle.book.coverUrl" :alt="cycle.book.title")
+          span.archive-card__cover-title(v-else) {{ cycle.coverTitle }}
+        .archive-card__info
+          .archive-card__meta
+            span.label-text {{ cycle.cycleLabel }}
+            span.badge.label-text(:class="cycle.status === 'completed' ? getGenreBadgeClass(cycle.genre) : 'badge--action'")
+              | {{ cycle.status === 'completed' ? cycle.genreLabel : cycle.statusLabel }}
+          h2.archive-card__title {{ cycle.book.title }}
+          p.body-text.archive-card__author {{ cycle.book.author }}
+          .archive-card__details
+            span.label-text(v-if="cycle.completedLabel") {{ $t('archive.completed', { label: cycle.completedLabel }) }}
+            span.label-text(v-else) {{ cycle.statusLabel }}
+            span.label-text {{ $t('archive.proposedBy', { name: cycle.proposedBy }) }}
+          .archive-card__stats(:aria-label="t('archive.statsAria')")
+            span.archive-card__stat.label-text
+              Star(:size="15" aria-hidden="true")
+              span {{ ratingLabel(cycle.averageRating ?? cycle.rating) }}
+            span.archive-card__stat.label-text
+              Star(:size="15" aria-hidden="true")
+              span {{ $t('archive.ratingsN', { n: cycle.ratingsCount ?? cycle.reviews.length }) }}
+            span.archive-card__stat.label-text
+              MessageSquare(:size="15" aria-hidden="true")
+              span {{ $t('archive.reviewsN', { n: cycle.reviewsCount ?? cycle.reviews.length }) }}
+            span.archive-card__stat.label-text
+              CalendarCheck(:size="15" aria-hidden="true")
+              span {{ cycle.attendingCount ?? 0 }}/{{ cycle.rsvpCount ?? 0 }} RSVP
 
   section.panel.archive__empty(v-else aria-live="polite")
     .section-header.section-header--compact
@@ -211,16 +211,25 @@ main.archive.container
     ) {{ $t('archive.forward') }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .archive__title {
   font-size: clamp(2.4rem, 5vw, 4rem);
 }
 
 .archive__header {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-lg);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
   margin-bottom: var(--space-lg);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--space-lg);
+  }
 }
 
 .archive__count {
@@ -236,16 +245,26 @@ main.archive.container
 
 .archive__controls {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-md);
   margin-bottom: var(--space-xl);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 .archive__search {
   position: relative;
   flex: 1;
-  max-width: 31rem;
+  max-width: none;
+
+  @include tablet {
+    max-width: 31rem;
+  }
 }
 
 .archive__search input {
@@ -283,19 +302,37 @@ main.archive.container
 }
 
 .archive__filters {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-md);
+
+  @include tablet {
+    display: flex;
+    flex-wrap: wrap;
+  }
 }
 
 .archive__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-lg);
+
+  @include tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include desktop {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+.archive-card-wrapper {
+  container-type: inline-size;
 }
 
 .archive-card {
   display: flex;
+  flex-direction: column;
   align-items: stretch;
   gap: var(--space-lg);
   min-height: 100%;
@@ -311,6 +348,10 @@ main.archive.container
     background-color 0.2s ease,
     border-color 0.2s ease,
     transform 0.2s ease;
+
+  @container (min-width: 480px) {
+    flex-direction: row;
+  }
 }
 
 .archive-card:hover {
@@ -335,9 +376,10 @@ main.archive.container
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 10rem;
+  flex: 0 0 auto;
   align-self: flex-start;
   aspect-ratio: 9 / 13;
+  width: min(100%, 12rem);
   padding: var(--space-md);
   overflow: hidden;
   border: var(--border-width) solid rgba(255, 255, 255, 0.14);
@@ -349,6 +391,11 @@ main.archive.container
   box-shadow: inset 0.8rem 0 1.3rem rgba(0, 0, 0, 0.18);
   color: rgba(255, 255, 255, 0.72);
   text-align: center;
+
+  @container (min-width: 480px) {
+    width: 10rem;
+    flex: 0 0 10rem;
+  }
 }
 
 .archive-card__cover::after {
@@ -394,9 +441,6 @@ main.archive.container
 .archive-card__meta {
   display: flex;
   align-items: center;
-}
-
-.archive-card__meta {
   justify-content: space-between;
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
@@ -454,6 +498,7 @@ main.archive.container
 .archive__pagination {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: var(--space-sm);
   margin-top: var(--space-xl);
 }
@@ -480,54 +525,5 @@ main.archive.container
 .archive__page:disabled {
   color: var(--text-muted);
   opacity: 0.5;
-}
-
-@media (max-width: 900px) {
-  .archive__controls {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .archive__search {
-    max-width: none;
-  }
-
-  .archive__filters {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .archive__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .archive__header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .archive__filters {
-    grid-template-columns: 1fr;
-  }
-
-  .archive__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .archive-card {
-    flex-direction: column;
-  }
-
-  .archive-card__cover {
-    width: min(100%, 12rem);
-    flex-basis: auto;
-  }
-
-  .archive__pagination {
-    flex-wrap: wrap;
-  }
 }
 </style>

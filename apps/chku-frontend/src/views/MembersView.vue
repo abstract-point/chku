@@ -88,60 +88,69 @@ main.members.container
   section.panel(v-else-if="membersQuery.error.value" aria-live="polite")
     p.body-text {{ $t('members.error') }}
   .members__grid(v-else-if="filteredMembers.length")
-    RouterLink.member-card(
+    RouterLink.member-card-wrapper(
       v-for="member in filteredMembers"
       :key="member.id"
       :class="{ 'member-card--inactive': !member.isActive }"
       :to="`/members/${member.id}`"
     )
-      .member-card__hero
-        UserAvatar.member-card__avatar(:name="member.name" :avatar-url="member.avatarUrl")
-        .member-card__info
-          .member-card__name-row
-            h2.member-card__name {{ member.name }}
-            span.badge.badge--reading.label-text(v-if="member.id === user?.id") {{ $t('members.you') }}
-          span.member-card__status(:class="{ 'member-card__status--inactive badge--muted': !member.isActive }")
-            span.member-card__status-dot(aria-hidden="true")
-            span {{ member.isActive ? $t('members.statusActive') : $t('members.statusInactive') }}
-        button.member-card__menu(type="button" :aria-label="t('members.actionsAria')" @click.prevent)
-          MoreHorizontal(:size="18")
-      .member-card__stats
-        .member-card__stat
-          span.member-card__stat-value {{ member.stats.read }}
-          span.label-text {{ $t('members.read') }}
-        .member-card__stat
-          span.member-card__stat-value {{ member.stats.proposed }}
-          span.label-text {{ $t('members.proposed') }}
-        .member-card__stat
-          span.member-card__stat-value {{ member.stats.meetings }}
-          span.label-text {{ $t('members.meetings') }}
-      button.member-card__deactivate(
-        v-if="canManageMembers && member.isActive && member.id !== user?.id"
-        type="button"
-        @click.prevent="deactivateMember(member.id)"
-      )
-        UserRoundMinus(:size="16" aria-hidden="true")
-        span {{ $t('members.deactivate') }}
-      button.member-card__activate(
-        v-else-if="canManageMembers && !member.isActive"
-        type="button"
-        disabled
-        @click.prevent
-      )
-        UserRoundCheck(:size="16" aria-hidden="true")
-        span {{ $t('members.activate') }}
+      .member-card
+        .member-card__hero
+          UserAvatar.member-card__avatar(:name="member.name" :avatar-url="member.avatarUrl")
+          .member-card__info
+            .member-card__name-row
+              h2.member-card__name {{ member.name }}
+              span.badge.badge--reading.label-text(v-if="member.id === user?.id") {{ $t('members.you') }}
+            span.member-card__status(:class="{ 'member-card__status--inactive badge--muted': !member.isActive }")
+              span.member-card__status-dot(aria-hidden="true")
+              span {{ member.isActive ? $t('members.statusActive') : $t('members.statusInactive') }}
+          button.member-card__menu(type="button" :aria-label="t('members.actionsAria')" @click.prevent)
+            MoreHorizontal(:size="18")
+        .member-card__stats
+          .member-card__stat
+            span.member-card__stat-value {{ member.stats.read }}
+            span.label-text {{ $t('members.read') }}
+          .member-card__stat
+            span.member-card__stat-value {{ member.stats.proposed }}
+            span.label-text {{ $t('members.proposed') }}
+          .member-card__stat
+            span.member-card__stat-value {{ member.stats.meetings }}
+            span.label-text {{ $t('members.meetings') }}
+        button.member-card__deactivate(
+          v-if="canManageMembers && member.isActive && member.id !== user?.id"
+          type="button"
+          @click.prevent="deactivateMember(member.id)"
+        )
+          UserRoundMinus(:size="16" aria-hidden="true")
+          span {{ $t('members.deactivate') }}
+        button.member-card__activate(
+          v-else-if="canManageMembers && !member.isActive"
+          type="button"
+          disabled
+          @click.prevent
+        )
+          UserRoundCheck(:size="16" aria-hidden="true")
+          span {{ $t('members.activate') }}
   section.panel.members__empty(v-else aria-live="polite")
     h2 {{ $t('members.noResults') }}
     p.body-text {{ $t('members.noResultsText') }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .members__header {
   display: flex;
-  align-items: end;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: space-between;
   gap: var(--space-lg);
   margin-bottom: var(--space-xl);
+
+  @include desktop {
+    flex-direction: row;
+    align-items: end;
+  }
 }
 
 .members__heading {
@@ -155,10 +164,16 @@ main.members.container
 
 .members__toolbar {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: flex-end;
   gap: var(--space-sm);
   min-width: min(100%, 44rem);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .members__search,
@@ -170,7 +185,11 @@ main.members.container
 
 .members__search {
   flex: 1;
-  min-width: 17rem;
+  min-width: 0;
+
+  @include tablet {
+    min-width: 17rem;
+  }
 }
 
 .members__search input {
@@ -186,7 +205,12 @@ main.members.container
 }
 
 .members__filter {
-  flex: 0 0 10rem;
+  flex: 1;
+  min-width: 0;
+
+  @include tablet {
+    flex: 0 0 10rem;
+  }
 }
 
 .members__filter svg {
@@ -203,23 +227,30 @@ main.members.container
   color: var(--text-main);
 }
 
+.members__toolbar .button {
+  width: 100%;
+
+  @include tablet {
+    width: auto;
+  }
+}
+
 .members__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-lg);
+
+  @include tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include desktop {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
 }
 
-.members__notice {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
-  margin-bottom: var(--space-lg);
-}
-
-.members__notice--error {
-  border-color: var(--danger);
-  background: var(--danger-bg);
+.member-card-wrapper {
+  container-type: inline-size;
 }
 
 .member-card {
@@ -353,6 +384,10 @@ main.members.container
   gap: var(--space-xs);
   border-right: var(--border-width) solid var(--border);
   text-align: center;
+
+  @container (max-width: 320px) {
+    gap: var(--space-sm);
+  }
 }
 
 .member-card__stat:last-child {
@@ -404,53 +439,22 @@ main.members.container
   opacity: 0.55;
 }
 
-@media (max-width: 1080px) {
-  .members__header {
-    align-items: stretch;
-    flex-direction: column;
-  }
+.members__notice {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
 
-  .members__toolbar {
-    justify-content: stretch;
-    width: 100%;
-  }
-
-  .members__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
   }
 }
 
-@media (max-width: 720px) {
-  .members__toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .members__search,
-  .members__filter {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .members__toolbar .button {
-    width: 100%;
-  }
-
-  .members__notice {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .members__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .member-card__stats {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .member-card__stat {
-    gap: var(--space-sm);
-  }
+.members__notice--error {
+  border-color: var(--danger);
+  background: var(--danger-bg);
 }
 </style>
