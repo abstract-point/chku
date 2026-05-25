@@ -66,5 +66,4 @@ main.dashboard.container
     grid-template-columns: 1fr;
   }
 }
-
 </style>
