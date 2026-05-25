@@ -44,8 +44,11 @@ describe('MainLayout', () => {
       '/members',
       '/archive',
       '/',
+      '/members',
       '/archive',
       '/profile',
+      '/propose-selection',
+      '/profile/settings',
     ])
   })
 
