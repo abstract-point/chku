@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { RouterLink } from 'vue-router'
 import { BookOpen, Star, Users } from '@lucide/vue'
-import { useI18n } from 'vue-i18n'
 import { useClubQuery } from '@/queries/clubQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
-
-const { t } = useI18n()
 
 const clubQuery = useClubQuery()
 const dashboardQuery = useDashboardQuery()
@@ -18,33 +14,6 @@ const coreStats = computed(() => {
   return stats.slice(0, 3)
 })
 
-const currentCycleState = computed(() => {
-  const lifecycle = dashboardQuery.data.value?.lifecycle
-  const state = lifecycle?.state ?? 'awaiting_next_book'
-  const currentBook = dashboardQuery.data.value?.currentBook
-
-  if (state === 'reading' && currentBook) {
-    return {
-      label: t('dash.meetingInProgress'),
-      value: currentBook.title,
-      progress: currentBook.progressLabel ?? `${currentBook.progress}%`,
-    }
-  }
-
-  if (state === 'pending' || state === 'verification') {
-    return {
-      label: t('dash.bookSelection'),
-      value: t('dash.awaitingVerification'),
-      progress: null,
-    }
-  }
-
-  return {
-    label: t('dash.turnOrder'),
-    value: t('dash.notStartedTitle'),
-    progress: null,
-  }
-})
 </script>
 
 <template lang="pug">
@@ -63,25 +32,16 @@ footer.app-footer
         .app-footer__stat-content
           span.app-footer__stat-value {{ stat.value }}
           span.app-footer__stat-label {{ stat.label }}
-      .app-footer__stat.app-footer__stat--divider
-        .app-footer__stat-content
-          span.app-footer__stat-label {{ currentCycleState.label }}
-          span.app-footer__stat-value.app-footer__stat-value--compact {{ currentCycleState.value }}
-          span.app-footer__stat-progress(v-if="currentCycleState.progress") {{ currentCycleState.progress }}
     .app-footer__brand
       span.app-footer__brand-name {{ clubName }}
       span.app-footer__copy © {{ currentYear }}
-    nav.app-footer__nav(:aria-label="$t('nav.bottomAria')")
-      RouterLink(to="/") {{ $t('nav.dashboard') }}
-      RouterLink(to="/archive") {{ $t('nav.archive') }}
-      RouterLink(to="/profile") {{ $t('nav.profile') }}
 </template>
 
 <style scoped>
 .app-footer {
   margin-top: var(--space-xl);
-  padding-top: 1.2rem;
-  padding-bottom: 1.2rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
   border-top: var(--border-width) solid var(--border);
 }
 
@@ -134,23 +94,12 @@ footer.app-footer
   font-family: var(--font-mono);
 }
 
-.app-footer__stat-value--compact {
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
 .app-footer__stat-label {
   color: var(--text-subtle);
   font-size: 0.72rem;
   font-family: var(--font-mono);
   letter-spacing: 0.03em;
   text-transform: uppercase;
-}
-
-.app-footer__stat-progress {
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  font-family: var(--font-mono);
 }
 
 .app-footer__brand {
@@ -175,13 +124,6 @@ footer.app-footer
   font-size: 0.7rem;
 }
 
-.app-footer__nav {
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
 
 .app-footer__nav a {
   color: var(--text-muted);
@@ -213,11 +155,6 @@ footer.app-footer
   .app-footer__brand {
     justify-content: center;
   }
-
-  .app-footer__nav {
-    justify-content: center;
-    gap: var(--space-md);
-  }
 }
 
 @media (max-width: 640px) {
@@ -225,17 +162,6 @@ footer.app-footer
     flex-direction: column;
     align-items: center;
     gap: var(--space-sm);
-  }
-
-  .app-footer__stat--divider {
-    padding-left: 0;
-    margin-left: 0;
-    border-left: 0;
-    padding-top: var(--space-sm);
-    margin-top: var(--space-xs);
-    border-top: var(--border-width) solid var(--border);
-    width: 100%;
-    text-align: center;
   }
 }
 </style>
