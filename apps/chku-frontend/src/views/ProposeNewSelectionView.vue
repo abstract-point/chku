@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Send, Trash2, X } from '@lucide/vue'
 import AppTabs from '@/components/ui/AppTabs.vue'
@@ -37,6 +37,31 @@ const form = reactive({
   coverFile: null as File | null,
 })
 const formErrors = useFormErrors()
+
+const isWide = ref(false)
+const showForm = ref(false)
+
+function updateWide() {
+  const mq = window.matchMedia('(min-width: 1280px)')
+  isWide.value = mq.matches
+  if (mq.matches) {
+    showForm.value = true
+  }
+}
+
+onMounted(() => {
+  updateWide()
+  window.addEventListener('resize', updateWide)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateWide)
+})
+
+function toggleForm() {
+  showForm.value = !showForm.value
+}
+
 const items = computed(() => queueQuery.items.value)
 const rejectedItems = computed(() => rejectedQuery.items.value)
 const currentCandidate = computed(() => items.value.find((item) => item.isCurrentCandidate) ?? null)
@@ -148,55 +173,64 @@ main.proposal.container
       | {{ $t('books.intro') }}
 
   .proposal__grid
-    section.panel.proposal__form-panel(aria-labelledby="queue-form-title")
-      .section-header.section-header--compact
-        h2#queue-form-title {{ $t('books.addBook') }}
-        Plus.proposal__button-icon
-      form.proposal__form-fields(@submit.prevent="submitBook" novalidate)
-        AppFormField(:label="t('books.titleLabel')" label-for="book-title" required :error="formErrors.getError('title')")
-          input#book-title.field-control.proposal__text-input(
-            v-model="form.title"
-            type="text"
-            :placeholder="t('books.titlePlaceholder')"
-            :aria-invalid="formErrors.hasError('title')"
+    Transition(name="expand")
+      section.panel.proposal__form-panel(v-show="showForm" aria-labelledby="queue-form-title")
+        .section-header.section-header--compact
+          h2#queue-form-title {{ $t('books.addBook') }}
+          Plus.proposal__button-icon
+        form.proposal__form-fields(@submit.prevent="submitBook" novalidate)
+          AppFormField(:label="t('books.titleLabel')" label-for="book-title" required :error="formErrors.getError('title')")
+            input#book-title.field-control.proposal__text-input(
+              v-model="form.title"
+              type="text"
+              :placeholder="t('books.titlePlaceholder')"
+              :aria-invalid="formErrors.hasError('title')"
+            )
+
+          AppFormField(:label="t('books.authorLabel')" label-for="book-author" required :error="formErrors.getError('author')")
+            input#book-author.field-control.proposal__text-input(
+              v-model="form.author"
+              type="text"
+              :placeholder="t('books.authorPlaceholder')"
+              :aria-invalid="formErrors.hasError('author')"
+            )
+
+          AppFormField(:label="t('books.descLabel')" label-for="book-description" :error="formErrors.getError('description')")
+            AppTextarea#book-description(
+              v-model="form.description"
+              :placeholder="t('books.descPlaceholder')"
+              :aria-invalid="formErrors.hasError('description')"
+            )
+
+          AppFormField(:label="t('books.reasonLabel')" label-for="book-reason" :error="formErrors.getError('reason')")
+            AppTextarea#book-reason(
+              v-model="form.reason"
+              :placeholder="t('books.reasonPlaceholder')"
+              :aria-invalid="formErrors.hasError('reason')"
+            )
+
+          BookCoverPicker(
+            v-model:coverFile="form.coverFile"
+            :title="form.title"
+            :author="form.author"
           )
 
-        AppFormField(:label="t('books.authorLabel')" label-for="book-author" required :error="formErrors.getError('author')")
-          input#book-author.field-control.proposal__text-input(
-            v-model="form.author"
-            type="text"
-            :placeholder="t('books.authorPlaceholder')"
-            :aria-invalid="formErrors.hasError('author')"
-          )
-
-        AppFormField(:label="t('books.descLabel')" label-for="book-description" :error="formErrors.getError('description')")
-          AppTextarea#book-description(
-            v-model="form.description"
-            :placeholder="t('books.descPlaceholder')"
-            :aria-invalid="formErrors.hasError('description')"
-          )
-
-        AppFormField(:label="t('books.reasonLabel')" label-for="book-reason" :error="formErrors.getError('reason')")
-          AppTextarea#book-reason(
-            v-model="form.reason"
-            :placeholder="t('books.reasonPlaceholder')"
-            :aria-invalid="formErrors.hasError('reason')"
-          )
-
-        BookCoverPicker(
-          v-model:coverFile="form.coverFile"
-          :title="form.title"
-          :author="form.author"
-        )
-
-        .proposal__actions
-          button.button.button--primary.label-text(type="submit" :disabled="createQueueItem.isPending.value")
-            Plus.proposal__button-icon(v-if="!createQueueItem.isPending.value")
-            | {{ createQueueItem.isPending.value ? $t('books.adding') : $t('books.addToQueue') }}
-          p.proposal__error(v-if="createQueueItem.error.value && !Object.keys(formErrors.fieldErrors.value).length")
-            | {{ createQueueItem.error.value.message }}
+          .proposal__actions
+            button.button.button--primary.label-text(type="submit" :disabled="createQueueItem.isPending.value")
+              Plus.proposal__button-icon(v-if="!createQueueItem.isPending.value")
+              | {{ createQueueItem.isPending.value ? $t('books.adding') : $t('books.addToQueue') }}
+            p.proposal__error(v-if="createQueueItem.error.value && !Object.keys(formErrors.fieldErrors.value).length")
+              | {{ createQueueItem.error.value.message }}
 
     section.proposal__queue(aria-labelledby="queue-title")
+      button.button.button--primary.label-text.proposal__toggle-form(
+        v-if="!isWide"
+        type="button"
+        @click="toggleForm"
+      )
+        Plus.proposal__button-icon(v-if="!showForm")
+        X.proposal__button-icon(v-else)
+        | {{ showForm ? $t('common.cancel') : $t('books.addBook') }}
       .section-header
         h2#queue-title {{ $t('books.queueTitle') }}
         span.label-text {{ $t('books.queueCount', { n: items.length }) }}
@@ -233,14 +267,20 @@ main.proposal.container
             :key="item.id"
             :class="{ 'proposal__book--active': item.isCurrentCandidate, 'proposal__book--next': nextCandidate?.id === item.id && !item.isCurrentCandidate }"
           )
-            .proposal__book-main
-              template(v-if="editingId === item.id")
-                .proposal__book-header
-                  .proposal__book-title-wrap
-                    h3.proposal__book-title {{ item.title }}
-                    p.proposal__book-author {{ item.author }}
-                  span.badge.badge--sm(:class="itemBadgeClass(item)")
-                    | {{ itemBadge(item) }}
+            .proposal__book-cover(
+              :style="{ '--cover-color': item.coverColor ?? undefined }"
+              :aria-label="$t('archive.coverAria', { title: item.title })"
+            )
+              img.proposal__book-cover-image(v-if="item.coverUrl" :src="item.coverUrl" :alt="item.title")
+              span.proposal__book-cover-title(v-else) {{ item.title }}
+            .proposal__book-header
+              .proposal__book-title-wrap
+                h3.proposal__book-title {{ item.title }}
+                p.proposal__book-author {{ item.author }}
+              span.badge.badge--sm(:class="itemBadgeClass(item)")
+                | {{ itemBadge(item) }}
+            template(v-if="editingId === item.id")
+              .proposal__book-edit
                 .proposal__field
                   label.label-text(:for="`edit-desc-${item.id}`") {{ $t('books.descLabel') }}
                   textarea.field-control.proposal__textarea(
@@ -270,16 +310,10 @@ main.proposal.container
                     X.proposal__button-icon
                     | {{ $t('books.cancel') }}
                 p.proposal__error(v-if="updateQueueItem.error.value") {{ $t('books.editError') }}
-              template(v-else)
-                .proposal__book-header
-                  .proposal__book-title-wrap
-                    h3.proposal__book-title {{ item.title }}
-                    p.proposal__book-author {{ item.author }}
-                  span.badge.badge--sm(:class="itemBadgeClass(item)")
-                    | {{ itemBadge(item) }}
-                p.proposal__book-meta(v-if="item.description") {{ item.description }}
-                p.proposal__book-reason(v-if="item.reason")
-                  span {{ $t('books.whyPrefix', { reason: item.reason }) }}
+            template(v-else)
+              p.proposal__book-meta(v-if="item.description") {{ item.description }}
+              p.proposal__book-reason(v-if="item.reason")
+                span {{ $t('books.whyPrefix', { reason: item.reason }) }}
             .proposal__book-actions
               button.button.button--secondary.label-text(
                 v-if="index !== 0"
@@ -320,19 +354,24 @@ main.proposal.container
       .proposal__book-list(v-else-if="activeTab === 'rejected'")
         TransitionGroup.proposal__book-items(name="list" tag="div")
           article.proposal__book.proposal__book--rejected(v-for="item in rejectedItems" :key="item.id")
-            .proposal__book-main
-              .proposal__book-header
-                .proposal__book-title-wrap
-                  h3.proposal__book-title {{ item.title }}
-                  p.proposal__book-author {{ item.author }}
-                span.badge.badge--sm.badge--danger {{ $t('books.rejectedBadge') }}
-              p.proposal__book-meta(v-if="item.description") {{ item.description }}
-              p.proposal__book-reason(v-if="item.reason")
-                span {{ $t('books.whyPrefix', { reason: item.reason }) }}
-              .proposal__book-rejection(v-if="item.rejectionInfo")
-                | {{ $t('books.rejectedBy', { date: formatDate(item.rejectionInfo.rejectedAt) }) }}
-                template(v-if="item.rejectionInfo.rejectedByMembers.length")
-                  | · {{ $t('books.readBy', { members: item.rejectionInfo.rejectedByMembers.join(', ') }) }}
+            .proposal__book-cover(
+              :style="{ '--cover-color': item.coverColor ?? undefined }"
+              :aria-label="$t('archive.coverAria', { title: item.title })"
+            )
+              img.proposal__book-cover-image(v-if="item.coverUrl" :src="item.coverUrl" :alt="item.title")
+              span.proposal__book-cover-title(v-else) {{ item.title }}
+            .proposal__book-header
+              .proposal__book-title-wrap
+                h3.proposal__book-title {{ item.title }}
+                p.proposal__book-author {{ item.author }}
+              span.badge.badge--sm.badge--danger {{ $t('books.rejectedBadge') }}
+            p.proposal__book-meta(v-if="item.description") {{ item.description }}
+            p.proposal__book-reason(v-if="item.reason")
+              span {{ $t('books.whyPrefix', { reason: item.reason }) }}
+            .proposal__book-rejection(v-if="item.rejectionInfo")
+              | {{ $t('books.rejectedBy', { date: formatDate(item.rejectionInfo.rejectedAt) }) }}
+              template(v-if="item.rejectionInfo.rejectedByMembers.length")
+                | · {{ $t('books.readBy', { members: item.rejectionInfo.rejectedByMembers.join(', ') }) }}
 </template>
 
 <style scoped lang="scss">
@@ -362,6 +401,44 @@ main.proposal.container
     display: grid;
     grid-template-columns: minmax(18rem, 0.85fr) minmax(0, 1.4fr);
   }
+}
+
+.proposal__form-panel,
+.proposal__queue {
+  width: 100%;
+}
+
+.proposal__toggle-form {
+  margin-bottom: var(--space-md);
+  align-self: flex-start;
+}
+
+/* Expand transition for the form panel */
+.expand-enter-active,
+.expand-leave-active {
+  transition:
+    max-height 0.35s ease,
+    opacity 0.25s ease,
+    padding 0.25s ease,
+    margin 0.25s ease;
+  overflow: hidden;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  border-width: 0;
+}
+
+.expand-enter-to,
+.expand-leave-from {
+  max-height: 100vh;
+  opacity: 1;
 }
 
 .proposal__field {
@@ -424,8 +501,12 @@ main.proposal.container
 .proposal__book {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-md);
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "cover header"
+    "content content"
+    "actions actions";
+  gap: var(--space-sm) var(--space-md);
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
@@ -438,7 +519,10 @@ main.proposal.container
     box-shadow 0.2s ease;
 
   @include tablet {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "cover header actions"
+      "cover content actions";
   }
 }
 
@@ -463,30 +547,93 @@ main.proposal.container
 }
 
 .proposal__book--rejected {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.proposal__book-main {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  min-width: 0;
-}
-
-.proposal__book-header {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-xs);
-  align-items: start;
-  min-width: 0;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "cover header"
+    "content content";
 
   @include tablet {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--space-sm);
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "cover header"
+      "cover content";
   }
 }
 
+.proposal__book-cover {
+  grid-area: cover;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  aspect-ratio: 9 / 13;
+  width: 4.5rem;
+  padding: var(--space-xs);
+  overflow: hidden;
+  border: var(--border-width) solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-inner);
+  background:
+    radial-gradient(circle at 62% 22%, rgba(255, 255, 255, 0.16), transparent 0.9rem),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.035)),
+    var(--cover-color);
+  box-shadow: inset 0.8rem 0 1.3rem rgba(0, 0, 0, 0.18);
+  color: rgba(255, 255, 255, 0.72);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  line-height: 1.4;
+
+  @include tablet {
+    width: 6.5rem;
+  }
+}
+
+.proposal__book-cover::after {
+  position: absolute;
+  inset: 0 0 0 10%;
+  content: '';
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.11) 0%,
+    rgba(255, 255, 255, 0) 5%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+}
+
+.proposal__book-cover-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.proposal__book-cover-title {
+  position: relative;
+  z-index: 1;
+  max-width: 3.5rem;
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  white-space: pre-line;
+}
+
+.proposal__book-header {
+  grid-area: header;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
 .proposal__book-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
   min-width: 0;
 }
 
@@ -500,23 +647,19 @@ main.proposal.container
 }
 
 .proposal__book-author {
-  margin: 0.15rem 0 0;
+  margin: 0;
   font-size: 0.85rem;
   color: var(--text-muted);
   line-height: 1.3;
   overflow-wrap: break-word;
 }
 
-.proposal__book-meta {
-  margin: 0;
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  overflow-wrap: break-word;
-}
-
-.proposal__book-reason {
-  margin: 0;
+.proposal__book-meta,
+.proposal__book-reason,
+.proposal__book-rejection,
+.proposal__book-edit {
+  grid-area: content;
+  margin: var(--space-xs) 0 0;
   font-size: 0.82rem;
   color: var(--text-muted);
   line-height: 1.4;
@@ -528,17 +671,14 @@ main.proposal.container
 }
 
 .proposal__book-rejection {
-  margin: var(--space-xs) 0 0;
   padding-top: var(--space-xs);
   border-top: var(--border-width) solid var(--border);
-  font-size: 0.8rem;
-  color: var(--text-muted);
   font-family: var(--font-mono);
-  line-height: 1.4;
-  overflow-wrap: break-word;
+  font-size: 0.8rem;
 }
 
 .proposal__book-actions {
+  grid-area: actions;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -550,12 +690,13 @@ main.proposal.container
   border-radius: var(--radius-inner);
   background: var(--bg-panel);
   align-self: start;
-  width: 100%;
+  width: auto;
+  justify-self: end;
 
   @include tablet {
     flex-direction: column;
     align-items: center;
-    width: auto;
+    justify-self: auto;
   }
 }
 
