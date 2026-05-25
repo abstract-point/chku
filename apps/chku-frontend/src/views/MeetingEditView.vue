@@ -13,7 +13,10 @@ const router = useRouter()
 const { isAdmin, user } = useAuthSession()
 const { t } = useI18n()
 const meetingId = computed(() => String(route.params.id ?? ''))
-const meetingQuery = useMeetingQuery(meetingId, computed(() => user.value?.id))
+const meetingQuery = useMeetingQuery(
+  meetingId,
+  computed(() => user.value?.id),
+)
 const updateMutation = useUpdateMeetingMutation(meetingId)
 const formErrors = useFormErrors()
 

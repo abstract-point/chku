@@ -316,16 +316,14 @@ main.archive.container
 .archive-card:hover {
   border-color: var(--border-strong);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)), var(--bg-panel);
   transform: translateY(-2px);
 }
 
 .archive-card--current {
   border-color: var(--accent-border);
   background:
-    linear-gradient(180deg, var(--accent-bg), rgba(255, 255, 255, 0.016)),
-    var(--bg-surface);
+    linear-gradient(180deg, var(--accent-bg), rgba(255, 255, 255, 0.016)), var(--bg-surface);
 }
 
 .archive-card--current:hover {

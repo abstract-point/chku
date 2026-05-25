@@ -38,7 +38,10 @@ const route = useRoute()
 const { user, isAdmin } = useAuthSession()
 const { t } = useI18n()
 const meetingId = computed(() => String(route.params.id ?? ''))
-const meetingQuery = useMeetingQuery(meetingId, computed(() => user.value?.id))
+const meetingQuery = useMeetingQuery(
+  meetingId,
+  computed(() => user.value?.id),
+)
 const dashboardQuery = useDashboardQuery()
 const updateRsvpMutation = useUpdateMeetingRsvpMutation(meetingId)
 const removeRsvpMutation = useRemoveMeetingRsvpMutation(meetingId)
@@ -85,7 +88,9 @@ const missingReadingAttendees = computed(() => {
   )
 })
 
-const hasMeetingQuorum = computed(() => (meeting.value?.attendees.length ?? 0) >= minMeetingAttendees)
+const hasMeetingQuorum = computed(
+  () => (meeting.value?.attendees.length ?? 0) >= minMeetingAttendees,
+)
 
 const isMeetingTime = computed(() => {
   if (!meeting.value?.date || !meeting.value?.time) return false
@@ -97,8 +102,12 @@ const isMeetingTime = computed(() => {
 })
 const isCurrentUserAttending = computed(() => rsvpStatus.value === 'attending')
 const currentUserId = computed(() => user.value?.id)
-const shouldShowRatingForm = computed(() => meeting.value?.status === 'started' && rsvpStatus.value === 'attending')
-const adminAttendeesCount = computed(() => meeting.value?.attendees.filter((a) => a.isAdmin).length ?? 0)
+const shouldShowRatingForm = computed(
+  () => meeting.value?.status === 'started' && rsvpStatus.value === 'attending',
+)
+const adminAttendeesCount = computed(
+  () => meeting.value?.attendees.filter((a) => a.isAdmin).length ?? 0,
+)
 
 function canRemoveAttendee(attendee: { id: number; isAdmin?: boolean }) {
   if (attendee.isAdmin) return false
@@ -559,8 +568,7 @@ main.meeting-detail.container
 .meeting-detail__info-item--primary {
   border-color: var(--accent-border);
   background:
-    linear-gradient(180deg, rgba(67, 224, 125, 0.07), rgba(67, 224, 125, 0.018)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(67, 224, 125, 0.07), rgba(67, 224, 125, 0.018)), var(--bg-panel);
 }
 
 .meeting-detail__hero-icon,
@@ -656,8 +664,7 @@ main.meeting-detail.container
   border: var(--border-width) solid var(--warn-border);
   border-radius: var(--radius-panel);
   background:
-    linear-gradient(180deg, rgba(216, 137, 43, 0.08), rgba(216, 137, 43, 0.018)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(216, 137, 43, 0.08), rgba(216, 137, 43, 0.018)), var(--bg-panel);
 }
 
 .meeting-detail__rating-prompt-icon {
@@ -781,7 +788,9 @@ main.meeting-detail.container
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .meeting-detail__decline-text:hover:not(:disabled) {
