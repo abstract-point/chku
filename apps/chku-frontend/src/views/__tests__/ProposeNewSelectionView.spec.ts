@@ -46,18 +46,6 @@ describe('ProposeNewSelectionView', () => {
     expect(wrapper.text()).toContain('Название книги*')
   })
 
-  it('selects a cover without changing book fields', async () => {
-    setActivePinia(createPinia())
-    const wrapper = mountProposal()
-
-    await wrapper.get('#book-title').setValue('Дюна')
-    await wrapper.get('#book-author').setValue('Фрэнк Герберт')
-    await wrapper.find('.book-cover-picker__cover').trigger('click')
-
-    expect((wrapper.get('#book-title').element as HTMLInputElement).value).toBe('Дюна')
-    expect((wrapper.get('#book-author').element as HTMLInputElement).value).toBe('Фрэнк Герберт')
-  })
-
   it('shows edit buttons for queue items', () => {
     setActivePinia(createPinia())
     const wrapper = mountProposal()

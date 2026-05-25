@@ -6,7 +6,6 @@ export type BookQueuePayload = {
   author: string
   description?: string
   reason?: string
-  coverUrl?: string | null
   coverFile?: File | null
 }
 
@@ -26,7 +25,6 @@ export const bookQueueApi = {
       fd.append('author', payload.author)
       if (payload.description) fd.append('description', payload.description)
       if (payload.reason) fd.append('reason', payload.reason)
-      if (payload.coverUrl) fd.append('coverUrl', payload.coverUrl)
       fd.append('coverFile', payload.coverFile)
       return http.postForm<unknown, ApiMemberBookQueueItem>('/me/book-queue', fd)
     }

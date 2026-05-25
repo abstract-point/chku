@@ -34,7 +34,6 @@ const form = reactive({
   author: '',
   description: '',
   reason: '',
-  coverUrl: null as string | null,
   coverFile: null as File | null,
 })
 const formErrors = useFormErrors()
@@ -48,7 +47,6 @@ function resetForm() {
   form.author = ''
   form.description = ''
   form.reason = ''
-  form.coverUrl = null
   form.coverFile = null
   formErrors.clearAllErrors()
 }
@@ -62,7 +60,6 @@ function submitBook() {
       author: form.author.trim(),
       description: form.description.trim(),
       reason: form.reason.trim(),
-      coverUrl: form.coverUrl,
       coverFile: form.coverFile,
     },
     {
@@ -183,7 +180,6 @@ main.proposal.container
           )
 
         BookCoverPicker(
-          v-model="form.coverUrl"
           v-model:coverFile="form.coverFile"
           :title="form.title"
           :author="form.author"

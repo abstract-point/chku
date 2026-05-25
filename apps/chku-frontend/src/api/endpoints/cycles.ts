@@ -7,7 +7,6 @@ export type CycleBookPayload = {
   description?: string | null
   genreId?: number | null
   coverColor?: string | null
-  coverUrl?: string | null
   coverFile?: File | null
 }
 
@@ -28,7 +27,6 @@ export const cycleApi = {
       if (payload.description) fd.append('description', payload.description)
       if (payload.genreId) fd.append('genreId', String(payload.genreId))
       if (payload.coverColor) fd.append('coverColor', payload.coverColor)
-      if (payload.coverUrl) fd.append('coverUrl', payload.coverUrl)
       fd.append('coverFile', payload.coverFile)
       return http.patchForm<unknown, ApiCycle>(`/cycles/${cycleNumber}/book`, fd)
     }

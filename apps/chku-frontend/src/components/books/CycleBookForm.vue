@@ -36,7 +36,6 @@ const form = reactive({
   author: '',
   description: '',
   genreId: null as number | null,
-  coverUrl: null as string | null,
   coverFile: null as File | null,
 })
 
@@ -47,7 +46,6 @@ const form = reactive({
     form.author = book.author
     form.description = book.description ?? ''
     form.genreId = book.genre?.id ?? null
-    form.coverUrl = book.coverUrl ?? null
     form.coverFile = null
   },
   { immediate: true },
@@ -61,7 +59,6 @@ function saveBook() {
       author: form.author.trim(),
       description: form.description.trim() || null,
       genreId: form.genreId,
-      coverUrl: form.coverUrl,
       coverFile: form.coverFile,
     },
     {
@@ -108,7 +105,6 @@ form.cycle-book-form(@submit.prevent="saveBook" novalidate)
       :aria-invalid="formErrors.hasError('description')"
     )
   BookCoverPicker(
-    v-model="form.coverUrl"
     v-model:coverFile="form.coverFile"
     :title="form.title"
     :author="form.author"
