@@ -108,7 +108,9 @@ input.app-input.field-control(
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .app-input[type='file']::file-selector-button:hover {

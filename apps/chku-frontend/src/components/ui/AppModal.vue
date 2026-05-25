@@ -106,7 +106,9 @@ Teleport(to="#modal-portal")
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .app-modal__close:hover {

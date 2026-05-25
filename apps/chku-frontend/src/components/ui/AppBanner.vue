@@ -22,15 +22,13 @@ section.app-banner(:class="`app-banner--${variant ?? 'warn'}`" aria-labelledby="
   padding: var(--space-lg) var(--space-xl);
   border-radius: var(--radius-panel);
   background:
-    linear-gradient(180deg, rgba(216, 137, 43, 0.08), rgba(216, 137, 43, 0.018)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(216, 137, 43, 0.08), rgba(216, 137, 43, 0.018)), var(--bg-panel);
 }
 
 .app-banner--info {
   border: var(--border-width) solid var(--border);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)), var(--bg-panel);
   box-shadow: var(--shadow-panel);
   color: var(--text-main);
 }

@@ -97,9 +97,7 @@ async function startSetup() {
 
 async function refreshQr() {
   clearFeedback()
-  if (
-    !window.confirm(t('auth.twoFactor.refreshConfirm'))
-  ) {
+  if (!window.confirm(t('auth.twoFactor.refreshConfirm'))) {
     return
   }
   try {
