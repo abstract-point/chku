@@ -3,7 +3,12 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import { ref } from 'vue'
 
 import MeetingDetailView from '../MeetingDetailView.vue'
-import { patchMeetingDetail, resetAuthSession, resetMeetingDetail, setAuthRoles } from '@/test/setup'
+import {
+  patchMeetingDetail,
+  resetAuthSession,
+  resetMeetingDetail,
+  setAuthRoles,
+} from '@/test/setup'
 
 const route = ref({
   params: {
