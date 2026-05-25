@@ -501,7 +501,7 @@ main.proposal.container
 .proposal__book {
   position: relative;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
     "cover header"
     "content content"
@@ -547,7 +547,7 @@ main.proposal.container
 }
 
 .proposal__book--rejected {
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
     "cover header"
     "content content";
