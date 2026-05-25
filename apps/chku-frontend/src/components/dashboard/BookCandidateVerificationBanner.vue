@@ -64,20 +64,29 @@ section.book-candidate-banner(aria-labelledby="verification-title")
       button.button.button--inverted.label-text(type="button" :disabled="isPending" @click="respond('not_read')") {{ $t('dash.verifNotRead') }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .book-candidate-banner {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-lg);
   margin-bottom: var(--space-xl);
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-lg);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-panel);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)), var(--bg-panel);
   box-shadow: var(--shadow-panel);
   color: var(--text-main);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+    padding: var(--space-lg) var(--space-xl);
+  }
 }
 
 .book-candidate-banner__status {
@@ -121,23 +130,21 @@ section.book-candidate-banner(aria-labelledby="verification-title")
 .book-candidate-banner__actions {
   display: flex;
   flex: 0 0 auto;
+  flex-direction: column;
   gap: var(--space-sm);
+  width: 100%;
+
+  @include tablet {
+    flex-direction: row;
+    width: auto;
+  }
 }
 
-@media (max-width: 760px) {
-  .book-candidate-banner {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: var(--space-lg);
-  }
+.book-candidate-banner__actions .button {
+  width: 100%;
 
-  .book-candidate-banner__actions {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .book-candidate-banner__actions .button {
-    width: 100%;
+  @include tablet {
+    width: auto;
   }
 }
 </style>

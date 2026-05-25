@@ -84,7 +84,9 @@ form.reading-progress-form(@submit.prevent="submitForm")
       | {{ isSaving ? $t('dash.progressFormSaving') : $t('dash.progressFormSave') }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .reading-progress-form {
   display: grid;
   gap: var(--space-md);
@@ -93,9 +95,15 @@ form.reading-progress-form(@submit.prevent="submitForm")
 
 .reading-progress-form__header {
   display: flex;
-  align-items: baseline;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: space-between;
   gap: var(--space-md);
+
+  @include tablet {
+    flex-direction: row;
+    align-items: baseline;
+  }
 }
 
 .reading-progress-form__value {
@@ -172,14 +180,37 @@ form.reading-progress-form(@submit.prevent="submitForm")
   gap: var(--space-md);
 }
 
+.reading-progress-form__actions {
+  flex-direction: column;
+  align-items: stretch;
+
+  @include tablet {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.reading-progress-form__actions .button {
+  flex: 1;
+}
+
+.reading-progress-form__actions .button--secondary {
+  border-color: var(--border-strong);
+}
+
 .reading-progress-form__field {
   display: grid;
-  grid-template-columns: minmax(7rem, 0.35fr) minmax(0, 1fr);
+  grid-template-columns: 1fr;
   align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
   border: var(--border-width) solid var(--border-strong);
   border-radius: var(--radius-inner);
+
+  @include tablet {
+    grid-template-columns: minmax(7rem, 0.35fr) minmax(0, 1fr);
+    gap: var(--space-md);
+  }
 }
 
 .reading-progress-form__number {
@@ -228,26 +259,5 @@ form.reading-progress-form(@submit.prevent="submitForm")
 .reading-progress-form__error {
   margin: 0;
   color: var(--danger);
-}
-
-.reading-progress-form__actions .button {
-  flex: 1;
-}
-
-.reading-progress-form__actions .button--secondary {
-  border-color: var(--border-strong);
-}
-
-@media (max-width: 640px) {
-  .reading-progress-form__header,
-  .reading-progress-form__actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .reading-progress-form__field {
-    grid-template-columns: 1fr;
-    gap: var(--space-sm);
-  }
 }
 </style>

@@ -47,23 +47,26 @@ main.dashboard.container
         )
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .dashboard__grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(21rem, 0.85fr);
+  display: flex;
+  flex-direction: column;
   gap: var(--space-lg);
   align-items: start;
+
+  @include desktop {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(21rem, 0.85fr);
+    gap: var(--space-lg);
+    align-items: start;
+  }
 }
 
 .dashboard__sidebar {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
-}
-
-@media (max-width: 960px) {
-  .dashboard__grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

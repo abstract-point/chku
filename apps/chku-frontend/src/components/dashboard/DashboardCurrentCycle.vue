@@ -209,19 +209,22 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
       button.button.button--primary.label-text(type="button" @click="confirmProgress") {{ $t('dash.confirmReadBtn') }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .dashboard__main {
-  padding: var(--space-xl);
+  min-width: 0;
+  padding: var(--space-lg);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-panel);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
     var(--bg-surface);
   box-shadow: var(--shadow-panel);
-}
 
-.dashboard__main {
-  min-width: 0;
+  @include tablet {
+    padding: var(--space-xl);
+  }
 }
 
 .dashboard__section-spaced {
@@ -229,16 +232,25 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 }
 
 .current-book {
-  display: grid;
-  grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: clamp(var(--space-lg), 4vw, var(--space-xl));
   margin-bottom: var(--space-xl);
+
+  @include tablet {
+    display: grid;
+    grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
+  }
 }
 
 .current-book__cover {
   position: relative;
   overflow: hidden;
-  width: 100%;
+  width: min(100%, 13rem);
+
+  @include tablet {
+    width: 100%;
+  }
 }
 
 .current-book__cover-image {
@@ -292,6 +304,11 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   display: flex;
   justify-content: space-between;
   gap: var(--space-md);
+  flex-direction: column;
+
+  @include tablet {
+    flex-direction: row;
+  }
 }
 
 .current-book__progress > .button {
@@ -380,34 +397,15 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  width: 9.5rem;
+  width: 100%;
+
+  @include tablet {
+    width: 9.5rem;
+  }
 }
 
 .member-status__progress-track {
   flex: 1;
   margin: 0;
-}
-
-@media (max-width: 760px) {
-  .dashboard__main {
-    padding: var(--space-lg);
-  }
-
-  .current-book {
-    grid-template-columns: 1fr;
-  }
-
-  .current-book__cover {
-    width: min(100%, 13rem);
-  }
-
-  .current-book__progress-header {
-    flex-direction: column;
-    gap: var(--space-xs);
-  }
-
-  .member-status__progress {
-    width: 100%;
-  }
 }
 </style>

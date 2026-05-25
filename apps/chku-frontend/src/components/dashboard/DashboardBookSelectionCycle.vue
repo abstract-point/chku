@@ -166,16 +166,22 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
         | {{ responseLabel(response.response) }}
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/styles/breakpoints' as *;
+
 .dashboard__main {
   min-width: 0;
-  padding: var(--space-xl);
+  padding: var(--space-lg);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-panel);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
     var(--bg-surface);
   box-shadow: var(--shadow-panel);
+
+  @include tablet {
+    padding: var(--space-xl);
+  }
 }
 
 .dashboard__section-spaced {
@@ -183,16 +189,25 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
 }
 
 .current-book {
-  display: grid;
-  grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: clamp(var(--space-lg), 4vw, var(--space-xl));
   margin-bottom: var(--space-xl);
+
+  @include tablet {
+    display: grid;
+    grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
+  }
 }
 
 .current-book__cover {
   position: relative;
   overflow: hidden;
-  width: 100%;
+  width: min(100%, 13rem);
+
+  @include tablet {
+    width: 100%;
+  }
 }
 
 .current-book__cover-image {
@@ -244,6 +259,19 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
   flex-wrap: wrap;
   gap: var(--space-sm);
   margin-top: var(--space-md);
+  flex-direction: column;
+
+  @include tablet {
+    flex-direction: row;
+  }
+}
+
+.book-selection__actions .button {
+  width: 100%;
+
+  @include tablet {
+    width: auto;
+  }
 }
 
 .book-selection__note {
@@ -294,27 +322,5 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
 .book-selection__button-icon {
   width: 1rem;
   height: 1rem;
-}
-
-@media (max-width: 760px) {
-  .dashboard__main {
-    padding: var(--space-lg);
-  }
-
-  .current-book {
-    grid-template-columns: 1fr;
-  }
-
-  .current-book__cover {
-    width: min(100%, 13rem);
-  }
-
-  .book-selection__actions {
-    flex-direction: column;
-  }
-
-  .book-selection__actions .button {
-    width: 100%;
-  }
 }
 </style>
