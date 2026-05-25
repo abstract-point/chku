@@ -2,12 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\Book;
 use App\Models\ReadingCycle;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -78,11 +77,6 @@ class CycleHistoryApiTest extends TestCase
 
     public function test_proposer_can_edit_active_cycle_book_before_archive(): void
     {
-        Storage::fake('public');
-        Http::fake([
-            '*' => Http::response($this->fakeJpeg(), 200, ['Content-Type' => 'image/jpeg']),
-        ]);
-
         $this->seed(DatabaseSeeder::class);
         $cycle = ReadingCycle::with('proposer.user')->where('cycle_number', 42)->firstOrFail();
         $user = $cycle->proposer->user;
@@ -92,7 +86,6 @@ class CycleHistoryApiTest extends TestCase
             'author' => 'Дэниел Киз',
             'description' => 'Уточнённое описание книги.',
             'genreId' => 2,
-            'coverUrl' => 'https://example.com/cover.jpg',
         ]);
 
         $response->assertOk();
@@ -100,10 +93,6 @@ class CycleHistoryApiTest extends TestCase
         $this->assertDatabaseHas('books', [
             'id' => $cycle->book_id,
             'title' => 'Цветы для Элджернона. Исправленное название',
-        ]);
-        $this->assertDatabaseHas('book_covers', [
-            'book_id' => $cycle->book_id,
-            'cover_source' => 'search_result',
         ]);
     }
 
@@ -121,81 +110,22 @@ class CycleHistoryApiTest extends TestCase
     public function test_admin_can_edit_completed_cycle_book_cover(): void
     {
         Storage::fake('public');
-        Http::fake([
-            '*' => Http::response($this->fakeJpeg(), 200, ['Content-Type' => 'image/jpeg']),
-        ]);
 
         $this->seed(DatabaseSeeder::class);
         $user = User::where('email', 'admin@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('cycle_number', 10)->firstOrFail();
 
-        $response = $this->actingAs($user)->patchJson('/api/cycles/10/book', [
+        $file = UploadedFile::fake()->image('cover.jpg');
+        $response = $this->actingAs($user)->patch('/api/cycles/10/book', [
             'title' => 'Тёмная башня',
             'author' => 'Стивен Кинг',
             'description' => 'Обновленная карточка книги.',
-            'coverUrl' => 'https://example.com/cover.jpg',
+            'coverFile' => $file,
         ]);
 
         $response->assertOk();
         $this->assertDatabaseHas('book_covers', [
             'book_id' => $cycle->book_id,
-            'cover_source' => 'search_result',
         ]);
-    }
-
-    public function test_book_cover_search_is_normalized(): void
-    {
-        Http::fake([
-            'googleapis.com/*' => Http::response([
-                'items' => [[
-                    'volumeInfo' => [
-                        'title' => 'Dune',
-                        'authors' => ['Frank Herbert'],
-                        'imageLinks' => [
-                            'thumbnail' => 'https://example.com/dune.jpg',
-                            'smallThumbnail' => 'https://example.com/dune-sm.jpg',
-                        ],
-                    ],
-                ]],
-            ]),
-            'openlibrary.org/*' => Http::response([
-                'docs' => [[
-                    'cover_i' => 12345,
-                ]],
-            ]),
-        ]);
-
-        $this->seed(DatabaseSeeder::class);
-        $user = User::where('email', 'pavel@example.com')->firstOrFail();
-
-        $response = $this->actingAs($user)->getJson('/api/books/covers/search?title=Dune&author=Frank%20Herbert');
-
-        $response->assertOk();
-        $response->assertJsonPath('data.0.source', 'google_books');
-        $response->assertJsonPath('data.0.coverUrl', 'https://example.com/dune.jpg');
-    }
-
-    public function test_book_cover_search_requires_title_or_isbn(): void
-    {
-        Http::fake();
-
-        $this->seed(DatabaseSeeder::class);
-        $user = User::where('email', 'pavel@example.com')->firstOrFail();
-
-        $response = $this->actingAs($user)->getJson('/api/books/covers/search');
-
-        $response->assertUnprocessable();
-        Http::assertNothingSent();
-    }
-
-    private function fakeJpeg(): string
-    {
-        $image = imagecreatetruecolor(10, 10);
-        ob_start();
-        imagejpeg($image);
-        $data = ob_get_clean();
-        imagedestroy($image);
-
-        return $data;
     }
 }
