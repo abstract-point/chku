@@ -39,7 +39,7 @@ const form = reactive({
   coverFile: null as File | null,
 })
 
-  watch(
+watch(
   () => props.book,
   (book) => {
     form.title = book.title

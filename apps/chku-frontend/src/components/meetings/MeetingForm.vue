@@ -41,7 +41,9 @@ const dayOptions = computed(() => [
   ...Array.from({ length: 31 }, (_, i) => ({ label: String(i + 1), value: i + 1 })),
 ])
 
-const monthOptions = computed(() => tm('meetings.months').map((name: string, i: number) => ({ label: name, value: i + 1 })))
+const monthOptions = computed(() =>
+  tm('meetings.months').map((name: string, i: number) => ({ label: name, value: i + 1 })),
+)
 
 const years = computed(() => {
   const current = new Date().getFullYear()

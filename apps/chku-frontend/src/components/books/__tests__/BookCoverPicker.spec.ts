@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import BookCoverPicker from '../BookCoverPicker.vue'
 
-function mountPicker(props: {
-  coverFile?: File | null
-} = {}) {
+function mountPicker(
+  props: {
+    coverFile?: File | null
+  } = {},
+) {
   return mount(BookCoverPicker, {
     props: {
       coverFile: props.coverFile ?? null,
