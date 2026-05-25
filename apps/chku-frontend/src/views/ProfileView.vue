@@ -2,7 +2,15 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { BookOpen, CalendarCheck, ListOrdered, MessageSquare, Settings, Sparkles, Star } from '@lucide/vue'
+import {
+  BookOpen,
+  CalendarCheck,
+  ListOrdered,
+  MessageSquare,
+  Settings,
+  Sparkles,
+  Star,
+} from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useBookQueueQuery } from '@/queries/bookQueueQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
@@ -198,47 +206,47 @@ main.profile.container
   font-size: clamp(2rem, 4vw, 2.5rem);
 }
 
-  .profile__owls {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-md);
-  }
+.profile__owls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
 
-  .profile__owl-stat {
-    display: grid;
-    gap: var(--space-xs);
-    padding: var(--space-md);
-    border: var(--border-width) solid var(--border);
-    border-radius: var(--radius-inner);
-    background: var(--bg-panel);
-    text-align: center;
-  }
+.profile__owl-stat {
+  display: grid;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-panel);
+  text-align: center;
+}
 
-  .profile__owl-icon {
-    width: 2rem;
-    height: 2rem;
-    margin: 0 auto;
-  }
+.profile__owl-icon {
+  width: 2rem;
+  height: 2rem;
+  margin: 0 auto;
+}
 
-  .profile__owl-icon--gold {
-    filter: invert(78%) sepia(35%) saturate(800%) hue-rotate(355deg) brightness(95%) contrast(90%);
-  }
+.profile__owl-icon--gold {
+  filter: invert(78%) sepia(35%) saturate(800%) hue-rotate(355deg) brightness(95%) contrast(90%);
+}
 
-  .profile__owl-icon--silver {
-    filter: invert(82%) sepia(8%) saturate(200%) hue-rotate(170deg) brightness(95%);
-  }
+.profile__owl-icon--silver {
+  filter: invert(82%) sepia(8%) saturate(200%) hue-rotate(170deg) brightness(95%);
+}
 
-  .profile__owl-icon--bronze {
-    filter: invert(68%) sepia(40%) saturate(600%) hue-rotate(345deg) brightness(90%);
-  }
+.profile__owl-icon--bronze {
+  filter: invert(68%) sepia(40%) saturate(600%) hue-rotate(345deg) brightness(90%);
+}
 
-  .profile__stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-md);
-  }
+.profile__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
 
-  .profile__stat {
+.profile__stat {
   display: grid;
   gap: var(--space-xs);
   padding: var(--space-md);
@@ -258,8 +266,7 @@ main.profile.container
 .profile__turn {
   border-color: var(--warn-border);
   background:
-    linear-gradient(180deg, rgba(216, 137, 43, 0.06), rgba(216, 137, 43, 0.018)),
-    var(--bg-surface);
+    linear-gradient(180deg, rgba(216, 137, 43, 0.06), rgba(216, 137, 43, 0.018)), var(--bg-surface);
 }
 
 .profile__queue {
@@ -282,8 +289,7 @@ main.profile.container
   border: var(--border-width) solid var(--accent-border);
   border-radius: var(--radius-inner);
   background:
-    linear-gradient(180deg, rgba(67, 224, 125, 0.055), rgba(67, 224, 125, 0.018)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(67, 224, 125, 0.055), rgba(67, 224, 125, 0.018)), var(--bg-panel);
 }
 
 .profile__next-book-label {
