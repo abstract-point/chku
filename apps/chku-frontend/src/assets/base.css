@@ -57,6 +57,11 @@
   --space-xl: 2.5rem;
   --container-width: 90rem;
   --border-width: 1px;
+
+  /* Breakpoints — mirror of _breakpoints.scss for CSS/container queries */
+  --bp-tablet: 768px;
+  --bp-desktop: 1024px;
+  --bp-wide: 1280px;
 }
 
 [data-theme='dark'] {

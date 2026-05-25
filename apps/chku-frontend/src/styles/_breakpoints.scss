@@ -1,0 +1,35 @@
+// Breakpoint system — mobile-first
+// Base styles apply to all screen sizes (mobile by default).
+// Use mixins to progressively enhance for larger viewports.
+
+$bp-tablet: 768px;
+$bp-desktop: 1024px;
+$bp-wide: 1280px;
+
+// Mobile-only — styles that should only apply below tablet width
+@mixin mobile-only {
+  @media (max-width: #{$bp-tablet - 1px}) {
+    @content;
+  }
+}
+
+// Tablet and up
+@mixin tablet {
+  @media (min-width: $bp-tablet) {
+    @content;
+  }
+}
+
+// Desktop and up
+@mixin desktop {
+  @media (min-width: $bp-desktop) {
+    @content;
+  }
+}
+
+// Wide desktop and up
+@mixin wide {
+  @media (min-width: $bp-wide) {
+    @content;
+  }
+}
