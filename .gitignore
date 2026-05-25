@@ -37,3 +37,6 @@ Thumbs.db
 .codegraph
 .fresh
 /data/
+
+context.yaml
+.context/

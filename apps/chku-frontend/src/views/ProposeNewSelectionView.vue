@@ -311,9 +311,10 @@ main.proposal.container
                     | {{ $t('books.cancel') }}
                 p.proposal__error(v-if="updateQueueItem.error.value") {{ $t('books.editError') }}
             template(v-else)
-              p.proposal__book-meta(v-if="item.description") {{ item.description }}
-              p.proposal__book-reason(v-if="item.reason")
-                span {{ $t('books.whyPrefix', { reason: item.reason }) }}
+              .proposal__book-content(v-if="item.description || item.reason")
+                p.proposal__book-meta(v-if="item.description") {{ item.description }}
+                p.proposal__book-reason(v-if="item.reason")
+                  span {{ $t('books.whyPrefix', { reason: item.reason }) }}
             .proposal__book-actions
               button.button.button--secondary.label-text(
                 v-if="index !== 0"
@@ -365,13 +366,14 @@ main.proposal.container
                 h3.proposal__book-title {{ item.title }}
                 p.proposal__book-author {{ item.author }}
               span.badge.badge--sm.badge--danger {{ $t('books.rejectedBadge') }}
-            p.proposal__book-meta(v-if="item.description") {{ item.description }}
-            p.proposal__book-reason(v-if="item.reason")
-              span {{ $t('books.whyPrefix', { reason: item.reason }) }}
-            .proposal__book-rejection(v-if="item.rejectionInfo")
-              | {{ $t('books.rejectedBy', { date: formatDate(item.rejectionInfo.rejectedAt) }) }}
-              template(v-if="item.rejectionInfo.rejectedByMembers.length")
-                | · {{ $t('books.readBy', { members: item.rejectionInfo.rejectedByMembers.join(', ') }) }}
+            .proposal__book-content(v-if="item.description || item.reason || item.rejectionInfo")
+              p.proposal__book-meta(v-if="item.description") {{ item.description }}
+              p.proposal__book-reason(v-if="item.reason")
+                span {{ $t('books.whyPrefix', { reason: item.reason }) }}
+              .proposal__book-rejection(v-if="item.rejectionInfo")
+                | {{ $t('books.rejectedBy', { date: formatDate(item.rejectionInfo.rejectedAt) }) }}
+                template(v-if="item.rejectionInfo.rejectedByMembers.length")
+                  | · {{ $t('books.readBy', { members: item.rejectionInfo.rejectedByMembers.join(', ') }) }}
 </template>
 
 <style scoped lang="scss">
@@ -654,9 +656,7 @@ main.proposal.container
   overflow-wrap: break-word;
 }
 
-.proposal__book-meta,
-.proposal__book-reason,
-.proposal__book-rejection,
+.proposal__book-content,
 .proposal__book-edit {
   grid-area: content;
   margin: var(--space-xs) 0 0;
@@ -664,6 +664,18 @@ main.proposal.container
   color: var(--text-muted);
   line-height: 1.4;
   overflow-wrap: break-word;
+}
+
+.proposal__book-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.proposal__book-meta,
+.proposal__book-reason,
+.proposal__book-rejection {
+  margin: 0;
 }
 
 .proposal__book-reason span {

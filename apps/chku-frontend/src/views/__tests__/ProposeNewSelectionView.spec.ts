@@ -71,6 +71,22 @@ describe('ProposeNewSelectionView', () => {
     expect(editButtons.length).toBeGreaterThan(0)
   })
 
+  it('groups queue item description and reason in one content area', () => {
+    setActivePinia(createPinia())
+    const wrapper = mountProposal()
+
+    const firstBook = wrapper.find('.proposal__book')
+    const content = firstBook.find('.proposal__book-content')
+
+    expect(content.exists()).toBe(true)
+    expect(content.find('.proposal__book-meta').text()).toBe(
+      'Документальный роман о выборе под давлением.',
+    )
+    expect(content.find('.proposal__book-reason').text()).toBe(
+      'Почему: Роман о компромиссе и достоинстве в эпоху террора.',
+    )
+  })
+
   it('opens inline edit form when edit is clicked', async () => {
     setActivePinia(createPinia())
     const wrapper = mountProposal()

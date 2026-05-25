@@ -306,6 +306,7 @@ vi.mock('@/queries/bookQueueQueries', () => ({
         status: 'queued',
         title: 'Шум времени',
         author: 'Джулиан Барнс',
+        description: 'Документальный роман о выборе под давлением.',
         reason: 'Роман о компромиссе и достоинстве в эпоху террора.',
       },
       {
@@ -330,6 +331,7 @@ vi.mock('@/queries/bookQueueQueries', () => ({
         status: 'queued',
         title: 'Шум времени',
         author: 'Джулиан Барнс',
+        description: 'Документальный роман о выборе под давлением.',
         reason: 'Роман о компромиссе и достоинстве в эпоху террора.',
       },
       {
