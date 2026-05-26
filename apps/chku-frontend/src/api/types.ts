@@ -154,6 +154,7 @@ export type ApiDashboard = {
     cycleStatus: string
   } | null
   memberProgress: {
+    id: number
     name: string
     avatarUrl?: string | null
     status?: string | null

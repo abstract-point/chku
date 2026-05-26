@@ -19,6 +19,7 @@ export type CurrentBook = {
 }
 
 export type BookProgressMember = {
+  id: number
   name: string
   avatarUrl?: string | null
   status?: string
