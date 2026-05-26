@@ -20,11 +20,19 @@ final class TelegramNotificationListener implements ShouldQueue
 
     public function handle(object $event): void
     {
+        $eventName = $this->formatter->eventName($event);
+
         if (! $this->telegram->isEnabled()) {
+            NotificationLog::create([
+                'event' => $eventName,
+                'message' => null,
+                'status' => 'skipped',
+                'payload' => $this->eventPayload($event),
+            ]);
+
             return;
         }
 
-        $eventName = $this->formatter->eventName($event);
         $message = $this->formatter->format($event);
 
         $log = NotificationLog::logEvent($eventName, $message, $this->eventPayload($event));
