@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Club;
 use App\Models\ClubMember;
 use App\Models\Genre;
+use App\Models\TurnOrder;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -18,6 +19,7 @@ class ProductionSeeder extends Seeder
         $this->seedPermissions();
         $club = $this->seedClubAndGenres();
         $this->seedAdmin($club);
+        $this->seedTurnOrder($club);
     }
 
     private function seedPermissions(): void
@@ -112,5 +114,40 @@ class ProductionSeeder extends Seeder
                 'joined_at' => now(),
             ],
         );
+    }
+
+    private function seedTurnOrder(Club $club): void
+    {
+        $existingCount = TurnOrder::where('club_id', $club->id)->count();
+        if ($existingCount > 0) {
+            $this->command?->info("{$existingCount} turn order entries already exist, skipping.");
+
+            return;
+        }
+
+        $members = ClubMember::where('club_id', $club->id)
+            ->where('is_active', true)
+            ->get();
+
+        if ($members->isEmpty()) {
+            $this->command?->warn('No active members found, skipping turn order.');
+
+            return;
+        }
+
+        $previous = null;
+
+        foreach ($members as $member) {
+            $order = TurnOrder::create([
+                'club_id' => $club->id,
+                'club_member_id' => $member->id,
+                'next_turn_order_id' => null,
+            ]);
+
+            $previous?->update(['next_turn_order_id' => $order->id]);
+            $previous = $order;
+        }
+
+        $this->command?->info("Seeded {$members->count()} turn order entries.");
     }
 }
