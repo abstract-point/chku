@@ -47,6 +47,17 @@ main.member-detail.container(v-else-if="member")
           h1.member-detail__name {{ member.name }}
           p.subtitle-italic {{ $t('memberDetail.memberSince', { year: member.memberSince }) }}
 
+      .member-detail__owls(:aria-label="t('profile.owlsAria')")
+        .member-detail__owl-stat
+          img.member-detail__owl-icon.member-detail__owl-icon--gold(src="/favicon.svg" :alt="t('profile.owlGold')")
+          span.member-detail__stat-value {{ member.stats.goldOwls }}
+        .member-detail__owl-stat
+          img.member-detail__owl-icon.member-detail__owl-icon--silver(src="/favicon.svg" :alt="t('profile.owlSilver')")
+          span.member-detail__stat-value {{ member.stats.silverOwls }}
+        .member-detail__owl-stat
+          img.member-detail__owl-icon.member-detail__owl-icon--bronze(src="/favicon.svg" :alt="t('profile.owlBronze')")
+          span.member-detail__stat-value {{ member.stats.bronzeOwls }}
+
       .member-detail__stats(:aria-label="t('memberDetail.statsAria')")
         .member-detail__stat
           span.member-detail__stat-value {{ member.stats.read }}
@@ -156,14 +167,44 @@ section.panel.container(v-else aria-live="polite")
   font-size: clamp(2rem, 4vw, 2.5rem);
 }
 
+.member-detail__owls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+}
+
+.member-detail__owl-stat {
+  display: grid;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-panel);
+  text-align: center;
+}
+
+.member-detail__owl-icon {
+  width: 2rem;
+  height: 2rem;
+  margin: 0 auto;
+}
+
+.member-detail__owl-icon--gold {
+  filter: invert(78%) sepia(35%) saturate(800%) hue-rotate(355deg) brightness(95%) contrast(90%);
+}
+
+.member-detail__owl-icon--silver {
+  filter: invert(82%) sepia(8%) saturate(200%) hue-rotate(170deg) brightness(95%);
+}
+
+.member-detail__owl-icon--bronze {
+  filter: invert(68%) sepia(40%) saturate(600%) hue-rotate(345deg) brightness(90%);
+}
+
 .member-detail__stats {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-md);
-
-  @include tablet {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 .member-detail__stat {

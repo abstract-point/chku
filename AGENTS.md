@@ -149,6 +149,57 @@ Git history uses short imperative commit subjects, for example `Add reusable das
 
 Pull requests should include a concise summary, verification commands, linked issues when applicable, and screenshots or short recordings for visible UI changes. Call out skipped checks or follow-up work explicitly.
 
+## Deployment & CI/CD
+
+Deployment is automated via GitHub Actions. The workflow lives in `.github/workflows/ci.yml`.
+
+### CI Pipeline
+
+- **Pull Request to `main`**: runs frontend build (type-check + Vite) and backend tests (PHPUnit via Docker Compose).
+- **Push to `main`**: after checks pass, deploys to production via SSH using `appleboy/ssh-action@v1`, executing `make deploy` on the server.
+
+### Deploy Script
+
+`infra/deploy/deploy.sh` (called via `make deploy`) performs the full deployment cycle:
+
+1. `git fetch --all --prune` and `git reset --hard origin/main`
+2. `make prod` — rebuilds and restarts production containers
+3. `php artisan migrate --force` — applies database migrations
+4. `php artisan optimize` — caches config, routes, views, events
+5. `php artisan queue:restart` — restarts queue workers
+
+### Production Environment
+
+- GitHub Environment `production` with required secrets: `PROD_HOST`, `PROD_USER`, `PROD_SSH_KEY`, `PROD_PORT`
+- Server: VPS with Docker, git, make installed
+- Repo cloned at `/var/www/chku`
+- `.env` configured manually on first setup (never committed)
+- Caddy reverse proxy on host, proxying to container nginx on port 8080
+- Caddy config versioned in `infra/caddy/Caddyfile`
+
+### First-Time Server Setup
+
+1. Clone repo: `git clone <repo-url> /var/www/chku`
+2. Configure `.env`: `cp apps/chku-backend/.env.example apps/chku-backend/.env` and edit with production values
+3. Set up Caddy:
+   ```bash
+   sudo apt install caddy
+   # Edit infra/caddy/Caddyfile — replace YOUR_DOMAIN with the real domain
+   sudo cp infra/caddy/Caddyfile /etc/caddy/Caddyfile
+   sudo systemctl reload caddy
+   ```
+4. Start the stack: `make prod`
+5. Run first migration: use `docker compose exec` with prod compose file
+
+### Database Backups
+
+`infra/scripts/backup-db.sh` dumps the production database via `pg_dump` inside the db container.
+Run manually or via cron on the server:
+
+```
+0 3 * * * cd /var/www/chku && make backup-db
+```
+
 ## Security & Configuration Tips
 
 Do not commit secrets, local environment files, database dumps, or production credentials. Keep deployment and database work routed through the existing `infra/` scripts and Makefile targets.

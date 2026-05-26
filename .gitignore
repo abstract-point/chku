@@ -32,6 +32,9 @@ bun-debug.log*
 .DS_Store
 Thumbs.db
 
+# Database backups
+/backups/
+
 # Local Codex state
 .codex
 .codegraph

@@ -54,7 +54,6 @@ main.dashboard.container
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
-  align-items: start;
 
   @include desktop {
     display: grid;

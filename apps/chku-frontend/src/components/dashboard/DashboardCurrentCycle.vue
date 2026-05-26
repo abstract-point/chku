@@ -138,7 +138,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
       template(v-else)
         .current-book__meta
           h1 {{ book.title }}
-          p.subtitle-italic {{ book.author }}
+          p.current-book__author — {{ book.author }}
         p.body-text.current-book__description
           | {{ book.description }}
 
@@ -286,6 +286,20 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 
 .current-book__meta {
   margin-bottom: var(--space-md);
+}
+
+.current-book__meta h1 {
+  font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+.current-book__author {
+  margin-top: var(--space-xs);
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .current-book__description {

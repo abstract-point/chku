@@ -1,0 +1,16 @@
+# Caddy reverse proxy for CHKU production
+# Install Caddy on the host and copy this file:
+#   sudo apt install caddy
+#   sudo cp infra/caddy/Caddyfile /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+#
+# Replace YOUR_DOMAIN with the actual domain before copying.
+
+YOUR_DOMAIN {
+    reverse_proxy localhost:8080
+
+    header {
+        X-Forwarded-Proto https
+        -Server
+    }
+}

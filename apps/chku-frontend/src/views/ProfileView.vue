@@ -254,12 +254,8 @@ main.profile.container
 
 .profile__stats {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-md);
-
-  @include tablet {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 .profile__stat {

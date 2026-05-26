@@ -122,7 +122,7 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
       template(v-else)
         .current-book__meta
           h1 {{ candidate.book.title }}
-          p.subtitle-italic {{ candidate.book.author }}
+          p.current-book__author — {{ candidate.book.author }}
         p.body-text.current-book__description
           | {{ candidate.description || candidate.book.description }}
         .panel.panel--filled.book-selection__reason(v-if="candidate.reason")
@@ -236,8 +236,17 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
 }
 
 .current-book__meta h1 {
-  font-size: clamp(2.4rem, 5vw, 4.25rem);
-  line-height: 1;
+  font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+.current-book__author {
+  margin-top: var(--space-xs);
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .current-book__description {
