@@ -20,17 +20,24 @@ final class TelegramService
             throw new RuntimeException('TELEGRAM_BOT_TOKEN is not configured.');
         }
 
+        $payload = [
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => $parseMode,
+            'disable_web_page_preview' => true,
+        ];
+
+        $threadId = config('telegram.message_thread_id');
+        if ($threadId !== null && $threadId !== '') {
+            $payload['message_thread_id'] = (int) $threadId;
+        }
+
         $response = Http::timeout(config('telegram.timeout', 10))
             ->retry(
                 config('telegram.retry_times', 3),
                 config('telegram.retry_sleep', 100),
             )
-            ->post(self::API_BASE . $token . '/sendMessage', [
-                'chat_id' => $chatId,
-                'text' => $text,
-                'parse_mode' => $parseMode,
-                'disable_web_page_preview' => true,
-            ]);
+            ->post(self::API_BASE . $token . '/sendMessage', $payload);
 
         if (! $response->successful()) {
             Log::error('Telegram API error', [
