@@ -33,7 +33,7 @@ const form = ref<AddMemberForm>({
   password: '',
   avatar: null,
   favorite_genre_id: null,
-  joined_at: new Date().toISOString().split('T')[0],
+  joined_at: new Date().toISOString().split('T')[0]!,
   role: 'member',
 })
 
