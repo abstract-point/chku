@@ -21,6 +21,19 @@ services:
       - "9000"
     restart: unless-stopped
 
+  queue:
+    build:
+      context: ../../../apps/chku-backend
+      dockerfile: ../../infra/docker/prod/backend/Dockerfile
+    depends_on:
+      - db
+    env_file:
+      - ../../../apps/chku-backend/.env
+    volumes:
+      - backend_storage_public:/var/www/backend/storage/app/public
+    command: php artisan queue:work --tries=3 --sleep=3 --timeout=60 --rest=0
+    restart: unless-stopped
+
   db:
     image: postgres:18.3-alpine
     environment:

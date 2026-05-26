@@ -29,6 +29,24 @@ services:
     expose:
       - "9000"
 
+  queue:
+    container_name: chku-queue
+    build:
+      context: ../../../apps/chku-backend
+      dockerfile: ../../infra/docker/dev/backend/Dockerfile
+      args:
+        APP_UID: ${APP_UID:-1000}
+        APP_GID: ${APP_GID:-1000}
+    depends_on:
+      - db
+    env_file:
+      - ../../../apps/chku-backend/.env
+    volumes:
+      - ../../../apps/chku-backend:/var/www/backend
+      - backend_vendor:/var/www/backend/vendor
+    command: php artisan queue:work --tries=1 --sleep=1 --timeout=60
+    restart: unless-stopped
+
   db:
     container_name: chku-db
     image: postgres:18.3-alpine
