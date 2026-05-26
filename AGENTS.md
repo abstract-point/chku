@@ -174,8 +174,9 @@ Deployment is automated via GitHub Actions. The workflow lives in `.github/workf
 - Server: VPS with Docker, git, make installed
 - Repo cloned at `/var/www/chku`
 - `.env` configured manually on first setup (never committed)
-- Caddy reverse proxy on host, proxying to container nginx on port 8080
-- Caddy config versioned in `infra/caddy/Caddyfile`
+- Caddy reverse proxy on host, proxying to container nginx on `127.0.0.1:8080`
+- Caddy config versioned in `infra/caddy/Caddyfile` (security headers, zstd/gzip, www→non-www redirect, access logs)
+- Container nginx is bound to `127.0.0.1:8080:80` in prod compose — NOT exposed to the internet
 
 ### First-Time Server Setup
 
@@ -185,7 +186,9 @@ Deployment is automated via GitHub Actions. The workflow lives in `.github/workf
    ```bash
    sudo apt install caddy
    # Edit infra/caddy/Caddyfile — replace YOUR_DOMAIN with the real domain
+   sudo mkdir -p /var/log/caddy
    sudo cp infra/caddy/Caddyfile /etc/caddy/Caddyfile
+   sudo caddy validate --config /etc/caddy/Caddyfile
    sudo systemctl reload caddy
    ```
 4. Start the stack: `make prod`

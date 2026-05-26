@@ -2,15 +2,37 @@
 # Install Caddy on the host and copy this file:
 #   sudo apt install caddy
 #   sudo cp infra/caddy/Caddyfile /etc/caddy/Caddyfile
+#   sudo mkdir -p /var/log/caddy
+#   sudo caddy validate --config /etc/caddy/Caddyfile
 #   sudo systemctl reload caddy
 #
 # Replace YOUR_DOMAIN with the actual domain before copying.
 
-YOUR_DOMAIN {
-    reverse_proxy localhost:8080
+{
+    email admin@YOUR_DOMAIN
+}
 
+(security_headers) {
     header {
-        X-Forwarded-Proto https
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        Referrer-Policy strict-origin-when-cross-origin
+        Permissions-Policy geolocation=(), microphone=(), camera=()
         -Server
+    }
+}
+
+www.YOUR_DOMAIN {
+    redir https://YOUR_DOMAIN{uri} permanent
+}
+
+YOUR_DOMAIN {
+    encode zstd gzip
+    import security_headers
+    reverse_proxy 127.0.0.1:8080
+
+    log {
+        output file /var/log/caddy/YOUR_DOMAIN.access.log
+        format console
     }
 }
