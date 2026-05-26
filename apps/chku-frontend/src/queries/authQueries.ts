@@ -72,8 +72,8 @@ export function useLoginMutation() {
   const client = useQueryClient()
 
   return useMutation({
-    mutationFn: async (payload: { email: string; password: string; remember: boolean }) => {
-      const response = await authApi.login(payload.email, payload.password, payload.remember)
+    mutationFn: async (payload: { email: string; password: string }) => {
+      const response = await authApi.login(payload.email, payload.password)
       if (response.two_factor_required) {
         return { twoFactorRequired: true as const }
       }

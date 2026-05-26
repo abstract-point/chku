@@ -38,7 +38,7 @@ final class AuthController extends Controller
         if ($this->requiresTwoFactor($user) && $user->two_factor_confirmed_at !== null && $user->two_factor_secret) {
             $request->session()->put([
                 'login.id' => $user->id,
-                'login.remember' => $request->boolean('remember'),
+                'login.remember' => $this->shouldRemember($user),
             ]);
 
             return response()->json([
@@ -51,7 +51,7 @@ final class AuthController extends Controller
             ]);
         }
 
-        Auth::login($user, $request->boolean('remember'));
+        Auth::login($user, $this->shouldRemember($user));
         $request->session()->regenerate();
 
         $member = ClubMember::with('user', 'favoriteGenre')
@@ -167,5 +167,10 @@ final class AuthController extends Controller
     private function requiresTwoFactor(User $user): bool
     {
         return $user->hasRole('admin') || $user->hasRole('developer');
+    }
+
+    private function shouldRemember(User $user): bool
+    {
+        return ! $user->hasRole('admin') && ! $user->hasRole('developer');
     }
 }

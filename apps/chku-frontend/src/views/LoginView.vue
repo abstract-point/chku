@@ -6,7 +6,7 @@ import { Eye, EyeOff, Lock, Mail } from '@lucide/vue'
 import owlLogo from '@/assets/owl-logo.svg'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppInput from '@/components/ui/AppInput.vue'
-import AppCheckbox from '@/components/ui/AppCheckbox.vue'
+
 import { useLoginMutation, useTwoFactorChallengeMutation } from '@/queries/authQueries'
 import { useFormErrors } from '@/composables/useFormErrors'
 
@@ -21,15 +21,12 @@ const password = ref('')
 const twoFactorCode = ref('')
 const step = ref<'credentials' | 'twoFactor'>('credentials')
 const showPassword = ref(false)
-const remember = ref(false)
-
 async function submitCredentials() {
   formErrors.clearAllErrors()
   try {
     const result = await loginMutation.mutateAsync({
       email: email.value,
       password: password.value,
-      remember: remember.value,
     })
     if (result.twoFactorRequired) {
       step.value = 'twoFactor'
@@ -91,10 +88,6 @@ main.login
           )
             EyeOff(v-if="showPassword")
             Eye(v-else)
-
-      .login__options
-        AppCheckbox(v-model="remember") {{ $t('auth.remember') }}
-        button.login__forgot(type="button" disabled) {{ $t('auth.forgot') }}
 
       p.login__error(v-if="loginMutation.error.value && !Object.keys(formErrors.fieldErrors.value).length")
         | {{ loginMutation.error.value.message }}
@@ -255,33 +248,6 @@ main.login
 .login__toggle-password svg {
   width: 1rem;
   height: 1rem;
-}
-
-.login__options {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: var(--space-lg);
-  font-size: 0.85rem;
-  gap: var(--space-sm);
-
-  @include tablet {
-    flex-direction: row;
-    align-items: center;
-    gap: 0;
-  }
-}
-
-.login__forgot {
-  color: var(--accent);
-  font-size: 0.85rem;
-  text-align: right;
-}
-
-.login__forgot:disabled {
-  color: var(--text-subtle);
-  cursor: not-allowed;
 }
 
 .login__error {

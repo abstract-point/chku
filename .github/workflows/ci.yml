@@ -46,6 +46,10 @@ jobs:
     needs: checks
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
+    concurrency:
+      group: chku-production
+      cancel-in-progress: true
+
     environment:
       name: production
 
