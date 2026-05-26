@@ -2,10 +2,10 @@ FROM oven/bun:1.3.11-alpine
 
 WORKDIR /app
 
-COPY package.json bun.lock ./
+COPY apps/chku-frontend/package.json apps/chku-frontend/bun.lock ./
 RUN bun install --frozen-lockfile
 
-COPY . .
+COPY apps/chku-frontend/ .
 
 EXPOSE 5180
 

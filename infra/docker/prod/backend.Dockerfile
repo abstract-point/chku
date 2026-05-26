@@ -18,10 +18,10 @@ RUN apt-get update \
 
 COPY --from=composer:2.9 /usr/bin/composer /usr/bin/composer
 
-COPY composer.json composer.lock ./
+COPY apps/chku-backend/composer.json apps/chku-backend/composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-autoloader
 
-COPY . .
+COPY apps/chku-backend/ .
 
 RUN composer dump-autoload --optimize \
     && chown -R www-data:www-data storage bootstrap/cache

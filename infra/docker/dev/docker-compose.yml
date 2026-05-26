@@ -3,8 +3,8 @@ services:
   frontend:
     container_name: chku-frontend
     build:
-      context: ../../../apps/chku-frontend
-      dockerfile: ../../infra/docker/dev/frontend/Dockerfile
+      context: ../../..
+      dockerfile: infra/docker/dev/frontend.Dockerfile
     volumes:
       - ../../../apps/chku-frontend:/app
       - frontend_node_modules:/app/node_modules
@@ -14,8 +14,8 @@ services:
   backend:
     container_name: chku-backend
     build:
-      context: ../../../apps/chku-backend
-      dockerfile: ../../infra/docker/dev/backend/Dockerfile
+      context: ../../..
+      dockerfile: infra/docker/dev/backend.Dockerfile
       args:
         APP_UID: ${APP_UID:-1000}
         APP_GID: ${APP_GID:-1000}
@@ -30,8 +30,8 @@ services:
   queue:
     container_name: chku-queue
     build:
-      context: ../../../apps/chku-backend
-      dockerfile: ../../infra/docker/dev/backend/Dockerfile
+      context: ../../..
+      dockerfile: infra/docker/dev/backend.Dockerfile
       args:
         APP_UID: ${APP_UID:-1000}
         APP_GID: ${APP_GID:-1000}
@@ -64,7 +64,7 @@ services:
     ports:
       - "8090:80"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ../../../apps/chku-backend/storage/app/public:/var/www/backend/storage/app/public:ro
 
 volumes:

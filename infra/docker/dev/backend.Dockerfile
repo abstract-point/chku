@@ -26,7 +26,7 @@ RUN groupadd --gid ${APP_GID} app \
 
 COPY --from=composer:2.9 /usr/bin/composer /usr/bin/composer
 
-COPY composer.json composer.lock ./
+COPY apps/chku-backend/composer.json apps/chku-backend/composer.lock ./
 RUN composer install --no-interaction --prefer-dist --no-scripts --optimize-autoloader
 
 CMD ["php-fpm"]
