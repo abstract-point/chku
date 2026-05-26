@@ -8,6 +8,8 @@ PROD_DOCKER_COMPOSE := $(DOCKER_COMPOSE) -f $(PROD_COMPOSE)
 .PHONY: dev dev-build dev-down dev-logs prod prod-build prod-down prod-logs backend-install backend-key backend-migrate backend-shell backend-test deploy backup-db restore-db
 
 dev:
+	$(DEV_DOCKER_COMPOSE) down
+	$(DEV_DOCKER_COMPOSE) build
 	$(DEV_DOCKER_COMPOSE) up -d
 
 dev-build:
