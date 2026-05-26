@@ -44,6 +44,7 @@ class DashboardResource extends JsonResource
                 ?->sortByDesc(fn ($p) => $p->progress_percent ?? 0)
                 ->values()
                 ->map(fn ($p, int $index) => [
+                    'id' => $p->club_member_id,
                     'name' => $p->clubMember?->user?->name,
                     'avatarUrl' => MemberAvatar::url($p->clubMember),
                     'status' => match ($p->status->value) {
@@ -59,6 +60,7 @@ class DashboardResource extends JsonResource
                         2 => 'bronze',
                         default => null,
                     },
+                    'finishedAt' => $p->finished_at,
                 ]),
             'nextMeeting' => $this->resource->nextMeeting ? new MeetingResource($this->resource->nextMeeting) : null,
             'turnOrder' => $this->resource->turnOrder?->map(function ($to, int $index) use ($activeCandidateProposerId, $currentCycle) {
