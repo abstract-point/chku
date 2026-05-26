@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Events\MemberDeactivated;
+use App\Events\MemberJoinedClub;
 use App\Models\Club;
 use App\Models\ClubMember;
 use App\Models\User;
@@ -114,6 +116,9 @@ final class ClubMemberController extends Controller
             $this->auditLog->logMemberCreated($member, $actor);
         }
 
+        $member->load('user', 'favoriteGenre', 'club');
+        event(new MemberJoinedClub($member));
+
         return new MemberDetailResource(
             $member->load('user', 'favoriteGenre')
         );
@@ -140,6 +145,9 @@ final class ClubMemberController extends Controller
         if ($actor) {
             $this->auditLog->logMemberDeactivated($member, $actor);
         }
+
+        $member->load('user', 'club');
+        event(new MemberDeactivated($member));
 
         return response()->json([
             'message' => 'Участник деактивирован.',

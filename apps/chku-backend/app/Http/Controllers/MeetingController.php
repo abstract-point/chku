@@ -7,6 +7,12 @@ namespace App\Http\Controllers;
 use App\Enums\MeetingRsvpStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
 use App\Enums\ReadingProgressStatusEnum;
+use App\Events\CycleCompleted;
+use App\Events\MeetingFinished;
+use App\Events\MeetingRescheduled;
+use App\Events\MeetingScheduled;
+use App\Events\MeetingStarted;
+use App\Events\OwlAwardsAssigned;
 use App\Http\Resources\MeetingResource;
 use App\Models\ClubMember;
 use App\Models\Meeting;
@@ -93,6 +99,9 @@ final class MeetingController extends Controller
             $this->auditLog->logMeetingCreated($meeting, $actor);
         }
 
+        $meeting->load('readingCycle.book');
+        event(new MeetingScheduled($meeting));
+
         return new MeetingResource(
             $meeting->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
                 ->load('reschedules.actor')
@@ -138,6 +147,9 @@ final class MeetingController extends Controller
                 'new_time' => $newTime,
                 'reason' => $request->input('rescheduleReason'),
             ]);
+
+            $meeting->load('readingCycle.book');
+            event(new MeetingRescheduled($meeting, $oldDate, $oldTime, $newDate, $newTime));
         }
 
         if ($actor) {
@@ -229,6 +241,9 @@ final class MeetingController extends Controller
             $meeting->update(['started_at' => now()]);
         }
 
+        $meeting->load('readingCycle.book');
+        event(new MeetingStarted($meeting));
+
         return new MeetingResource(
             $meeting->refresh()->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
         );
@@ -271,7 +286,9 @@ final class MeetingController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($meeting, $attendingMemberIds, $stateMachine, $turnOrder): void {
+        $awards = [];
+
+        DB::transaction(function () use ($meeting, $attendingMemberIds, $stateMachine, $turnOrder, &$awards): void {
             foreach ($attendingMemberIds as $memberId) {
                 Review::firstOrCreate(
                     [
@@ -292,8 +309,16 @@ final class MeetingController extends Controller
             $turnOrder->rotateAfterCompletedCycle($meeting->readingCycle->club_id);
             $stateMachine->createCandidateForCurrentSelector($meeting->readingCycle->club_id);
 
-            $this->owlAward->awardForCompletedCycle($meeting->readingCycle, $attendingMemberIds->all());
+            $awards = $this->owlAward->awardForCompletedCycle($meeting->readingCycle, $attendingMemberIds->all());
         });
+
+        $meeting->load('readingCycle.book', 'readingCycle.proposer.user');
+
+        event(new MeetingFinished($meeting));
+        event(new CycleCompleted($meeting->readingCycle));
+        if ($awards !== []) {
+            event(new OwlAwardsAssigned($awards));
+        }
 
         return new MeetingResource(
             $meeting->refresh()->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')

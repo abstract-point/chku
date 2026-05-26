@@ -9,6 +9,11 @@ use App\Enums\BookCandidateStatusEnum;
 use App\Enums\MemberBookQueueItemStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
 use App\Enums\ReadingProgressStatusEnum;
+use App\Events\BookCandidateAwaitingConfirmation;
+use App\Events\BookCandidateConfirmed;
+use App\Events\BookCandidateProposed;
+use App\Events\BookCandidateRejected;
+use App\Events\BookCandidateReplaced;
 use App\Models\BookCandidate;
 use App\Models\BookCandidateResponse;
 use App\Models\ClubMember;
@@ -73,6 +78,9 @@ final class BookSelectionStateMachine
                 if ($candidate->queueItem) {
                     $this->bookQueue->removeFromLiveQueue($candidate->queueItem, MemberBookQueueItemStatusEnum::Rejected);
                 }
+
+                DB::afterCommit(fn () => event(new BookCandidateRejected($candidate->refresh())));
+
                 $next = $this->createCandidateFromNextQueuedItem($candidate->proposer, $candidate->readingCycle);
 
                 if ($next === null) {
@@ -95,6 +103,7 @@ final class BookSelectionStateMachine
 
             if ($allNotRead) {
                 $candidate->update(['status' => BookCandidateStatusEnum::AwaitingOwnerConfirmation]);
+                DB::afterCommit(fn () => event(new BookCandidateAwaitingConfirmation($candidate->refresh())));
             }
 
             return $candidate->refresh();
@@ -150,6 +159,8 @@ final class BookSelectionStateMachine
                     'club_member_id' => $member->id,
                     'status' => ReadingProgressStatusEnum::NotStarted,
                 ]));
+
+            DB::afterCommit(fn () => event(new BookCandidateConfirmed($candidate->refresh())));
 
             return $candidate->refresh();
         });
@@ -277,6 +288,8 @@ final class BookSelectionStateMachine
                     : BookCandidateResponseEnum::Pending,
             ]));
 
+        DB::afterCommit(fn () => event(new BookCandidateProposed($candidate)));
+
         return $candidate;
     }
 
@@ -331,6 +344,8 @@ final class BookSelectionStateMachine
                     ? BookCandidateResponseEnum::NotRead
                     : BookCandidateResponseEnum::Pending,
             ]));
+
+        DB::afterCommit(fn () => event(new BookCandidateReplaced($next)));
 
         return $next;
     }

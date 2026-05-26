@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 
 use App\Enums\ReadingCycleStatusEnum;
 use App\Enums\ReadingProgressStatusEnum;
+use App\Events\MemberFinishedReading;
+use App\Events\ReadingProgressUpdated;
 use App\Http\Resources\ReadingProgressResource;
 use App\Models\ReadingCycle;
 use App\Models\ReadingProgress;
@@ -47,6 +49,14 @@ final class ReadingProgressController extends Controller
         }
 
         $progress = ReadingProgress::updateOrCreate($attributes, $values);
+
+        $progress->load('clubMember.user', 'readingCycle.book');
+
+        event(new ReadingProgressUpdated($progress));
+
+        if ($status === ReadingProgressStatusEnum::Finished) {
+            event(new MemberFinishedReading($progress));
+        }
 
         return new ReadingProgressResource($progress->load('clubMember.user'));
     }

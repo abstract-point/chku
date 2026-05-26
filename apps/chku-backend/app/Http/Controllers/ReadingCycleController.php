@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\ReadingCycleStatusEnum;
+use App\Events\CycleCompleted;
 use App\Http\Resources\ReadingCycleResource;
 use App\Models\Rating;
 use App\Models\ReadingCycle;
@@ -87,6 +88,9 @@ final class ReadingCycleController extends Controller
             $turnOrder->rotateAfterCompletedCycle($cycle->club_id);
             $stateMachine->createCandidateForCurrentSelector($cycle->club_id);
         });
+
+        $cycle->load('book', 'proposer.user');
+        event(new CycleCompleted($cycle));
 
         return new ReadingCycleResource($cycle->refresh()->load('book.genre', 'proposer.user'));
     }

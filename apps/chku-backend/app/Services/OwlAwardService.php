@@ -17,15 +17,17 @@ final class OwlAwardService
      * Only members who attended the meeting are eligible.
      *
      * @param array<int> $attendingMemberIds
+     * @return array<int, array{memberId: int, memberName: string, medal: string}>
      */
-    public function awardForCompletedCycle(ReadingCycle $cycle, array $attendingMemberIds): void
+    public function awardForCompletedCycle(ReadingCycle $cycle, array $attendingMemberIds): array
     {
         if (empty($attendingMemberIds)) {
-            return;
+            return [];
         }
 
         /** @var Collection<int, ReadingProgress> $finished */
         $finished = ReadingProgress::query()
+            ->with('clubMember.user')
             ->where('reading_cycle_id', $cycle->id)
             ->where('status', ReadingProgressStatusEnum::Finished)
             ->whereNotNull('finished_at')
@@ -34,25 +36,42 @@ final class OwlAwardService
             ->get();
 
         if ($finished->isEmpty()) {
-            return;
+            return [];
         }
 
         $medals = [
-            0 => 'gold_owls_count',
-            1 => 'silver_owls_count',
-            2 => 'bronze_owls_count',
+            0 => 'gold',
+            1 => 'silver',
+            2 => 'bronze',
         ];
 
-        DB::transaction(function () use ($finished, $medals): void {
-            foreach ($finished->take(3) as $index => $progress) {
-                $column = $medals[$index] ?? null;
+        $awards = [];
 
-                if ($column === null) {
+        DB::transaction(function () use ($finished, $medals, &$awards): void {
+            $columns = [
+                0 => 'gold_owls_count',
+                1 => 'silver_owls_count',
+                2 => 'bronze_owls_count',
+            ];
+
+            foreach ($finished->take(3) as $index => $progress) {
+                $column = $columns[$index] ?? null;
+                $medal = $medals[$index] ?? null;
+
+                if ($column === null || $medal === null) {
                     continue;
                 }
 
                 $progress->clubMember()->increment($column);
+
+                $awards[] = [
+                    'memberId' => $progress->club_member_id,
+                    'memberName' => $progress->clubMember->user?->name ?? 'Участник',
+                    'medal' => $medal,
+                ];
             }
         });
+
+        return $awards;
     }
 }
