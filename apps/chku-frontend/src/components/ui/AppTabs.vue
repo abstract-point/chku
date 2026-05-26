@@ -26,17 +26,17 @@ function onKeydown(event: KeyboardEvent, index: number) {
   if (event.key === 'ArrowRight') {
     event.preventDefault()
     const next = (index + 1) % props.tabs.length
-    selectTab(props.tabs[next].id)
+    selectTab(props.tabs[next]!.id)
   } else if (event.key === 'ArrowLeft') {
     event.preventDefault()
     const prev = (index - 1 + props.tabs.length) % props.tabs.length
-    selectTab(props.tabs[prev].id)
+    selectTab(props.tabs[prev]!.id)
   } else if (event.key === 'Home') {
     event.preventDefault()
-    selectTab(props.tabs[0].id)
+    selectTab(props.tabs[0]!.id)
   } else if (event.key === 'End') {
     event.preventDefault()
-    selectTab(props.tabs[props.tabs.length - 1].id)
+    selectTab(props.tabs[props.tabs.length - 1]!.id)
   }
 }
 </script>

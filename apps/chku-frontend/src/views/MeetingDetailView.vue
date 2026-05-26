@@ -93,11 +93,12 @@ const hasMeetingQuorum = computed(
 )
 
 const isMeetingTime = computed(() => {
-  if (!meeting.value?.date || !meeting.value?.time) return false
+  const m = meeting.value
+  if (!m?.date || !m?.time) return false
   const now = new Date()
-  const [hours, minutes] = meeting.value.time.split(':').map(Number)
-  const meetingDate = new Date(meeting.value.date)
-  meetingDate.setHours(hours, minutes, 0, 0)
+  const [hours, minutes] = m.time.split(':').map(Number)
+  const meetingDate = new Date(m.date)
+  meetingDate.setHours(hours!, minutes!, 0, 0)
   return now >= meetingDate
 })
 const isCurrentUserAttending = computed(() => rsvpStatus.value === 'attending')

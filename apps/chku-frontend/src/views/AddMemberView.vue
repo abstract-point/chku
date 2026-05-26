@@ -17,14 +17,24 @@ const createMemberMutation = useCreateMemberMutation()
 const formErrors = useFormErrors()
 const canManageMembers = computed(() => isAdmin.value && twoFactorEnabled.value)
 
-const form = ref({
+interface AddMemberForm {
+  name: string
+  email: string
+  password: string
+  avatar: File | null
+  favorite_genre_id: number | null
+  joined_at: string
+  role: 'member' | 'admin' | 'developer'
+}
+
+const form = ref<AddMemberForm>({
   name: '',
   email: '',
   password: '',
-  avatar: null as File | null,
-  favorite_genre_id: null as number | null,
+  avatar: null,
+  favorite_genre_id: null,
   joined_at: new Date().toISOString().split('T')[0],
-  role: 'member' as 'member' | 'admin' | 'developer',
+  role: 'member',
 })
 
 async function submit() {

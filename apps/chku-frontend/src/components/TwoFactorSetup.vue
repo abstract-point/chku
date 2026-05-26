@@ -197,7 +197,7 @@ async function copyRecoveryCodes() {
 }
 
 function onDigitInput(index: number) {
-  const digit = codeDigits.value[index].replace(/\D/g, '').slice(0, 1)
+  const digit = codeDigits.value[index]!.replace(/\D/g, '').slice(0, 1)
   codeDigits.value[index] = digit
   if (digit && index < 5) {
     codeInputRefs.value[index + 1]?.focus()
