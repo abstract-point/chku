@@ -7,17 +7,6 @@ echo "[deploy] Fetching latest code..."
 git fetch --all --prune
 git reset --hard origin/main
 
-if [ -f apps/chku-backend/.env ] && grep -q '^APP_KEY=' apps/chku-backend/.env; then
-  if ! grep -qE '^APP_KEY=.+' apps/chku-backend/.env; then
-    echo "[deploy] APP_KEY is empty, generating..."
-    sed -i "s|^APP_KEY=.*|APP_KEY=base64:$(openssl rand -base64 32)|" apps/chku-backend/.env
-  fi
-else
-  echo "[deploy] APP_KEY not found, generating..."
-  [ -f apps/chku-backend/.env ] || cp apps/chku-backend/.env.example apps/chku-backend/.env
-  echo "APP_KEY=base64:$(openssl rand -base64 32)" >> apps/chku-backend/.env
-fi
-
 echo "[deploy] Building and starting production containers..."
 make prod
 
