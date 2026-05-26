@@ -286,6 +286,8 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
 }
 
 .club-progress__item {
+  flex-direction: row;
+  align-items: center;
   min-height: 3.4rem;
   padding: 0.7rem var(--space-md);
 }

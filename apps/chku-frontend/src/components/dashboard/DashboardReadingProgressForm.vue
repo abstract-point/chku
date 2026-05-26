@@ -137,7 +137,7 @@ form.reading-progress-form(@submit.prevent="submitForm")
   background: linear-gradient(
     90deg,
     var(--accent) 0 var(--range-value),
-    rgba(255, 255, 255, 0.12) var(--range-value) 100%
+    var(--border) var(--range-value) 100%
   );
 }
 
@@ -155,7 +155,7 @@ form.reading-progress-form(@submit.prevent="submitForm")
 .reading-progress-form__slider input::-moz-range-track {
   height: 0.2rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border);
 }
 
 .reading-progress-form__slider input::-moz-range-progress {

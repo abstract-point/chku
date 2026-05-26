@@ -23,6 +23,7 @@ const statusFilter = ref<'all' | 'active' | 'inactive'>('all')
 const actionError = ref('')
 const canManageMembers = computed(() => isAdmin.value && twoFactorEnabled.value)
 const members = computed(() => membersQuery.data.value ?? [])
+const activeMemberCount = computed(() => members.value.filter((m) => m.isActive).length)
 const filteredMembers = computed(() => {
   const normalizedQuery = searchQuery.value.trim().toLocaleLowerCase('ru')
 
@@ -57,7 +58,7 @@ main.members.container
   .members__header
     .members__heading
       h1.members__title {{ $t('members.title') }}
-      span.label-text {{ $t('members.count', { n: members.length }) }}
+      span.label-text {{ $t('members.count', { n: activeMemberCount }) }}
     .members__toolbar
       label.members__search
         Search.members__search-icon(:size="18" aria-hidden="true")

@@ -72,7 +72,7 @@ function onInput(event: Event) {
   background: linear-gradient(
     90deg,
     var(--accent) 0 var(--range-value),
-    rgba(255, 255, 255, 0.12) var(--range-value) 100%
+    var(--border) var(--range-value) 100%
   );
 }
 
@@ -90,7 +90,7 @@ function onInput(event: Event) {
 .app-range-input__slider::-moz-range-track {
   height: 0.2rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--border);
 }
 
 .app-range-input__slider::-moz-range-progress {
