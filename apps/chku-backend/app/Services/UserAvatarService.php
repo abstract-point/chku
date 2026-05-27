@@ -55,7 +55,7 @@ final class UserAvatarService
         }
 
         $path = "avatars/users/{$user->id}.jpg";
-        Storage::disk('local')->put($path, $contents);
+        Storage::disk('public')->put($path, $contents);
 
         return $path;
     }

@@ -55,11 +55,11 @@ final class ClubMemberController extends Controller
 
         $path = $member->loadMissing('user')->user?->avatar_path;
 
-        if (! $path || ! Storage::disk('local')->exists($path)) {
+        if (! $path || ! Storage::disk('public')->exists($path)) {
             abort(404);
         }
 
-        return Storage::disk('local')->response($path, null, [
+        return Storage::disk('public')->response($path, null, [
             'Cache-Control' => 'private, max-age=86400',
         ]);
     }

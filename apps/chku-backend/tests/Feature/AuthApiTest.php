@@ -109,12 +109,12 @@ class AuthApiTest extends TestCase
         ]);
 
         $response->assertOk();
-        $response->assertJsonPath('data.avatarUrl', "/api/members/{$user->clubMember->id}/avatar");
+        $response->assertJsonPath('data.avatarUrl', "/storage/avatars/users/{$user->id}.jpg");
 
         $path = $user->refresh()->avatar_path;
         $this->assertSame("avatars/users/{$user->id}.jpg", $path);
-        Storage::disk('local')->assertExists($path);
-        $this->assertSame([256, 256], array_slice(getimagesize(Storage::disk('local')->path($path)), 0, 2));
+        Storage::disk('public')->assertExists($path);
+        $this->assertSame([256, 256], array_slice(getimagesize(Storage::disk('public')->path($path)), 0, 2));
     }
 
     public function test_authenticated_user_can_update_password(): void

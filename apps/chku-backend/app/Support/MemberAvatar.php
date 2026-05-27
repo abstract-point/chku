@@ -18,6 +18,6 @@ final class MemberAvatar
             return null;
         }
 
-        return route('members.avatar', ['member' => $member->id], absolute: false);
+        return '/storage/' . $member->user->avatar_path;
     }
 }

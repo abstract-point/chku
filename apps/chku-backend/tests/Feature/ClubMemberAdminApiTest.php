@@ -65,8 +65,8 @@ class ClubMemberAdminApiTest extends TestCase
         $response->assertCreated();
         $user = User::where('email', 'new@example.com')->firstOrFail();
 
-        $response->assertJsonPath('data.avatarUrl', "/api/members/{$user->clubMember->id}/avatar");
-        Storage::disk('local')->assertExists($user->avatar_path);
+        $response->assertJsonPath('data.avatarUrl', "/storage/avatars/users/{$user->id}.jpg");
+        Storage::disk('public')->assertExists($user->avatar_path);
     }
 
     public function test_members_list_places_inactive_members_last(): void
