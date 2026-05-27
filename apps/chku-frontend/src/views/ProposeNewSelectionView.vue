@@ -95,31 +95,6 @@ function submitBook() {
   )
 }
 
-function statusLabel(status: string) {
-  return (
-    {
-      queued: t('books.statusQueued'),
-      in_verification: t('books.statusVerification'),
-      approved: t('books.statusApproved'),
-      rejected: t('books.statusRejected'),
-      removed: t('books.statusRemoved'),
-    }[status] ?? status
-  )
-}
-
-function itemBadge(item: BookQueueItem) {
-  if (item.isCurrentCandidate) return t('books.inProposal')
-  if (nextCandidate.value?.id === item.id) return t('books.nextCandidate')
-  return statusLabel(item.status)
-}
-
-function itemBadgeClass(item: BookQueueItem) {
-  return {
-    'badge--done': item.isCurrentCandidate,
-    'badge--action': nextCandidate.value?.id === item.id && !item.isCurrentCandidate,
-  }
-}
-
 function promote(item: BookQueueItem) {
   if (!item.canBecomeCandidate || makeCandidate.isPending.value) return
   makeCandidate.mutate(item.id)
@@ -267,7 +242,7 @@ main.proposal.container
           article.proposal__book(
             v-for="(item, index) in items"
             :key="item.id"
-            :class="{ 'proposal__book--active': item.isCurrentCandidate, 'proposal__book--next': nextCandidate?.id === item.id && !item.isCurrentCandidate }"
+            :class="{ 'proposal__book--active': item.isCurrentCandidate }"
           )
             .proposal__book-cover(
               :style="{ '--cover-color': item.coverColor ?? undefined }"
@@ -279,8 +254,7 @@ main.proposal.container
               .proposal__book-title-wrap
                 h3.proposal__book-title {{ item.title }}
                 p.proposal__book-author {{ item.author }}
-              span.badge.badge--sm(:class="itemBadgeClass(item)")
-                | {{ itemBadge(item) }}
+
             template(v-if="editingId === item.id")
               .proposal__book-edit
                 .proposal__field
@@ -561,12 +535,6 @@ main.proposal.container
   border-color: var(--accent-border);
   background:
     linear-gradient(180deg, rgba(67, 224, 125, 0.055), rgba(67, 224, 125, 0.018)), var(--bg-panel);
-}
-
-.proposal__book--next {
-  border-color: var(--warn-border);
-  background:
-    linear-gradient(180deg, rgba(216, 137, 43, 0.07), rgba(216, 137, 43, 0.018)), var(--bg-panel);
 }
 
 .proposal__book--rejected {
