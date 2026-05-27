@@ -55,7 +55,7 @@ const membersWithMedals = computed<LeaderboardMember[]>(() => {
       return { ...m, medal: medals[medalIndex++] }
     }
     return { ...m, medal: null }
-  })
+  }) as LeaderboardMember[]
 })
 
 const leaderboardCount = computed(() => membersWithMedals.value.length)
