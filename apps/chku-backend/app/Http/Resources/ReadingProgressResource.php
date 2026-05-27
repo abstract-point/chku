@@ -16,6 +16,7 @@ class ReadingProgressResource extends JsonResource
             'progressPercent' => $this->progress_percent,
             'currentPage' => $this->current_page,
             'notes' => $this->notes,
+            'finishedAt' => $this->finished_at,
         ];
     }
 }

@@ -197,6 +197,7 @@ export type ApiReadingProgress = {
   progressPercent: number | null
   currentPage: number | null
   notes: string | null
+  finishedAt?: string | null
 }
 
 export type ApiAuthUser = {

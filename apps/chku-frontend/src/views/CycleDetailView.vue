@@ -18,6 +18,55 @@ const cycle = computed(() => cycleQuery.data.value)
 const meeting = computed(() => cycle.value?.meeting)
 const isEditingBook = ref(false)
 
+type LeaderboardMember = {
+  id: number
+  name: string
+  avatarUrl?: string | null
+  progress: number
+  medal: 'gold' | 'silver' | 'bronze' | null
+  finishedAt?: string | null
+}
+
+const membersWithMedals = computed<LeaderboardMember[]>(() => {
+  const mapped = (cycle.value?.memberProgress ?? []).map((p) => ({
+    id: p.member.id,
+    name: p.member.name,
+    avatarUrl: p.member.avatarUrl,
+    progress: p.progressPercent ?? 0,
+    finishedAt: p.finishedAt ?? null,
+    medal: null as LeaderboardMember['medal'],
+  }))
+  const sorted = [...mapped].sort((a, b) => {
+    const diff = b.progress - a.progress
+    if (diff !== 0) return diff
+    if (a.finishedAt && b.finishedAt) {
+      return new Date(a.finishedAt).getTime() - new Date(b.finishedAt).getTime()
+    }
+    if (a.finishedAt) return -1
+    if (b.finishedAt) return 1
+    return 0
+  })
+  const hasFinished = sorted.some((m) => m.progress >= 100)
+  if (!hasFinished) return sorted
+  const medals: NonNullable<LeaderboardMember['medal']>[] = ['gold', 'silver', 'bronze']
+  let medalIndex = 0
+  return sorted.map((m) => {
+    if (m.progress >= 100 && medalIndex < medals.length) {
+      return { ...m, medal: medals[medalIndex++] }
+    }
+    return { ...m, medal: null }
+  })
+})
+
+const leaderboardCount = computed(() => membersWithMedals.value.length)
+
+function medalLabel(medal: LeaderboardMember['medal']) {
+  if (medal === 'gold') return t('dash.medalGold')
+  if (medal === 'silver') return t('dash.medalSilver')
+  if (medal === 'bronze') return t('dash.medalBronze')
+  return ''
+}
+
 watch(
   cycle,
   (value) => {
@@ -129,23 +178,27 @@ main.cycle-detail.container
             :readonly="true"
           )
 
-      aside.cycle-detail__sidebar(:aria-label="t('archiveBook.bookSummaryAria')")
+      aside.cycle-detail__sidebar
         section.panel
           .section-header.section-header--compact
-            span.label-text {{ $t('archiveBook.cycleSummary') }}
-          ul.data-list
-            li.data-list__item
-              span.label-text.cycle-detail__muted {{ $t('archiveBook.genre') }}
-              span.badge.label-text {{ cycle.genreLabel }}
-            li.data-list__item
-              span.label-text.cycle-detail__muted {{ $t('archiveBook.completed') }}
-              span.label-text {{ cycle.completedLabel ?? cycle.statusLabel }}
-            li.data-list__item
-              span.label-text.cycle-detail__muted {{ $t('archiveBook.meeting') }}
-              span.label-text {{ meeting ? formatDateLabel(meeting.date ?? undefined) : cycle.meetingLabel }}
-            li.data-list__item
-              span.label-text.cycle-detail__muted {{ $t('archiveBook.rating') }}
-              span.label-text {{ cycle.rating.toFixed(1) }}/10
+            span.label-text {{ $t('dash.clubProgress') }}
+            span.label-text {{ $t('dash.clubProgressCount', { n: leaderboardCount }) }}
+          ul.data-list.cycle-detail__leaderboard
+            li.data-list__item.cycle-detail__leaderboard-item(v-for="member in membersWithMedals" :key="member.id")
+              .cycle-detail__leaderboard-member
+                UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" size="sm")
+                span.label-text {{ member.name }}
+                img.cycle-detail__owl(
+                  v-if="member.medal"
+                  :class="`cycle-detail__owl--${member.medal}`"
+                  src="/favicon.svg"
+                  :alt="medalLabel(member.medal)"
+                  :title="medalLabel(member.medal)"
+                )
+              .cycle-detail__leaderboard-progress
+                .progress(:aria-label="`${member.name}: ${member.progress}%`")
+                  .progress__bar(:style="{ '--progress-value': `${member.progress}%` }")
+                span.label-text {{ member.progress }}%
         section.panel.cycle-detail__meeting(v-if="meeting")
           .section-header.section-header--compact
             span.label-text {{ $t('archiveBook.meetingArchive') }}
@@ -317,6 +370,57 @@ main.cycle-detail.container
 .cycle-detail__message {
   padding-bottom: var(--space-md);
   border-bottom: var(--border-width) solid var(--border);
+}
+
+.cycle-detail__leaderboard {
+  margin: 0;
+}
+
+.cycle-detail__leaderboard-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  min-height: 3rem;
+  padding: 0.5rem var(--space-md);
+}
+
+.cycle-detail__leaderboard-member {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.cycle-detail__leaderboard-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 9rem;
+}
+
+.cycle-detail__leaderboard-progress .progress {
+  flex: 1;
+  margin: 0;
+}
+
+.cycle-detail__owl {
+  width: 1rem;
+  height: 1rem;
+  margin-left: var(--space-xs);
+  vertical-align: middle;
+}
+
+.cycle-detail__owl--gold {
+  filter: invert(78%) sepia(35%) saturate(800%) hue-rotate(355deg) brightness(95%) contrast(90%);
+}
+
+.cycle-detail__owl--silver {
+  filter: invert(82%) sepia(8%) saturate(200%) hue-rotate(170deg) brightness(95%);
+}
+
+.cycle-detail__owl--bronze {
+  filter: invert(68%) sepia(40%) saturate(600%) hue-rotate(345deg) brightness(90%);
 }
 
 .cycle-detail__icon {
