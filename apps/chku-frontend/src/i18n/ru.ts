@@ -1,4 +1,12 @@
 export default {
+  genrePicker: {
+    add: 'Добавить жанр',
+    title: 'Выбери жанры',
+    done: 'Готово',
+    favGenres: 'Любимые жанры',
+    bookGenres: 'Жанры книги',
+  },
+
   common: {
     loading: 'Загружаем…',
     saving: 'Сохраняем…',
