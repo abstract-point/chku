@@ -93,6 +93,14 @@
   transform: translateY(1px);
 }
 
+@media (max-width: 767px) {
+  .button {
+    min-height: 2.125rem;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.65rem;
+  }
+}
+
 .button:focus-visible,
 a:focus-visible,
 input:focus-visible,
