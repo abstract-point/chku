@@ -73,7 +73,7 @@ class DashboardResource extends JsonResource
                 'status' => $isCurrentHead ? 'Текущий' : ($isUpcoming ? 'Выбирает следующую' : ''),
                 'active' => $currentCycle ? $isUpcoming : $isCurrentHead,
                 'isChoosingNow' => $activeCandidateProposerId !== null && $to->club_member_id === $activeCandidateProposerId,
-                'isCurrentCycleProposer' => $isCurrentHead && $currentCycle !== null,
+                'isCurrentCycleProposer' => $currentCycle !== null && $to->club_member_id === $currentCycle->proposer_id,
                 'cycleNumber' => $isCurrentHead ? ($currentCycle?->cycle_number) : null,
                 ];
             }),
