@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\ReadingCycle;
 use App\Models\User;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +16,7 @@ class CycleHistoryApiTest extends TestCase
 
     public function test_authenticated_user_receives_personal_cycle_history(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'pavel@example.com')->firstOrFail();
 
         $response = $this->actingAs($user)->getJson('/api/me/reading-history');
@@ -33,7 +33,7 @@ class CycleHistoryApiTest extends TestCase
 
     public function test_cycles_return_cycle_aggregates_with_current_cycle_first(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'pavel@example.com')->firstOrFail();
 
         $response = $this->actingAs($user)->getJson('/api/cycles');
@@ -55,7 +55,7 @@ class CycleHistoryApiTest extends TestCase
 
     public function test_cycle_detail_is_addressed_by_cycle_number(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'pavel@example.com')->firstOrFail();
 
         $response = $this->actingAs($user)->getJson('/api/cycles/10');
@@ -68,7 +68,7 @@ class CycleHistoryApiTest extends TestCase
 
     public function test_archive_routes_are_removed(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'pavel@example.com')->firstOrFail();
 
         $this->actingAs($user)->getJson('/api/archive')->assertNotFound();
@@ -77,7 +77,7 @@ class CycleHistoryApiTest extends TestCase
 
     public function test_proposer_can_edit_active_cycle_book_before_archive(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $cycle = ReadingCycle::with('proposer.user')->where('cycle_number', 42)->firstOrFail();
         $user = $cycle->proposer->user;
 
@@ -98,7 +98,7 @@ class CycleHistoryApiTest extends TestCase
 
     public function test_proposer_cannot_edit_completed_cycle_book(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'marina@example.com')->firstOrFail();
 
         $this->actingAs($user)->patchJson('/api/cycles/10/book', [
@@ -111,7 +111,7 @@ class CycleHistoryApiTest extends TestCase
     {
         Storage::fake('public');
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'admin@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('cycle_number', 10)->firstOrFail();
 

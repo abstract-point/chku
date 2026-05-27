@@ -36,7 +36,7 @@ use App\Models\ReadingProgress;
 use App\Models\User;
 use App\Services\BookSelectionStateMachine;
 use App\Services\TurnOrderService;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -47,7 +47,7 @@ class EventDispatchTest extends TestCase
 
     private function actingAsAdmin(): self
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $user->forceFill(['two_factor_confirmed_at' => now()])->save();
 
@@ -56,7 +56,7 @@ class EventDispatchTest extends TestCase
 
     public function test_member_joined_event_dispatched_on_store(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $user->forceFill(['two_factor_confirmed_at' => now()])->save();
         $genre = \App\Models\Genre::firstOrFail();
@@ -79,7 +79,7 @@ class EventDispatchTest extends TestCase
 
     public function test_member_deactivated_event_dispatched(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $user->forceFill(['two_factor_confirmed_at' => now()])->save();
         $member = ClubMember::whereHas('user', fn ($q) => $q->where('email', 'anna@example.com'))->firstOrFail();
@@ -97,7 +97,7 @@ class EventDispatchTest extends TestCase
     {
         Event::fake([BookCandidateProposed::class]);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->update([
             'status' => ReadingCycleStatusEnum::Completed,
             'completed_at' => now(),
@@ -114,7 +114,7 @@ class EventDispatchTest extends TestCase
     {
         Event::fake([BookCandidateRejected::class]);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
         $candidate = $this->createProposedCandidate();
@@ -134,7 +134,7 @@ class EventDispatchTest extends TestCase
     {
         Event::fake([BookCandidateAwaitingConfirmation::class]);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
         $candidate = $this->createProposedCandidate();
@@ -153,7 +153,7 @@ class EventDispatchTest extends TestCase
     {
         Event::fake([BookCandidateConfirmed::class]);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $candidate = $this->createProposedCandidate();
         $candidate->load('proposer.user');
         BookCandidateResponse::where('book_candidate_id', $candidate->id)->update([
@@ -172,7 +172,7 @@ class EventDispatchTest extends TestCase
     {
         Event::fake([BookCandidateReplaced::class]);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $candidate = $this->createProposedCandidate();
         $candidate->load('proposer.user');
 
@@ -193,7 +193,7 @@ class EventDispatchTest extends TestCase
     {
         Event::fake([ReadingProgressUpdated::class]);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
         $response = $this->actingAs($user)->patchJson('/api/reading-progress/me', [
@@ -209,7 +209,7 @@ class EventDispatchTest extends TestCase
     {
         Event::fake([MemberFinishedReading::class]);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
         $response = $this->actingAs($user)->patchJson('/api/reading-progress/me', [
@@ -225,7 +225,7 @@ class EventDispatchTest extends TestCase
     {
         Event::fake([MeetingScheduled::class]);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $user->forceFill(['two_factor_confirmed_at' => now()])->save();
         $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
@@ -250,7 +250,7 @@ class EventDispatchTest extends TestCase
     {
         Event::fake([MeetingRescheduled::class]);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $user->forceFill(['two_factor_confirmed_at' => now()])->save();
         $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
@@ -282,7 +282,7 @@ class EventDispatchTest extends TestCase
     {
         Event::fake([MeetingStarted::class]);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $user->forceFill(['two_factor_confirmed_at' => now()])->save();
         $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
@@ -327,7 +327,7 @@ class EventDispatchTest extends TestCase
     {
         Event::fake([MeetingFinished::class, CycleCompleted::class]);
 
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $user->forceFill(['two_factor_confirmed_at' => now()])->save();
         $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();

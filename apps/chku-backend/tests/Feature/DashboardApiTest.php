@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\ReadingProgressStatusEnum;
 use App\Models\ReadingCycle;
 use App\Models\User;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,7 +15,7 @@ class DashboardApiTest extends TestCase
 
     public function test_member_progress_includes_member_id_and_finished_at(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
         $progress = $cycle->readingProgress()->firstOrFail();

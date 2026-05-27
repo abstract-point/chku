@@ -1,0 +1,18 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class TestDatabaseSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $this->call(RolePermissionSeeder::class);
+        $this->call(ClubAndGenreSeeder::class);
+        $this->call(UserSeeder::class);
+        $this->call(BookSeeder::class);
+        $this->call(ArchiveDataSeeder::class);
+        $this->call(CurrentTestCycleSeeder::class);
+    }
+}

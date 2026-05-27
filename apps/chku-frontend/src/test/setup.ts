@@ -277,6 +277,7 @@ vi.mock('@/queries/meetingQueries', () => ({
       data,
       isLoading: ref(false),
       error,
+      refetch: vi.fn(),
     }
   },
   useUpdateMeetingRsvpMutation: () => mutationResult(),
@@ -286,6 +287,10 @@ vi.mock('@/queries/meetingQueries', () => ({
   useUpdateMeetingMutation: () => mutationResult(),
   useStartMeetingMutation: () => mutationResult(),
   useFinishMeetingMutation: () => mutationResult(),
+}))
+
+vi.mock('@/queries/discussionQueries', () => ({
+  useCreateDiscussionMessageMutation: () => mutationResult(),
 }))
 
 vi.mock('@/queries/candidateQueries', () => ({

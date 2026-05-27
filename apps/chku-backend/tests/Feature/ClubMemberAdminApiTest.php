@@ -6,7 +6,7 @@ use App\Models\ClubMember;
 use App\Models\TurnOrder;
 use App\Models\User;
 use App\Services\TurnOrderService;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +18,7 @@ class ClubMemberAdminApiTest extends TestCase
 
     private function actingAsAdmin(bool $withTwoFactor = true): self
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $user->assignRole('admin');
 
@@ -101,7 +101,7 @@ class ClubMemberAdminApiTest extends TestCase
 
     public function test_member_cannot_create_member(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
         $response = $this->actingAs($user)->startSession()->postJson('/api/members', [

@@ -23,7 +23,7 @@ describe('MembersView', () => {
     const wrapper = mountMembers()
 
     expect(wrapper.text()).toContain('Участники')
-    expect(wrapper.text()).toContain('6 человек в клубе')
+    expect(wrapper.text()).toContain('4 человек в клубе')
     expect(wrapper.text()).toContain('Елена Воронцова')
     expect(wrapper.text()).toContain('Михаил Корнев')
     expect(wrapper.text()).toContain('Анна Соколова')

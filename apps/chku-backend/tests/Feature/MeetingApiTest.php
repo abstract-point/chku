@@ -14,7 +14,7 @@ use App\Models\Review;
 use App\Models\TurnOrder;
 use App\Models\User;
 use App\Services\TurnOrderService;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,7 +24,7 @@ class MeetingApiTest extends TestCase
 
     public function test_admin_can_create_physical_meeting(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
 
@@ -49,7 +49,7 @@ class MeetingApiTest extends TestCase
 
     public function test_admin_can_create_online_meeting(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
 
@@ -73,7 +73,7 @@ class MeetingApiTest extends TestCase
 
     public function test_online_meeting_requires_link(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
 
@@ -94,7 +94,7 @@ class MeetingApiTest extends TestCase
 
     public function test_physical_meeting_requires_place(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
 
@@ -115,7 +115,7 @@ class MeetingApiTest extends TestCase
 
     public function test_cannot_create_second_meeting_for_same_cycle(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
 
@@ -137,7 +137,7 @@ class MeetingApiTest extends TestCase
 
     public function test_cannot_create_meeting_for_non_active_cycle(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
 
@@ -157,7 +157,7 @@ class MeetingApiTest extends TestCase
 
     public function test_member_cannot_create_meeting(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $member = User::where('email', 'mikhail@example.com')->firstOrFail();
 
@@ -175,7 +175,7 @@ class MeetingApiTest extends TestCase
 
     public function test_admin_can_update_meeting(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
 
@@ -196,7 +196,7 @@ class MeetingApiTest extends TestCase
 
     public function test_authenticated_user_can_rsvp(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $member = User::where('email', 'mikhail@example.com')->firstOrFail();
 
@@ -213,7 +213,7 @@ class MeetingApiTest extends TestCase
 
     public function test_authenticated_user_can_add_discussion_message(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $member = User::where('email', 'anna@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', 'active')->first();
@@ -230,7 +230,7 @@ class MeetingApiTest extends TestCase
 
     public function test_cannot_reply_to_a_reply(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $member = User::where('email', 'anna@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', 'active')->first();
@@ -256,7 +256,7 @@ class MeetingApiTest extends TestCase
 
     public function test_meeting_show_returns_is_online_and_rsvps(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
@@ -273,7 +273,7 @@ class MeetingApiTest extends TestCase
 
     public function test_meeting_show_returns_ratings_and_reviews(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
@@ -305,7 +305,7 @@ class MeetingApiTest extends TestCase
 
     public function test_completed_cycle_meeting_is_returned_as_finished(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $completedCycle = ReadingCycle::where('status', 'completed')->firstOrFail();
@@ -326,7 +326,7 @@ class MeetingApiTest extends TestCase
 
     public function test_admin_can_start_meeting_for_active_cycle(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', 'active')->first();
@@ -359,7 +359,7 @@ class MeetingApiTest extends TestCase
 
     public function test_admin_cannot_start_meeting_until_all_attendees_finished_reading(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', 'active')->first();
@@ -405,7 +405,7 @@ class MeetingApiTest extends TestCase
 
     public function test_admin_cannot_start_meeting_before_scheduled_time(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', 'active')->first();
@@ -438,7 +438,7 @@ class MeetingApiTest extends TestCase
 
     public function test_admin_cannot_start_meeting_without_two_attending_members(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', 'active')->first();
@@ -468,7 +468,7 @@ class MeetingApiTest extends TestCase
 
     public function test_admin_cannot_finish_meeting_without_two_attending_members(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', 'active')->first();
@@ -504,7 +504,7 @@ class MeetingApiTest extends TestCase
 
     public function test_admin_cannot_finish_meeting_until_attending_members_rated(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', 'active')->first();
@@ -537,7 +537,7 @@ class MeetingApiTest extends TestCase
 
     public function test_admin_can_finish_meeting_complete_cycle_and_start_next_proposed_cycle(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', 'active')->first();

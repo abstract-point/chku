@@ -9,7 +9,7 @@ use App\Models\MeetingRsvp;
 use App\Models\ReadingCycle;
 use App\Models\ReadingProgress;
 use App\Services\OwlAwardService;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -27,7 +27,7 @@ class OwlAwardServiceTest extends TestCase
 
     public function test_awards_gold_silver_bronze_to_top_three_finishers(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
         $members = ClubMember::where('club_id', $cycle->club_id)
@@ -57,7 +57,7 @@ class OwlAwardServiceTest extends TestCase
 
     public function test_only_attending_members_receive_owls(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
         $members = ClubMember::where('club_id', $cycle->club_id)
@@ -85,7 +85,7 @@ class OwlAwardServiceTest extends TestCase
 
     public function test_no_owls_when_no_one_finished(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
         $member = ClubMember::where('club_id', $cycle->club_id)
@@ -101,7 +101,7 @@ class OwlAwardServiceTest extends TestCase
 
     public function test_no_owls_when_attending_list_is_empty(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
         $member = ClubMember::where('club_id', $cycle->club_id)
@@ -124,7 +124,7 @@ class OwlAwardServiceTest extends TestCase
 
     public function test_owls_are_cumulative(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
         $member = ClubMember::where('club_id', $cycle->club_id)

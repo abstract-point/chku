@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +16,7 @@ class AuthApiTest extends TestCase
 
     public function test_user_can_login_with_valid_credentials(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
         $response = $this->startSession()->postJson('/api/login', [
@@ -30,7 +30,7 @@ class AuthApiTest extends TestCase
 
     public function test_user_cannot_login_with_invalid_credentials(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $response = $this->startSession()->postJson('/api/login', [
             'email' => 'elena@example.com',
@@ -43,7 +43,7 @@ class AuthApiTest extends TestCase
 
     public function test_authenticated_user_can_fetch_me(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
         $response = $this->actingAs($user)->getJson('/api/me');
@@ -63,7 +63,7 @@ class AuthApiTest extends TestCase
 
     public function test_logout_returns_success(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
         $response = $this->actingAs($user)->startSession()->postJson('/api/logout');
@@ -74,7 +74,7 @@ class AuthApiTest extends TestCase
 
     public function test_authenticated_user_can_update_profile(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
         $genreId = \App\Models\Genre::where('slug', 'scifi')->value('id');
@@ -99,7 +99,7 @@ class AuthApiTest extends TestCase
     public function test_authenticated_user_can_upload_avatar(): void
     {
         Storage::fake('local');
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
         $response = $this->actingAs($user)->post('/api/me/avatar', [
@@ -117,7 +117,7 @@ class AuthApiTest extends TestCase
 
     public function test_authenticated_user_can_update_password(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
         $response = $this->actingAs($user)->putJson('/api/me/password', [

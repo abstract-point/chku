@@ -48,6 +48,53 @@ const startMeetingMutation = useStartMeetingMutation(meetingId)
 const finishMeetingMutation = useFinishMeetingMutation(meetingId)
 const saveRatingReviewMutation = useSaveRatingReviewMutation()
 const discussionMutation = useCreateDiscussionMessageMutation()
+const meeting = computed(() => meetingQuery.data.value)
+const isArchived = computed(() => meeting.value?.status === 'finished')
+const memberProgress = computed(() => dashboardQuery.data.value?.memberProgress ?? [])
+const rsvpStatus = ref<'attending' | 'not_attending' | 'pending'>('pending')
+const rating = ref<number | null>(null)
+const review = ref('')
+const ratingSubmitted = ref(false)
+const isFinishModalOpen = ref(false)
+const isEditingRating = ref(false)
+const minMeetingAttendees = 2
+const currentUserRating = computed(
+  () => meeting.value?.ratings.find((item) => item.memberId === user.value?.id)?.value ?? null,
+)
+const currentUserReview = computed(
+  () => meeting.value?.reviews.find((item) => item.memberId === user.value?.id)?.text ?? '',
+)
+const hasSubmittedRating = computed(() => currentUserRating.value !== null)
+const shouldShowRatingForm = computed(
+  () => meeting.value?.status === 'started' && rsvpStatus.value === 'attending',
+)
+const missingRatingAttendees = computed(() =>
+  meeting.value
+    ? meeting.value.attendees.filter((attendee) =>
+        meeting.value?.missingRatingMemberIds.includes(attendee.id),
+      )
+    : [],
+)
+const missingReadingAttendees = computed(() =>
+  meeting.value
+    ? meeting.value.attendees.filter((attendee) =>
+        meeting.value?.missingReadingMemberIds.includes(attendee.id),
+      )
+    : [],
+)
+const hasMeetingQuorum = computed(
+  () => (meeting.value?.attendees.length ?? 0) >= minMeetingAttendees,
+)
+const isMeetingTime = computed(() => {
+  if (!meeting.value?.date || !meeting.value.time) return true
+
+  return new Date(`${meeting.value.date}T${meeting.value.time}`).getTime() <= Date.now()
+})
+const isCurrentUserAttending = computed(() => rsvpStatus.value === 'attending')
+
+function canRemoveAttendee(attendee: { id: number; isAdmin?: boolean }) {
+  return attendee.id !== user.value?.id && !attendee.isAdmin
+}
 
 function handleDiscussionCreate(text: string) {
   if (!meeting.value?.cycleId) return

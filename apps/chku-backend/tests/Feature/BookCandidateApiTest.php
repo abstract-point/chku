@@ -16,7 +16,7 @@ use App\Models\TurnOrder;
 use App\Models\User;
 use App\Services\BookSelectionStateMachine;
 use App\Services\TurnOrderService;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,7 +47,7 @@ class BookCandidateApiTest extends TestCase
 
     public function test_current_member_can_answer_candidate_verification(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $this->actingAsFirstMember();
 
         $candidate = $this->createProposedCandidate();
@@ -65,7 +65,7 @@ class BookCandidateApiTest extends TestCase
 
     public function test_read_response_rejects_candidate_and_queue_item(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $this->actingAsFirstMember();
 
         $candidate = $this->createProposedCandidate();
@@ -91,7 +91,7 @@ class BookCandidateApiTest extends TestCase
 
     public function test_candidate_waits_for_owner_confirmation_when_all_active_members_have_not_read_it(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $this->actingAsFirstMember();
 
         $candidate = $this->createProposedCandidate();
@@ -112,7 +112,7 @@ class BookCandidateApiTest extends TestCase
 
     public function test_owner_can_confirm_candidate_after_current_cycle_is_completed(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $candidate = $this->createProposedCandidate();
         $candidate->load('proposer.user');
@@ -141,7 +141,7 @@ class BookCandidateApiTest extends TestCase
 
     public function test_owner_can_replace_pending_candidate_from_personal_queue(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $candidate = $this->createProposedCandidate();
         $candidate->load('proposer.user');
@@ -180,7 +180,7 @@ class BookCandidateApiTest extends TestCase
 
     public function test_owner_cannot_replace_candidate_after_all_members_answered_not_read(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
 
         $candidate = $this->createProposedCandidate();
         $candidate->load('proposer.user');

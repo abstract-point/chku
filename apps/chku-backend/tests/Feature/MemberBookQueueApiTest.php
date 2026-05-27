@@ -12,7 +12,7 @@ use App\Models\ClubMember;
 use App\Models\MemberBookQueueItem;
 use App\Models\ReadingCycle;
 use App\Models\User;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -22,7 +22,7 @@ class MemberBookQueueApiTest extends TestCase
 
     public function test_member_can_manage_own_book_queue(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $this->actingAs(User::where('email', 'elena@example.com')->firstOrFail());
 
         $create = $this->postJson('/api/me/book-queue', [
@@ -48,7 +48,7 @@ class MemberBookQueueApiTest extends TestCase
 
     public function test_member_can_reorder_linked_book_queue(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $this->actingAs(User::where('email', 'elena@example.com')->firstOrFail());
 
         $items = $this->getJson('/api/me/book-queue')
@@ -67,7 +67,7 @@ class MemberBookQueueApiTest extends TestCase
 
     public function test_member_can_list_rejected_books(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $this->actingAs($user);
 
@@ -122,7 +122,7 @@ class MemberBookQueueApiTest extends TestCase
 
     public function test_member_sees_only_own_rejected_books(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $elena = User::where('email', 'elena@example.com')->firstOrFail();
         $mikhail = User::where('email', 'mikhail@example.com')->firstOrFail();
 
@@ -150,7 +150,7 @@ class MemberBookQueueApiTest extends TestCase
 
     public function test_member_cannot_remove_another_members_queue_item(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $this->actingAs(User::where('email', 'mikhail@example.com')->firstOrFail());
 
         $item = MemberBookQueueItem::firstOrFail();

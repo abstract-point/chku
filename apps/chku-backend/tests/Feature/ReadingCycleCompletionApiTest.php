@@ -9,7 +9,7 @@ use App\Models\ReadingCycle;
 use App\Models\TurnOrder;
 use App\Models\User;
 use App\Services\TurnOrderService;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,7 +19,7 @@ class ReadingCycleCompletionApiTest extends TestCase
 
     public function test_member_can_save_rating_and_review_for_current_cycle(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $this->actingAs(User::where('email', 'elena@example.com')->firstOrFail());
 
         $response = $this->putJson('/api/reading-cycles/current/rating-review', [
@@ -34,7 +34,7 @@ class ReadingCycleCompletionApiTest extends TestCase
 
     public function test_admin_cannot_complete_cycle_until_all_active_members_rated(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
         $admin->assignRole('admin');
         $this->actingAs($admin);
@@ -45,7 +45,7 @@ class ReadingCycleCompletionApiTest extends TestCase
 
     public function test_admin_can_complete_cycle_when_all_active_members_rated(): void
     {
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $admin = User::where('email', 'elena@example.com')->firstOrFail();
         $admin->assignRole('admin');
         $this->actingAs($admin);

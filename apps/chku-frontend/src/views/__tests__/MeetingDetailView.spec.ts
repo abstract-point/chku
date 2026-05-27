@@ -64,14 +64,22 @@ describe('MeetingDetailView', () => {
 
   it('allows adding a new topic', async () => {
     const wrapper = mountMeetingDetail()
-    const input = wrapper.find('input[type="text"]')
-    const button = wrapper.find('button[type="button"]')
+    const addButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Добавить сообщение'))
+    expect(addButton).toBeTruthy()
+
+    await addButton!.trigger('click')
+
+    const input = wrapper.find('textarea')
+    const submitButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Добавить сообщение'))
 
     await input.setValue('Новая тема для обсуждения')
-    await button.trigger('click')
+    await submitButton!.trigger('click')
 
-    expect(wrapper.text()).toContain('Новая тема для обсуждения')
-    expect((input.element as HTMLInputElement).value).toBe('')
+    expect(wrapper.find('textarea').exists()).toBe(false)
   })
 
   it('shows pending participation state in participants block', () => {

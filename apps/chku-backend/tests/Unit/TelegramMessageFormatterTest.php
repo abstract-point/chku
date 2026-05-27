@@ -25,7 +25,7 @@ use App\Models\User;
 use App\Services\BookSelectionStateMachine;
 use App\Services\TelegramMessageFormatter;
 use App\Services\TurnOrderService;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -38,7 +38,7 @@ class TelegramMessageFormatterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(TestDatabaseSeeder::class);
         $this->formatter = new TelegramMessageFormatter();
     }
 
