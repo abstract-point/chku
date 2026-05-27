@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('club_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('favorite_genre_id')->nullable()->constrained('genres')->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamp('deactivated_at')->nullable();
             $table->date('joined_at');
