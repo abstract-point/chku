@@ -50,6 +50,12 @@ const saveRatingReviewMutation = useSaveRatingReviewMutation()
 const discussionMutation = useCreateDiscussionMessageMutation()
 const meeting = computed(() => meetingQuery.data.value)
 const isArchived = computed(() => meeting.value?.status === 'finished')
+const currentCycleNumber = computed(() => dashboardQuery.data.value?.currentBook?.cycleNumber ?? null)
+const cycleRoute = computed(() => {
+  if (!meeting.value) return '/'
+  if (currentCycleNumber.value === meeting.value.cycleId) return '/'
+  return `/cycles/${meeting.value.cycleId}`
+})
 const memberProgress = computed(() => dashboardQuery.data.value?.memberProgress ?? [])
 const rsvpStatus = ref<'attending' | 'not_attending' | 'pending'>('pending')
 const rating = ref<number | null>(null)
@@ -189,7 +195,7 @@ main.meeting-detail.container
     nav.meeting-detail__breadcrumb.label-text(:aria-label="t('meetings.breadcrumbAria')")
       RouterLink(to="/") {{ $t('nav.dashboard') }}
       span /
-      span {{ meeting.cycleLabel }}
+      RouterLink(:to="cycleRoute") {{ meeting.cycleLabel }}
       span /
       span.meeting-detail__breadcrumb-current {{ meeting.title }}
 
@@ -301,13 +307,13 @@ main.meeting-detail.container
                 :placeholder="t('meetings.reviewPlaceholder')"
               )
             .meeting-detail__rating-actions
-              button.button.button--primary.label-text(type="submit" :disabled="saveRatingReviewMutation.isPending.value")
-                | {{ saveRatingReviewMutation.isPending.value ? $t('meetings.savingRating') : $t('meetings.saveRating') }}
               button.button.button--ghost.label-text(
                 v-if="isEditingRating"
                 type="button"
                 @click="isEditingRating = false"
               ) {{ $t('common.cancel') }}
+              button.button.button--primary.label-text(type="submit" :disabled="saveRatingReviewMutation.isPending.value")
+                | {{ saveRatingReviewMutation.isPending.value ? $t('meetings.savingRating') : $t('meetings.saveRating') }}
             p.body-text(v-if="saveRatingReviewMutation.isSuccess.value") {{ $t('meetings.ratingSaved') }}
             p.proposal__error(v-if="saveRatingReviewMutation.error.value") {{ $t('meetings.ratingError') }}
 
@@ -835,6 +841,7 @@ main.meeting-detail.container
 
   @include tablet {
     flex-direction: row;
+    justify-content: space-between;
     align-items: center;
   }
 
@@ -981,12 +988,24 @@ main.meeting-detail.container
   color: var(--text-muted);
 }
 
+.meeting-detail__participants .data-list__item {
+  flex-direction: row;
+  align-items: center;
+}
+
 .meeting-detail__attendee {
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
+  min-width: 0;
   text-decoration: none;
   color: inherit;
+}
+
+.meeting-detail__attendee span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .meeting-detail__attendee:hover {
