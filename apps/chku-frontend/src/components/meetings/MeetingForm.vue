@@ -76,7 +76,7 @@ watch(
     reservation.value = meeting.placeReservation ?? ''
     link.value = meeting.meetingLink ?? ''
     if (meeting.date) {
-      const [y, m, d] = meeting.date.split('-').map(Number)
+      const [y = 0, m = 0, d = 0] = meeting.date.split('-').map(Number)
       year.value = y
       month.value = m
       day.value = d
