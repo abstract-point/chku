@@ -50,6 +50,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('reading-cycles/current/complete', [ReadingCycleController::class, 'completeCurrent']);
     Route::get('genres', [GenreController::class, 'index']);
 
+    Route::get('book-covers/{cover}', [BookCoverController::class, 'show']);
+    Route::get('book-covers/{cover}/thumbnail', [BookCoverController::class, 'thumbnail']);
     Route::post('books/{book}/covers', [BookCoverController::class, 'store']);
 
     Route::get('me/book-queue', [MemberBookQueueController::class, 'index']);

@@ -100,7 +100,7 @@ class AuthApiTest extends TestCase
 
     public function test_authenticated_user_can_upload_avatar(): void
     {
-        Storage::fake('local');
+        Storage::fake('public');
         $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
@@ -109,12 +109,16 @@ class AuthApiTest extends TestCase
         ]);
 
         $response->assertOk();
-        $response->assertJsonPath('data.avatarUrl', "/storage/avatars/users/{$user->id}.jpg");
+        $response->assertJsonPath('data.avatarUrl', "/api/members/{$user->clubMember->id}/avatar");
 
         $path = $user->refresh()->avatar_path;
         $this->assertSame("avatars/users/{$user->id}.jpg", $path);
         Storage::disk('public')->assertExists($path);
         $this->assertSame([256, 256], array_slice(getimagesize(Storage::disk('public')->path($path)), 0, 2));
+
+        $this->actingAs($user)->get("/api/members/{$user->clubMember->id}/avatar")
+            ->assertOk()
+            ->assertHeader('content-type', 'image/jpeg');
     }
 
     public function test_authenticated_user_can_update_password(): void

@@ -32,11 +32,11 @@ class BookCover extends Model
 
     public function getUrlAttribute(): string
     {
-        return '/storage/'.$this->cover_path;
+        return "/api/book-covers/{$this->id}";
     }
 
     public function getThumbnailUrlAttribute(): string
     {
-        return '/storage/'.$this->thumbnail_path;
+        return "/api/book-covers/{$this->id}/thumbnail";
     }
 }

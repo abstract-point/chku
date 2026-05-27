@@ -53,7 +53,7 @@ class Book extends Model
     public function getCoverUrlAttribute(): ?string
     {
         if ($this->relationLoaded('primaryCover') && $this->primaryCover) {
-            return '/storage/'.$this->primaryCover->cover_path;
+            return $this->primaryCover->url;
         }
 
         return null;

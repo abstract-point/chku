@@ -18,6 +18,6 @@ final class MemberAvatar
             return null;
         }
 
-        return '/storage/' . $member->user->avatar_path;
+        return "/api/members/{$member->id}/avatar";
     }
 }

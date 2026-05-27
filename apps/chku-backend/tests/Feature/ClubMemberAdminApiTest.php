@@ -50,7 +50,7 @@ class ClubMemberAdminApiTest extends TestCase
 
     public function test_admin_can_create_member_with_avatar(): void
     {
-        Storage::fake('local');
+        Storage::fake('public');
         $this->actingAsAdmin();
 
         $response = $this->post('/api/members', [
@@ -65,7 +65,7 @@ class ClubMemberAdminApiTest extends TestCase
         $response->assertCreated();
         $user = User::where('email', 'new@example.com')->firstOrFail();
 
-        $response->assertJsonPath('data.avatarUrl', "/storage/avatars/users/{$user->id}.jpg");
+        $response->assertJsonPath('data.avatarUrl', "/api/members/{$user->clubMember->id}/avatar");
         Storage::disk('public')->assertExists($user->avatar_path);
     }
 
