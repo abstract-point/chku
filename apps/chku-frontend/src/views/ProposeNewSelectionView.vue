@@ -193,21 +193,28 @@ main.proposal.container
             )
 
           .proposal__actions
-            button.button.button--primary.label-text(type="submit" :disabled="createQueueItem.isPending.value")
-              Plus.proposal__button-icon(v-if="!createQueueItem.isPending.value")
-              | {{ createQueueItem.isPending.value ? $t('books.adding') : $t('books.addToQueue') }}
-            p.proposal__error(v-if="createQueueItem.error.value && !Object.keys(formErrors.fieldErrors.value).length")
-              | {{ createQueueItem.error.value.message }}
+            button.button.button--secondary.label-text(
+              v-if="!isWide"
+              type="button"
+              @click="toggleForm"
+            )
+              X.proposal__button-icon
+              | {{ $t('common.cancel') }}
+            .proposal__actions-right
+              button.button.button--primary.label-text(type="submit" :disabled="createQueueItem.isPending.value")
+                Plus.proposal__button-icon(v-if="!createQueueItem.isPending.value")
+                | {{ createQueueItem.isPending.value ? $t('books.adding') : $t('books.addToQueue') }}
+              p.proposal__error(v-if="createQueueItem.error.value && !Object.keys(formErrors.fieldErrors.value).length")
+                | {{ createQueueItem.error.value.message }}
 
     section.proposal__queue(aria-labelledby="queue-title")
       button.button.button--primary.label-text.proposal__toggle-form(
-        v-if="!isWide"
+        v-if="!isWide && !showForm"
         type="button"
         @click="toggleForm"
       )
-        Plus.proposal__button-icon(v-if="!showForm")
-        X.proposal__button-icon(v-else)
-        | {{ showForm ? $t('common.cancel') : $t('books.addBook') }}
+        Plus.proposal__button-icon
+        | {{ $t('books.addBook') }}
       .section-header
         h2#queue-title {{ $t('books.queueTitle') }}
         span.label-text {{ $t('books.queueCount', { n: items.length }) }}
@@ -295,12 +302,6 @@ main.proposal.container
                     accept="image/*"
                   )
                 .proposal__edit-actions
-                  button.button.button--primary.label-text(
-                    type="button"
-                    :disabled="updateQueueItem.isPending.value"
-                    @click="saveEdit(item)"
-                  )
-                    | {{ updateQueueItem.isPending.value ? $t('books.saving') : $t('books.save') }}
                   button.button.button--secondary.label-text(
                     type="button"
                     :disabled="updateQueueItem.isPending.value"
@@ -308,6 +309,12 @@ main.proposal.container
                   )
                     X.proposal__button-icon
                     | {{ $t('books.cancel') }}
+                  button.button.button--primary.label-text(
+                    type="button"
+                    :disabled="updateQueueItem.isPending.value"
+                    @click="saveEdit(item)"
+                  )
+                    | {{ updateQueueItem.isPending.value ? $t('books.saving') : $t('books.save') }}
                 p.proposal__error(v-if="updateQueueItem.error.value") {{ $t('books.editError') }}
             template(v-else)
               .proposal__book-content(v-if="item.description")
@@ -468,13 +475,22 @@ main.proposal.container
 
 .proposal__text-input {
   width: 100%;
-  padding-left: 1rem;
+  padding: 0.65rem 0.9rem;
 }
 
 .proposal__actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-sm);
   margin-top: var(--space-xl);
+}
+
+.proposal__actions-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-sm);
 }
 
 .proposal__button-icon,
@@ -723,10 +739,10 @@ main.proposal.container
 
 .proposal__edit-actions {
   display: flex;
+  justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-sm);
   margin-top: var(--space-sm);
-  flex-direction: column;
 
   @include tablet {
     flex-direction: row;
