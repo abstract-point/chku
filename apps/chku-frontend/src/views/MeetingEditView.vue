@@ -52,6 +52,7 @@ main.container
     :is-submitting="updateMutation.isPending.value"
     :errors="formErrors.fieldErrors.value"
     @submit="handleSubmit"
+    @cancel="router.push(`/meetings/${meetingId}`)"
   )
   p.body-text(v-if="updateMutation.error.value && !Object.keys(formErrors.fieldErrors.value).length")
     | {{ updateMutation.error.value instanceof ApiError ? updateMutation.error.value.message : $t('meetings.updateError') }}
