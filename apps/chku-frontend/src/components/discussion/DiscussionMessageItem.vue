@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { CornerDownRight } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import DiscussionComposer from '@/components/discussion/DiscussionComposer.vue'
 import { formatRelativeDate } from '@/mappers/date'
@@ -8,6 +7,7 @@ import type { DiscussionMessage } from '@/types/dashboard'
 const props = defineProps<{
   message: DiscussionMessage
   isSubmitting?: boolean
+  readonly?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -31,7 +31,7 @@ import { ref, computed } from 'vue'
       time.discussion-item__time(v-if="formattedDate") {{ formattedDate }}
     p.discussion-item__text {{ message.text }}
 
-  .discussion-item__actions(v-if="message.canReply")
+  .discussion-item__actions(v-if="message.canReply && !readonly")
     button.discussion-item__reply-btn(
       type="button"
       @click="showReplyComposer = !showReplyComposer"
@@ -51,6 +51,7 @@ import { ref, computed } from 'vue'
       v-for="reply in message.replies"
       :key="reply.id"
       :message="reply"
+      :readonly="readonly"
       :is-submitting="isSubmitting"
       @reply="(parentId, text) => emit('reply', parentId, text)"
     )

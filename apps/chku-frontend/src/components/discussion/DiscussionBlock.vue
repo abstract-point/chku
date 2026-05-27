@@ -41,6 +41,7 @@ section.discussion-block(aria-labelledby="discussion-title")
       v-for="message in discussion"
       :key="message.id"
       :message="message"
+      :readonly="readonly"
       :is-submitting="isSubmitting"
       @reply="(parentId, text) => emit('reply', parentId, text)"
     )
