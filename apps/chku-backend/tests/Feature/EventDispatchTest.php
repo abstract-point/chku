@@ -98,13 +98,14 @@ class EventDispatchTest extends TestCase
         Event::fake([BookCandidateProposed::class]);
 
         $this->seed(TestDatabaseSeeder::class);
-        ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->update([
+        $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
+        $cycle->update([
             'status' => ReadingCycleStatusEnum::Completed,
             'completed_at' => now(),
         ]);
 
         $clubId = Club::firstOrFail()->id;
-        app(TurnOrderService::class)->rotateAfterCompletedCycle($clubId);
+        app(TurnOrderService::class)->rotateAfterCompletedCycle($cycle);
         app(BookSelectionStateMachine::class)->createCandidateForCurrentSelector($clubId);
 
         Event::assertDispatched(BookCandidateProposed::class);
@@ -370,14 +371,15 @@ class EventDispatchTest extends TestCase
 
     private function createProposedCandidate(): BookCandidate
     {
-        ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->update([
+        $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
+        $cycle->update([
             'status' => ReadingCycleStatusEnum::Completed,
             'completed_at' => now(),
         ]);
 
         $clubId = Club::firstOrFail()->id;
 
-        app(TurnOrderService::class)->rotateAfterCompletedCycle($clubId);
+        app(TurnOrderService::class)->rotateAfterCompletedCycle($cycle);
         app(BookSelectionStateMachine::class)->createCandidateForCurrentSelector($clubId);
 
         return BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();

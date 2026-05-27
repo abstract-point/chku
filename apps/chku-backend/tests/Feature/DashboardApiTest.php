@@ -97,4 +97,23 @@ class DashboardApiTest extends TestCase
         $this->assertSame('gold', $items[$elenaProgress->club_member_id]['medal']);
         $this->assertSame('silver', $items[$mikhailProgress->club_member_id]['medal']);
     }
+
+    public function test_turn_order_marks_current_cycle_proposer_and_next_selector(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+
+        $response = $this->actingAs($user)->getJson('/api/dashboard');
+
+        $response->assertOk();
+        $response->assertJsonPath('data.lifecycle.nextSelectorName', 'Елена Воронцова');
+
+        $items = collect($response->json('data.turnOrder'))->keyBy('name');
+
+        $this->assertTrue($items['Алексей Дмитриев']['isCurrentCycleProposer']);
+        $this->assertFalse($items['Алексей Дмитриев']['isNextSelector']);
+        $this->assertTrue($items['Елена Воронцова']['isNextSelector']);
+        $this->assertFalse($items['Елена Воронцова']['isCurrentCycleProposer']);
+    }
 }

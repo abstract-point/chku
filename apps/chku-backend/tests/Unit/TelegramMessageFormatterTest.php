@@ -184,14 +184,15 @@ class TelegramMessageFormatterTest extends TestCase
 
     private function createProposedCandidate(): BookCandidate
     {
-        ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->update([
+        $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
+        $cycle->update([
             'status' => ReadingCycleStatusEnum::Completed,
             'completed_at' => now(),
         ]);
 
         $clubId = Club::firstOrFail()->id;
 
-        app(TurnOrderService::class)->rotateAfterCompletedCycle($clubId);
+        app(TurnOrderService::class)->rotateAfterCompletedCycle($cycle);
         app(BookSelectionStateMachine::class)->createCandidateForCurrentSelector($clubId);
 
         return BookCandidate::with(['book', 'proposer.user', 'readingCycle'])

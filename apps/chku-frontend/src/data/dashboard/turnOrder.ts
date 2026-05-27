@@ -14,6 +14,7 @@ export const turnOrder = [
     avatarUrl:
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
     active: true,
+    isNextSelector: true,
   },
   {
     name: 'Алексей Дмитриев',

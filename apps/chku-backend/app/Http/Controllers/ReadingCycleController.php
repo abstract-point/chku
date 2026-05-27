@@ -85,7 +85,7 @@ final class ReadingCycleController extends Controller
                 'completed_at' => now(),
             ]);
 
-            $turnOrder->rotateAfterCompletedCycle($cycle->club_id);
+            $turnOrder->rotateAfterCompletedCycle($cycle);
             $stateMachine->createCandidateForCurrentSelector($cycle->club_id);
         });
 

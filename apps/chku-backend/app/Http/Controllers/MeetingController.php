@@ -284,7 +284,7 @@ final class MeetingController extends Controller
                 'completed_at' => now(),
             ]);
 
-            $turnOrder->rotateAfterCompletedCycle($meeting->readingCycle->club_id);
+            $turnOrder->rotateAfterCompletedCycle($meeting->readingCycle);
             $stateMachine->createCandidateForCurrentSelector($meeting->readingCycle->club_id);
 
             $awards = $this->owlAward->awardForCompletedCycle($meeting->readingCycle, $attendingMemberIds->all());

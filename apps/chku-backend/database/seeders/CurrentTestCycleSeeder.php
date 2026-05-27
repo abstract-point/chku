@@ -22,7 +22,7 @@ class CurrentTestCycleSeeder extends Seeder
     {
         $club = Club::first();
 
-        // 1. Создаём рандомную очередь из активных участников
+        // 1. Создаём стабильную очередь из активных участников
         $this->seedTurnOrder($club);
 
         $members = $this->getMembers();
@@ -135,8 +135,8 @@ class CurrentTestCycleSeeder extends Seeder
         $members = ClubMember::with('user')
             ->where('club_id', $club->id)
             ->where('is_active', true)
-            ->get()
-            ->shuffle();
+            ->orderBy('id')
+            ->get();
 
         $previous = null;
 

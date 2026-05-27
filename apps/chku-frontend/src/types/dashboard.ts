@@ -35,6 +35,7 @@ export type TurnOrderMember = {
   avatarUrl?: string | null
   status?: string
   active?: boolean
+  isNextSelector?: boolean
   isChoosingNow?: boolean
   isCurrentCycleProposer?: boolean
   hasProposedBook?: boolean

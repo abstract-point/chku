@@ -51,6 +51,8 @@ class ReadingCycleCompletionApiTest extends TestCase
         $this->actingAs($admin);
 
         $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
+        $this->assertSame(['admin@example.com', 'elena@example.com', 'mikhail@example.com'], $this->turnOrderEmails($cycle->club_id));
+
         ClubMember::where('club_id', $cycle->club_id)
             ->where('is_active', true)
             ->get()
@@ -66,17 +68,40 @@ class ReadingCycleCompletionApiTest extends TestCase
             'id' => $cycle->id,
             'status' => ReadingCycleStatusEnum::Completed->value,
         ]);
-        $turnOrderService = app(TurnOrderService::class);
-        $expectedProposerId = $turnOrderService->currentSelector($cycle->club_id)->id;
         $this->assertDatabaseHas('reading_cycles', [
             'cycle_number' => 43,
-            'proposer_id' => $expectedProposerId,
+            'proposer_id' => ClubMember::whereHas('user', fn ($query) => $query->where('email', 'elena@example.com'))->firstOrFail()->id,
             'status' => ReadingCycleStatusEnum::Proposed->value,
         ]);
-        $expectedTurnOrder = $turnOrderService->orderedTurnOrders($cycle->club_id)
-            ->map(fn (TurnOrder $order) => $order->clubMember?->user?->email)
-            ->all();
-        $this->assertSame($expectedTurnOrder, $this->turnOrderEmails($cycle->club_id));
+        $this->assertSame(['elena@example.com', 'mikhail@example.com', 'admin@example.com'], $this->turnOrderEmails($cycle->club_id));
+    }
+
+    public function test_turn_rotation_moves_completed_cycle_proposer_even_when_proposer_is_not_head(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
+        $cycle->update([
+            'proposer_id' => ClubMember::whereHas('user', fn ($query) => $query->where('email', 'elena@example.com'))->firstOrFail()->id,
+        ]);
+
+        app(TurnOrderService::class)->rotateAfterCompletedCycle($cycle);
+
+        $this->assertSame(['admin@example.com', 'mikhail@example.com', 'elena@example.com'], $this->turnOrderEmails($cycle->club_id));
+    }
+
+    public function test_turn_rotation_does_not_move_queue_when_completed_cycle_proposer_is_inactive(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
+        $cycle->update([
+            'proposer_id' => ClubMember::whereHas('user', fn ($query) => $query->where('email', 'anna@example.com'))->firstOrFail()->id,
+        ]);
+
+        app(TurnOrderService::class)->rotateAfterCompletedCycle($cycle);
+
+        $this->assertSame(['admin@example.com', 'elena@example.com', 'mikhail@example.com'], $this->turnOrderEmails($cycle->club_id));
     }
 
     private function turnOrderEmails(int $clubId): array

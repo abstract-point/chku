@@ -64,20 +64,21 @@ class DashboardResource extends JsonResource
                     'finishedAt' => $p->finished_at,
                 ]),
             'nextMeeting' => $this->resource->nextMeeting ? new MeetingResource($this->resource->nextMeeting) : null,
-            'turnOrder' => $this->resource->turnOrder?->map(function ($to, int $index) use ($activeCandidateProposerId, $currentCycle) {
+            'turnOrder' => $this->resource->turnOrder?->map(function ($to, int $index) use ($activeCandidateProposerId, $currentCycle, $nextSelector) {
                 $isCurrentHead = $index === 0;
                 $isUpcoming = $index === 1;
+                $isNextSelector = $nextSelector !== null && $to->club_member_id === $nextSelector->id;
 
                 return [
                 'name' => $to->clubMember?->user?->name,
                 'avatarUrl' => MemberAvatar::url($to->clubMember),
                 'status' => match (true) {
                     $isCurrentHead && !$currentCycle => 'Текущий',
-                    $isCurrentHead && $currentCycle => 'Выбирает следующую',
-                    $isUpcoming && !$currentCycle => 'Выбирает следующую',
+                    $isUpcoming => 'Выбирает следующую',
                     default => '',
                 },
                 'active' => $isCurrentHead,
+                'isNextSelector' => $isNextSelector,
                 'isChoosingNow' => $activeCandidateProposerId !== null && $to->club_member_id === $activeCandidateProposerId,
                 'isCurrentCycleProposer' => $currentCycle !== null && $to->club_member_id === $currentCycle->proposer_id,
                 'cycleNumber' => $isCurrentHead ? ($currentCycle?->cycle_number) : null,

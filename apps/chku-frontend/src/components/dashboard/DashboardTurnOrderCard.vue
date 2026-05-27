@@ -39,7 +39,7 @@ const allMembers = computed(() => {
     result.push({ member: currentProcessMember.value, isActive: true, isNext: false })
   }
   queueMembers.value.forEach((m) => {
-    result.push({ member: m, isActive: false, isNext: isNextTurn(m) || !!m.active })
+    result.push({ member: m, isActive: false, isNext: !!m.isNextSelector || isNextTurn(m) || !!m.active })
   })
   return result
 })

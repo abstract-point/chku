@@ -356,7 +356,7 @@ class ChatHistorySeeder extends Seeder
             'text' => 'Второе правило клуба: запрещено перебивать члена клуба во время его выступления. Другие участники могут высказаться после завершения выступления.',
         ]);
 
-        app(TurnOrderService::class)->rotateAfterCompletedCycle($this->club->id);
+        app(TurnOrderService::class)->rotateAfterCompletedCycle($cycle);
     }
 
     private function seedCycle2ZashitaLuzhina(): void
@@ -455,7 +455,7 @@ class ChatHistorySeeder extends Seeder
             'text' => 'Чем больше людей — тем больше разных мнений! Клуб расширяется, это здорово.',
         ]);
 
-        app(TurnOrderService::class)->rotateAfterCompletedCycle($this->club->id);
+        app(TurnOrderService::class)->rotateAfterCompletedCycle($cycle);
     }
 
     private function seedCycle3Ten(): void

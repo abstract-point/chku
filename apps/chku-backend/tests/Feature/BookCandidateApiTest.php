@@ -32,14 +32,15 @@ class BookCandidateApiTest extends TestCase
 
     private function createProposedCandidate(): BookCandidate
     {
-        ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->update([
+        $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
+        $cycle->update([
             'status' => ReadingCycleStatusEnum::Completed,
             'completed_at' => now(),
         ]);
 
         $clubId = Club::firstOrFail()->id;
 
-        app(TurnOrderService::class)->rotateAfterCompletedCycle($clubId);
+        app(TurnOrderService::class)->rotateAfterCompletedCycle($cycle);
         app(BookSelectionStateMachine::class)->createCandidateForCurrentSelector($clubId);
 
         return BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
@@ -123,6 +124,7 @@ class BookCandidateApiTest extends TestCase
         $candidate->update(['status' => BookCandidateStatusEnum::AwaitingOwnerConfirmation]);
 
         $this->actingAs($candidate->proposer->user);
+        $turnOrderBefore = $this->turnOrderEmails($candidate->proposer->club_id);
 
         $response = $this->postJson("/api/candidates/{$candidate->id}/confirm");
 
@@ -137,6 +139,7 @@ class BookCandidateApiTest extends TestCase
             'status' => ReadingCycleStatusEnum::Active->value,
         ]);
         $this->assertSame(43, ReadingCycle::max('cycle_number'));
+        $this->assertSame($turnOrderBefore, $this->turnOrderEmails($candidate->proposer->club_id));
     }
 
     public function test_owner_can_replace_pending_candidate_from_personal_queue(): void
@@ -152,6 +155,7 @@ class BookCandidateApiTest extends TestCase
             ->firstOrFail();
 
         $this->actingAs($candidate->proposer->user);
+        $turnOrderBefore = $this->turnOrderEmails($candidate->proposer->club_id);
 
         $response = $this->postJson("/api/me/book-queue/{$replacement->id}/candidate");
 
@@ -176,6 +180,7 @@ class BookCandidateApiTest extends TestCase
             ClubMember::where('club_id', $activeCandidate->proposer->club_id)->where('is_active', true)->count(),
             BookCandidateResponse::where('book_candidate_id', $activeCandidate->id)->count(),
         );
+        $this->assertSame($turnOrderBefore, $this->turnOrderEmails($candidate->proposer->club_id));
     }
 
     public function test_owner_cannot_replace_candidate_after_all_members_answered_not_read(): void

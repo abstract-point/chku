@@ -510,6 +510,7 @@ class MeetingApiTest extends TestCase
         $cycle = ReadingCycle::where('status', 'active')->first();
         $meeting = $cycle->meeting()->first();
         $meeting->update(['started_at' => now()]);
+        $this->assertSame(['admin@example.com', 'elena@example.com', 'mikhail@example.com'], $this->turnOrderEmails($cycle->club_id));
 
         $attendees = ClubMember::whereHas('user', fn ($query) => $query->whereIn('email', [
             'elena@example.com',
@@ -591,17 +592,13 @@ class MeetingApiTest extends TestCase
         ]);
         $this->assertDatabaseHas('reading_cycles', [
             'cycle_number' => 43,
+            'proposer_id' => ClubMember::whereHas('user', fn ($query) => $query->where('email', 'elena@example.com'))->firstOrFail()->id,
             'status' => ReadingCycleStatusEnum::Proposed->value,
         ]);
-        $turnOrderService = app(TurnOrderService::class);
-        $expectedProposerId = $turnOrderService->currentSelector($cycle->club_id)->id;
         $this->assertDatabaseHas('book_candidates', [
-            'proposer_id' => $expectedProposerId,
+            'proposer_id' => ClubMember::whereHas('user', fn ($query) => $query->where('email', 'elena@example.com'))->firstOrFail()->id,
         ]);
-        $expectedTurnOrder = $turnOrderService->orderedTurnOrders($cycle->club_id)
-            ->map(fn (TurnOrder $order) => $order->clubMember?->user?->email)
-            ->all();
-        $this->assertSame($expectedTurnOrder, $this->turnOrderEmails($cycle->club_id));
+        $this->assertSame(['elena@example.com', 'mikhail@example.com', 'admin@example.com'], $this->turnOrderEmails($cycle->club_id));
 
         // Verify owls were awarded based on finished_at order
         $first = $attendees->first();

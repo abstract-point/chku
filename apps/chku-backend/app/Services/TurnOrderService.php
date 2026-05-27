@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\ClubMember;
+use App\Models\ReadingCycle;
 use App\Models\TurnOrder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
@@ -33,11 +34,11 @@ final class TurnOrderService
         return $this->orderedTurnOrders($clubId)->skip(1)->first()?->clubMember;
     }
 
-    public function rotateAfterCompletedCycle(int $clubId): void
+    public function rotateAfterCompletedCycle(ReadingCycle $cycle): void
     {
-        DB::transaction(function () use ($clubId): void {
+        DB::transaction(function () use ($cycle): void {
             $orders = TurnOrder::query()
-                ->where('club_id', $clubId)
+                ->where('club_id', $cycle->club_id)
                 ->whereHas('clubMember', fn ($query) => $query->where('is_active', true))
                 ->lockForUpdate()
                 ->get();
@@ -47,13 +48,26 @@ final class TurnOrderService
                 return;
             }
 
-            /** @var TurnOrder $head */
-            $head = $ordered->first();
+            /** @var TurnOrder|null $order */
+            $order = $orders->firstWhere('club_member_id', $cycle->proposer_id);
+            if (! $order || $order->next_turn_order_id === null) {
+                return;
+            }
+
             /** @var TurnOrder $tail */
             $tail = $ordered->last();
 
-            $tail->update(['next_turn_order_id' => $head->id]);
-            $head->update(['next_turn_order_id' => null]);
+            /** @var TurnOrder|null $previous */
+            $previous = $orders->firstWhere('next_turn_order_id', $order->id);
+            $nextTurnOrderId = $order->next_turn_order_id;
+
+            $order->update(['next_turn_order_id' => null]);
+
+            if ($previous) {
+                $previous->update(['next_turn_order_id' => $nextTurnOrderId]);
+            }
+
+            $tail->update(['next_turn_order_id' => $order->id]);
         });
     }
 
