@@ -70,6 +70,8 @@ main.cycle-detail.container
         template(v-else)
           h1.cycle-detail__title {{ cycle.book.title }}
           p.subtitle-italic {{ cycle.book.author }}
+          .cycle-detail__genres(v-if="cycle.book.genres?.length")
+            span.badge(v-for="g in cycle.book.genres" :key="g.id") {{ g.name }}
           .cycle-detail__meta
             .cycle-detail__meta-item
               span.label-text.cycle-detail__muted {{ $t('archiveBook.chosenBy') }}
@@ -242,6 +244,19 @@ main.cycle-detail.container
 
 .cycle-detail__title {
   margin: var(--space-md) 0 var(--space-xs);
+}
+
+.cycle-detail__genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-sm);
+  margin: var(--space-md) 0;
+}
+
+.cycle-detail__genres .badge {
+  font-size: 0.6rem;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .cycle-detail__meta {

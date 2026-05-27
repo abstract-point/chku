@@ -12,10 +12,13 @@ import {
   Star,
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import GenrePicker from '@/components/GenrePicker.vue'
 import { useBookQueueQuery } from '@/queries/bookQueueQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
 import { useCurrentUserReadingHistoryQuery } from '@/queries/profileQueries'
+import { useUpdateProfileMutation } from '@/queries/authQueries'
+import { useGenresQuery } from '@/queries/genreQueries'
 import type { ProfileBook } from '@/types/club'
 
 const { t } = useI18n()
@@ -23,6 +26,9 @@ const currentUserQuery = useCurrentUserQuery()
 const dashboardQuery = useDashboardQuery()
 const bookQueueQuery = useBookQueueQuery()
 const readingHistoryQuery = useCurrentUserReadingHistoryQuery()
+const updateProfileMutation = useUpdateProfileMutation()
+const genresQuery = useGenresQuery()
+
 const currentMember = computed(() => currentUserQuery.data.value)
 const readingHistory = computed(() => readingHistoryQuery.data.value ?? [])
 const nextQueueBook = computed(
@@ -43,6 +49,22 @@ const canProposeNextBook = computed(() =>
       member.name.includes(currentMemberFirstName.value),
   ),
 )
+
+const favoriteGenreIds = computed({
+  get: () => currentMember.value?.favoriteGenres?.map((g) => g.id) ?? [],
+  set: async (ids: number[]) => {
+    if (!currentMember.value) return
+    try {
+      await updateProfileMutation.mutateAsync({
+        name: currentMember.value.name,
+        email: currentMember.value.email,
+        favorite_genre_ids: ids,
+      })
+    } catch {
+      // mutation error handled by UI
+    }
+  },
+})
 
 function ratingLabel(rating: number | null | undefined) {
   return rating ? `${rating.toFixed(1)}/10` : t('profile.ratingNone')
@@ -69,6 +91,15 @@ main.profile.container
         div
           h1.profile__name {{ currentMember.name }}
           p.subtitle-italic {{ $t('profile.memberSince', { year: currentMember.memberSince }) }}
+
+      .panel.profile__genres
+        GenrePicker(
+          v-model="favoriteGenreIds"
+          :genres="genresQuery.data.value ?? []"
+          :label="$t('genrePicker.favGenres')"
+          :disabled="updateProfileMutation.isPending.value"
+          :error="updateProfileMutation.error.value?.message"
+        )
 
       .profile__owls(:aria-label="t('profile.owlsAria')")
         .profile__owl-stat
@@ -159,6 +190,8 @@ main.profile.container
                 span.label-text {{ $t('profile.completed', { label: book.completedLabel }) }}
               h3.profile__book-title {{ book.title }}
               p.body-text.profile__book-author {{ book.author }}
+              .profile__book-genres(v-if="book.genres?.length")
+                span.badge(v-for="g in book.genres" :key="g.id") {{ g.name }}
               .profile__book-stats(:aria-label="t('profile.cycleStatsAria')")
                 span.profile__book-stat.label-text
                   Star.profile__archive-icon
@@ -214,6 +247,15 @@ main.profile.container
 
 .profile__name {
   font-size: clamp(2rem, 4vw, 2.5rem);
+}
+
+.profile__genres {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding-top: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-style: dashed;
 }
 
 .profile__owls {
@@ -400,6 +442,19 @@ a.profile__book:hover .profile__book-title {
 
 .profile__book-author {
   margin-bottom: var(--space-sm);
+}
+
+.profile__book-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-sm);
+  margin: var(--space-md) 0;
+}
+
+.profile__book-genres .badge {
+  font-size: 0.6rem;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .profile__book-meta {

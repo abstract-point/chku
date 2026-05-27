@@ -5,13 +5,13 @@ import { useI18n } from 'vue-i18n'
 import { ArrowUpDown, CalendarCheck, MessageSquare, Search, Star, Tags, User } from '@lucide/vue'
 import FilterDropdown from '@/components/ui/FilterDropdown.vue'
 import type { FilterOption } from '@/components/ui/FilterDropdown.vue'
-import { useCyclesQuery } from '@/queries/cycleQueries'
-import type { ArchiveBookGenre, ArchiveCycle } from '@/types/club'
+import { useArchiveGenresQuery, useCyclesQuery } from '@/queries/cycleQueries'
+import type { ArchiveCycle } from '@/types/club'
 
 type SortMode = 'newest' | 'oldest' | 'rating'
 
 const searchQuery = ref('')
-const selectedGenre = ref<ArchiveBookGenre | ''>('')
+const selectedGenre = ref('')
 const selectedMember = ref('')
 const { t } = useI18n()
 const sortMode = ref<SortMode>('newest')
@@ -19,15 +19,14 @@ const currentPage = ref(1)
 const pageSize = 6
 const cyclesQuery = useCyclesQuery()
 const archiveCycles = computed(() => cyclesQuery.data.value ?? [])
+const archiveGenresQuery = useArchiveGenresQuery()
 
 const genreOptions = computed<FilterOption[]>(() => {
-  const genres = new Map<ArchiveBookGenre, string>()
+  const genres = (archiveGenresQuery.data.value ?? [])
+    .map((g) => ({ value: g.slug, label: g.name }))
+    .sort((a, b) => a.label.localeCompare(b.label, 'ru'))
 
-  for (const cycle of archiveCycles.value) {
-    genres.set(cycle.genre, cycle.genreLabel)
-  }
-
-  return [...genres.entries()].map(([value, label]) => ({ value, label }))
+  return genres
 })
 
 const memberOptions = computed<FilterOption[]>(() => {
@@ -46,7 +45,8 @@ const filteredCycles = computed(() => {
         [cycle.book.title, cycle.book.author, cycle.proposedBy].some((value) =>
           value.toLocaleLowerCase('ru').includes(normalizedQuery),
         )
-      const matchesGenre = !selectedGenre.value || cycle.genre === selectedGenre.value
+      const matchesGenre =
+        !selectedGenre.value || (cycle.book.genres ?? []).some((g) => g.slug === selectedGenre.value)
       const matchesMember = !selectedMember.value || cycle.proposedBy === selectedMember.value
 
       return matchesQuery && matchesGenre && matchesMember
@@ -95,12 +95,6 @@ function resetFilters() {
 
 function resetPage() {
   currentPage.value = 1
-}
-
-function getGenreBadgeClass(genre: ArchiveBookGenre) {
-  if (genre === 'scifi') return 'badge--action'
-  if (genre === 'nonfiction') return 'badge--done'
-  return 'badge--reading'
 }
 
 function ratingLabel(rating: number | undefined) {
@@ -173,8 +167,10 @@ main.archive.container
         .archive-card__info
           .archive-card__meta
             span.label-text {{ cycle.cycleLabel }}
-            span.badge.label-text(:class="cycle.status === 'completed' ? getGenreBadgeClass(cycle.genre) : 'badge--action'")
-              | {{ cycle.status === 'completed' ? cycle.genreLabel : cycle.statusLabel }}
+            span.badge.label-text.badge--action(v-if="cycle.status !== 'completed'")
+              | {{ cycle.statusLabel }}
+          .archive-card__genres(v-if="cycle.book.genres?.length")
+            span.badge(v-for="g in cycle.book.genres" :key="g.id") {{ g.name }}
           h2.archive-card__title {{ cycle.book.title }}
           p.body-text.archive-card__author {{ cycle.book.author }}
           .archive-card__details
@@ -456,6 +452,19 @@ main.archive.container
 
 .archive-card__author {
   margin-bottom: var(--space-md);
+}
+
+.archive-card__genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-sm);
+  margin: var(--space-xs) 0;
+}
+
+.archive-card__genres .badge {
+  font-size: 0.6rem;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .archive-card__details {

@@ -12,8 +12,10 @@ defineProps<{
   UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" :to="`/members/${member.id}`" size="sm")
   .member-tooltip__popover
     .member-tooltip__name {{ member.name }}
-    .member-tooltip__meta(v-if="member.favoriteGenre")
-      span {{ member.favoriteGenre }}
+    .member-tooltip__meta(v-if="member.favoriteGenres?.length")
+      span(v-for="(g, i) in member.favoriteGenres" :key="g.id")
+        template(v-if="i > 0") ,&nbsp;
+        | {{ g.name }}
     .member-tooltip__meta(v-if="member.memberSince")
       span {{ $t('memberDetail.memberSince', { year: member.memberSince }) }}
 </template>

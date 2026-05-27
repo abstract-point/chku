@@ -139,6 +139,8 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
         .current-book__meta
           h1 {{ book.title }}
           p.current-book__author — {{ book.author }}
+        .current-book__genres(v-if="book.genres?.length")
+          span.badge(v-for="g in book.genres" :key="g.id") {{ g.name }}
         p.body-text.current-book__description
           | {{ book.description }}
 
@@ -300,6 +302,19 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.4;
+}
+
+.current-book__genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-sm);
+  margin: var(--space-xs) 0;
+}
+
+.current-book__genres .badge {
+  font-size: 0.6rem;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .current-book__description {

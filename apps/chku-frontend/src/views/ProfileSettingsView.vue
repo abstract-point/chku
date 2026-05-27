@@ -5,20 +5,17 @@ import { KeyRound, UserRound } from '@lucide/vue'
 import FilePicker from '@/components/ui/FilePicker.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppInput from '@/components/ui/AppInput.vue'
-import AppSelect from '@/components/ui/AppSelect.vue'
 import {
   useUpdateAvatarMutation,
   useUpdatePasswordMutation,
   useUpdateProfileMutation,
 } from '@/queries/authQueries'
-import { useGenresQuery } from '@/queries/genreQueries'
 import { useCurrentUserQuery } from '@/queries/memberQueries'
 import { useFormErrors } from '@/composables/useFormErrors'
 import TwoFactorSetup from '@/components/TwoFactorSetup.vue'
 
 const { t } = useI18n()
 const currentUserQuery = useCurrentUserQuery()
-const genresQuery = useGenresQuery()
 const updateProfileMutation = useUpdateProfileMutation()
 const updateAvatarMutation = useUpdateAvatarMutation()
 const updatePasswordMutation = useUpdatePasswordMutation()
@@ -28,7 +25,6 @@ const currentMember = computed(() => currentUserQuery.data.value)
 const profileForm = reactive({
   name: '',
   email: '',
-  favoriteGenreId: null as number | null,
 })
 
 const passwordForm = reactive({
@@ -43,11 +39,6 @@ const profileErrors = useFormErrors()
 const passwordErrors = useFormErrors()
 const avatarFile = ref<File | null>(null)
 
-const genreOptions = computed(() => [
-  { label: t('settings.notSelected'), value: null as number | null },
-  ...(genresQuery.data.value?.map((g) => ({ label: g.name, value: g.id })) ?? []),
-])
-
 watch(
   currentMember,
   (member) => {
@@ -55,7 +46,6 @@ watch(
 
     profileForm.name = member.name
     profileForm.email = member.email
-    profileForm.favoriteGenreId = member.favoriteGenreId ?? null
   },
   { immediate: true },
 )
@@ -68,7 +58,6 @@ async function saveProfile() {
     await updateProfileMutation.mutateAsync({
       name: profileForm.name,
       email: profileForm.email,
-      favorite_genre_id: profileForm.favoriteGenreId,
     })
 
     if (avatarFile.value) {
@@ -139,13 +128,6 @@ main.profile-settings.container
           required
           autocomplete="email"
           :aria-invalid="profileErrors.hasError('email')"
-        )
-      AppFormField(:label="t('settings.favGenre')" label-for="settings-genre" :error="profileErrors.getError('favorite_genre_id')")
-        AppSelect#settings-genre(
-          v-model="profileForm.favoriteGenreId"
-          :options="genreOptions"
-          :disabled="genresQuery.isLoading.value"
-          :aria-invalid="profileErrors.hasError('favorite_genre_id')"
         )
       p.profile-settings__message(v-if="profileMessage") {{ profileMessage }}
       p.profile-settings__error(v-if="updateProfileMutation.error.value && !Object.keys(profileErrors.fieldErrors.value).length")

@@ -81,7 +81,7 @@ main.member-detail.container(v-else-if="member")
           span.label-text {{ $t('memberDetail.favGenre') }}
           span.member-detail__info-value
             Star.member-detail__icon
-            span.body-text {{ member.favoriteGenre }}
+            span.body-text(v-if="member.favoriteGenres?.length") {{ member.favoriteGenres.map((g) => g.name).join(', ') }}
         .member-detail__info-row
           span.label-text Email
           span.member-detail__info-value

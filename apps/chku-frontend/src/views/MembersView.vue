@@ -38,7 +38,7 @@ const filteredMembers = computed(() => {
   return members.value.filter((member) => {
     const matchesQuery =
       !normalizedQuery ||
-      [member.name, member.favoriteGenre].some((value) =>
+      [member.name, ...(member.favoriteGenres?.map((g) => g.name) ?? [])].some((value) =>
         value.toLocaleLowerCase('ru').includes(normalizedQuery),
       )
     const matchesStatus =

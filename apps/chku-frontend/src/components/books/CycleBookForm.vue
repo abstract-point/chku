@@ -5,8 +5,10 @@ import { useI18n } from 'vue-i18n'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
 import FilePicker from '@/components/ui/FilePicker.vue'
+import GenrePicker from '@/components/GenrePicker.vue'
 import { useFormErrors } from '@/composables/useFormErrors'
 import { useUpdateCycleBookMutation } from '@/queries/cycleQueries'
+import { useGenresQuery } from '@/queries/genreQueries'
 
 const props = defineProps<{
   cycleNumber: number | string
@@ -15,9 +17,11 @@ const props = defineProps<{
     author: string
     description?: string | null
     coverUrl?: string | null
-    genre?: {
+    genres?: {
       id: number
-    } | null
+      slug: string
+      name: string
+    }[]
   }
   idPrefix: string
 }>()
@@ -30,12 +34,13 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const updateBook = useUpdateCycleBookMutation(() => props.cycleNumber)
 const formErrors = useFormErrors()
+const genresQuery = useGenresQuery()
 
 const form = reactive({
   title: '',
   author: '',
   description: '',
-  genreId: null as number | null,
+  genreIds: [] as number[],
   coverFile: null as File | null,
 })
 
@@ -45,7 +50,7 @@ watch(
     form.title = book.title
     form.author = book.author
     form.description = book.description ?? ''
-    form.genreId = book.genre?.id ?? null
+    form.genreIds = book.genres?.map((g) => g.id) ?? []
     form.coverFile = null
   },
   { immediate: true },
@@ -58,7 +63,7 @@ function saveBook() {
       title: form.title.trim(),
       author: form.author.trim(),
       description: form.description.trim() || null,
-      genreId: form.genreId,
+      genre_ids: form.genreIds,
       coverFile: form.coverFile,
     },
     {
@@ -106,6 +111,14 @@ form.cycle-book-form(@submit.prevent="saveBook" novalidate)
       :maxlength="500"
       :placeholder="t('books.descPlaceholder')"
       :aria-invalid="formErrors.hasError('description')"
+    )
+  AppFormField(:label="t('genrePicker.bookGenres')" :label-for="`${idPrefix}-genres`" :error="formErrors.getError('genre_ids')")
+    GenrePicker(
+      :id="`${idPrefix}-genres`"
+      v-model="form.genreIds"
+      :genres="genresQuery.data.value ?? []"
+      :disabled="genresQuery.isLoading.value || updateBook.isPending.value"
+      :error="formErrors.getError('genre_ids')"
     )
   AppFormField(:label="t('books.coverLabel')" :label-for="`${idPrefix}-cover`" :error="formErrors.getError('cover')")
     FilePicker(

@@ -6,6 +6,7 @@ import AppTabs from '@/components/ui/AppTabs.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
 import FilePicker from '@/components/ui/FilePicker.vue'
+import GenrePicker from '@/components/GenrePicker.vue'
 import {
   useBookQueueQuery,
   useCreateBookQueueItemMutation,
@@ -16,6 +17,7 @@ import {
 } from '@/queries/bookQueueQueries'
 import { useFormErrors } from '@/composables/useFormErrors'
 import { useAuthSession } from '@/queries/authQueries'
+import { useGenresQuery } from '@/queries/genreQueries'
 import type { BookQueueItem } from '@/types/club'
 
 const { t } = useI18n()
@@ -26,16 +28,18 @@ const createQueueItem = useCreateBookQueueItemMutation()
 const removeQueueItem = useRemoveBookQueueItemMutation()
 const makeCandidate = useMakeBookQueueItemCandidateMutation()
 const updateQueueItem = useUpdateBookQueueItemMutation()
+const genresQuery = useGenresQuery()
 
 const activeTab = ref<'queue' | 'rejected'>('queue')
 const editingId = ref<number | null>(null)
-const editForms = reactive<Record<number, { title: string; author: string; description: string; coverFile: File | null }>>({})
+const editForms = reactive<Record<number, { title: string; author: string; description: string; coverFile: File | null; genreIds: number[] }>>({})
 
 const form = reactive({
   title: '',
   author: '',
   description: '',
   coverFile: null as File | null,
+  genreIds: [] as number[],
 })
 const formErrors = useFormErrors()
 
@@ -73,6 +77,7 @@ function resetForm() {
   form.author = ''
   form.description = ''
   form.coverFile = null
+  form.genreIds = []
   formErrors.clearAllErrors()
 }
 
@@ -85,6 +90,7 @@ function submitBook() {
       author: form.author.trim(),
       description: form.description.trim(),
       coverFile: form.coverFile,
+      genre_ids: form.genreIds,
     },
     {
       onSuccess: resetForm,
@@ -107,6 +113,7 @@ function startEdit(item: BookQueueItem) {
     author: item.author,
     description: item.description ?? '',
     coverFile: null,
+    genreIds: item.genres?.map((g) => g.id) ?? [],
   }
 }
 
@@ -124,6 +131,7 @@ function saveEdit(item: BookQueueItem) {
       author: editForm.author.trim(),
       description: editForm.description.trim() || null,
       coverFile: editForm.coverFile,
+      genre_ids: editForm.genreIds,
     },
     { onSuccess: cancelEdit },
   )
@@ -182,6 +190,14 @@ main.proposal.container
               :maxlength="500"
               :placeholder="t('books.descPlaceholder')"
               :aria-invalid="formErrors.hasError('description')"
+            )
+
+          AppFormField(:label="t('genrePicker.bookGenres')" label-for="book-genres" :error="formErrors.getError('genre_ids')")
+            GenrePicker#book-genres(
+              v-model="form.genreIds"
+              :genres="genresQuery.data.value ?? []"
+              :disabled="genresQuery.isLoading.value || createQueueItem.isPending.value"
+              :error="formErrors.getError('genre_ids')"
             )
 
           AppFormField(:label="t('books.coverLabel')" label-for="book-cover" :error="formErrors.getError('cover')")
@@ -261,6 +277,8 @@ main.proposal.container
               .proposal__book-title-wrap
                 h3.proposal__book-title {{ item.title }}
                 p.proposal__book-author {{ item.author }}
+                .proposal__book-genres(v-if="editingId !== item.id && item.genres?.length")
+                  span.badge.badge--sm(v-for="genre in item.genres" :key="genre.id") {{ genre.name }}
 
             template(v-if="editingId === item.id")
               .proposal__book-edit
@@ -292,6 +310,14 @@ main.proposal.container
                   )
                   span.label-text {{ `${editForms[item.id]?.description?.length ?? 0}/500` }}
                 .proposal__field
+                  label.label-text(:for="`edit-genres-${item.id}`") {{ $t('genrePicker.bookGenres') }}
+                  GenrePicker(
+                    :id="`edit-genres-${item.id}`"
+                    v-model="editForms[item.id].genreIds"
+                    :genres="genresQuery.data.value ?? []"
+                    :disabled="genresQuery.isLoading.value || updateQueueItem.isPending.value"
+                  )
+                .proposal__field
                   label.label-text(:for="`edit-cover-${item.id}`") {{ $t('books.coverLabel') }}
                   FilePicker(
                     :id="`edit-cover-${item.id}`"
@@ -318,7 +344,7 @@ main.proposal.container
                 p.proposal__error(v-if="updateQueueItem.error.value") {{ $t('books.editError') }}
             template(v-else)
               .proposal__book-content(v-if="item.description")
-                p.proposal__book-meta(v-if="item.description") {{ item.description }}
+                p.proposal__book-meta {{ item.description }}
             .proposal__book-actions
               button.button.button--secondary.label-text(
                 v-if="index !== 0"
@@ -670,7 +696,6 @@ main.proposal.container
 .proposal__book-content,
 .proposal__book-edit {
   grid-area: content;
-  margin: var(--space-xs) 0 0;
   font-size: 0.82rem;
   color: var(--text-muted);
   line-height: 1.4;
@@ -680,10 +705,13 @@ main.proposal.container
 .proposal__book-content {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--space-sm) var(--space-md);
 }
 
-.proposal__book-meta,
+.proposal__book-meta {
+  margin: 0;
+}
+
 .proposal__book-rejection {
   margin: 0;
 }
@@ -693,6 +721,20 @@ main.proposal.container
   border-top: var(--border-width) solid var(--border);
   font-family: var(--font-mono);
   font-size: 0.8rem;
+}
+
+.proposal__book-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-sm);
+  margin-top: var(--space-xs);
+}
+
+.proposal__book-genres .badge {
+  font-size: 0.6rem;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 0.15rem 0.45rem;
 }
 
 .proposal__book-actions {
