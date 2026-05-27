@@ -65,7 +65,6 @@ final class MemberBookQueueController extends Controller
         $item = $queue->createAtHead(
             $member,
             $book,
-            $payload['description'] ?? null,
         );
 
         $clubId = $member->club_id;
@@ -88,7 +87,8 @@ final class MemberBookQueueController extends Controller
             'description' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $item->update($payload);
+        $item->load('book');
+        $item->book->update($payload);
 
         return new MemberBookQueueItemResource($item->refresh()->load('book.genre', 'book.primaryCover'));
     }

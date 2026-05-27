@@ -64,16 +64,15 @@ final class MemberBookQueueService
             ->first(fn (MemberBookQueueItem $item): bool => $item->status === MemberBookQueueItemStatusEnum::Queued);
     }
 
-    public function createAtHead(ClubMember $member, Book $book, ?string $description): MemberBookQueueItem
+    public function createAtHead(ClubMember $member, Book $book): MemberBookQueueItem
     {
-        return DB::transaction(function () use ($member, $book, $description): MemberBookQueueItem {
+        return DB::transaction(function () use ($member, $book): MemberBookQueueItem {
             $head = $this->headLiveItemForUpdate($member->id);
 
             return MemberBookQueueItem::create([
                 'club_member_id' => $member->id,
                 'book_id' => $book->id,
                 'next_queue_item_id' => $head?->id,
-                'description' => $description,
                 'status' => MemberBookQueueItemStatusEnum::Queued,
             ]);
         });

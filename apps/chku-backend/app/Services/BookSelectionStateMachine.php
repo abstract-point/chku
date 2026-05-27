@@ -271,7 +271,6 @@ final class BookSelectionStateMachine
             'proposer_id' => $selector->id,
             'reading_cycle_id' => $cycle->id,
             'member_book_queue_item_id' => $item->id,
-            'description' => $item->description,
             'status' => BookCandidateStatusEnum::Pending,
         ]);
 
@@ -327,7 +326,6 @@ final class BookSelectionStateMachine
             'proposer_id' => $candidate->proposer_id,
             'reading_cycle_id' => $cycle->id,
             'member_book_queue_item_id' => $item->id,
-            'description' => $item->description,
             'status' => BookCandidateStatusEnum::Pending,
         ]);
 

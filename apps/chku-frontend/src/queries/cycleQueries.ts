@@ -29,6 +29,7 @@ export function useUpdateCycleBookMutation(cycleNumber: MaybeRefOrGetter<string 
       client.invalidateQueries({ queryKey: queryKeys.cycle(toValue(cycleNumber)) })
       client.invalidateQueries({ queryKey: queryKeys.dashboard })
       client.invalidateQueries({ queryKey: queryKeys.bookQueue })
+      client.invalidateQueries({ queryKey: queryKeys.activeCandidate })
       client.invalidateQueries({ queryKey: queryKeys.currentUserReadingHistory })
       client.invalidateQueries({ queryKey: queryKeys.members })
     },

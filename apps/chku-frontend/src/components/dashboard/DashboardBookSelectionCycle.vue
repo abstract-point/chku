@@ -124,7 +124,7 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
           h1 {{ candidate.book.title }}
           p.current-book__author — {{ candidate.book.author }}
         p.body-text.current-book__description
-          | {{ candidate.description || candidate.book.description }}
+          | {{ candidate.description }}
         .book-selection__actions(v-if="canRespond || candidate.canConfirm")
           button.button.button--secondary.label-text(
             v-if="canRespond"

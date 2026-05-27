@@ -28,7 +28,7 @@ class MemberBookQueueItemResource extends JsonResource
             'canBecomeCandidate' => $this->status === MemberBookQueueItemStatusEnum::Queued,
             'status' => $this->status->value,
 
-            'description' => $this->description,
+            'description' => $this->book?->description,
             'rejectionInfo' => $this->when(
                 $this->status === MemberBookQueueItemStatusEnum::Rejected,
                 function () {

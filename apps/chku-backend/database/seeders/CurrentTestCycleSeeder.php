@@ -73,21 +73,18 @@ class CurrentTestCycleSeeder extends Seeder
         MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'elena@example.com')?->id,
             'book_id' => $books['cvety-dlya-elzherona']->id,
-            'description' => $books['cvety-dlya-elzherona']->description,
             'status' => MemberBookQueueItemStatusEnum::Approved,
         ]);
 
         $elenaFirst = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'elena@example.com')?->id,
             'book_id' => $books['shum-vremeni']->id,
-            'description' => $books['shum-vremeni']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
 
         $elenaSecond = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'elena@example.com')?->id,
             'book_id' => $books['oblachnyj-atlas']->id,
-            'description' => $books['oblachnyj-atlas']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
         $elenaFirst->update(['next_queue_item_id' => $elenaSecond->id]);
@@ -95,14 +92,12 @@ class CurrentTestCycleSeeder extends Seeder
         $mikhailFirst = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'mikhail@example.com')?->id,
             'book_id' => $books['piknik-na-obochine']->id,
-            'description' => $books['piknik-na-obochine']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
 
         $mikhailSecond = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'mikhail@example.com')?->id,
             'book_id' => $books['kratkaya-istoriya-vremeni']->id,
-            'description' => $books['kratkaya-istoriya-vremeni']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
         $mikhailFirst->update(['next_queue_item_id' => $mikhailSecond->id]);
@@ -110,14 +105,12 @@ class CurrentTestCycleSeeder extends Seeder
         $adminFirst = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'admin@example.com')?->id,
             'book_id' => $books['piknik-na-obochine']->id,
-            'description' => $books['piknik-na-obochine']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
 
         $adminSecond = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'admin@example.com')?->id,
             'book_id' => $books['1984']->id,
-            'description' => $books['1984']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
         $adminFirst->update(['next_queue_item_id' => $adminSecond->id]);
