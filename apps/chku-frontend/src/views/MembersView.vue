@@ -10,6 +10,8 @@ import {
   UserRoundCheck,
   UserRoundMinus,
 } from '@lucide/vue'
+import FilterDropdown from '@/components/ui/FilterDropdown.vue'
+import type { FilterOption } from '@/components/ui/FilterDropdown.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDeactivateMemberMutation, useMembersQuery } from '@/queries/memberQueries'
@@ -24,6 +26,12 @@ const actionError = ref('')
 const canManageMembers = computed(() => isAdmin.value && twoFactorEnabled.value)
 const members = computed(() => membersQuery.data.value ?? [])
 const activeMemberCount = computed(() => members.value.filter((m) => m.isActive).length)
+const statusOptions = computed<FilterOption[]>(() => [
+  { value: 'all', label: t('members.all') },
+  { value: 'active', label: t('members.active') },
+  { value: 'inactive', label: t('members.inactive') },
+])
+
 const filteredMembers = computed(() => {
   const normalizedQuery = searchQuery.value.trim().toLocaleLowerCase('ru')
 
@@ -68,12 +76,12 @@ main.members.container
           :placeholder="t('members.searchPlaceholder')"
           :aria-label="t('members.searchAria')"
         )
-      label.members__filter
-        SlidersHorizontal(:size="17" aria-hidden="true")
-        select.field-control(v-model="statusFilter" :aria-label="t('members.filterAria')")
-          option(value="all") {{ $t('members.all') }}
-          option(value="active") {{ $t('members.active') }}
-          option(value="inactive") {{ $t('members.inactive') }}
+      FilterDropdown(
+        v-model="statusFilter"
+        :options="statusOptions"
+        :aria-label="t('members.filterAria')"
+        :leading-icon="SlidersHorizontal"
+      )
       RouterLink.button.button--primary.label-text(v-if="canManageMembers" to="/members/add")
         Plus(:size="16" aria-hidden="true")
         span {{ $t('members.add') }}
@@ -185,16 +193,18 @@ main.members.container
     flex-direction: row;
     align-items: center;
   }
-}
 
-.members__search,
-.members__filter {
-  position: relative;
-  display: flex;
-  align-items: center;
+  :deep(.filter-dropdown) {
+    @include tablet {
+      width: auto;
+    }
+  }
 }
 
 .members__search {
+  position: relative;
+  display: flex;
+  align-items: center;
   flex: 1;
   min-width: 0;
 
@@ -213,29 +223,6 @@ main.members.container
   z-index: 1;
   left: 0.95rem;
   color: var(--text-subtle);
-}
-
-.members__filter {
-  flex: 1;
-  min-width: 0;
-
-  @include tablet {
-    flex: 0 0 10rem;
-  }
-}
-
-.members__filter svg {
-  position: absolute;
-  z-index: 1;
-  left: 0.85rem;
-  color: var(--text-subtle);
-}
-
-.members__filter select {
-  width: 100%;
-  padding: 0 2.2rem 0 2.45rem;
-  appearance: none;
-  color: var(--text-main);
 }
 
 .members__toolbar .button {

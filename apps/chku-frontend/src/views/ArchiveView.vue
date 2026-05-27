@@ -2,7 +2,9 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { CalendarCheck, ChevronDown, MessageSquare, Search, Star } from '@lucide/vue'
+import { ArrowUpDown, CalendarCheck, MessageSquare, Search, Star, Tags, User } from '@lucide/vue'
+import FilterDropdown from '@/components/ui/FilterDropdown.vue'
+import type { FilterOption } from '@/components/ui/FilterDropdown.vue'
 import { useCyclesQuery } from '@/queries/cycleQueries'
 import type { ArchiveBookGenre, ArchiveCycle } from '@/types/club'
 
@@ -18,7 +20,7 @@ const pageSize = 6
 const cyclesQuery = useCyclesQuery()
 const archiveCycles = computed(() => cyclesQuery.data.value ?? [])
 
-const genreOptions = computed(() => {
+const genreOptions = computed<FilterOption[]>(() => {
   const genres = new Map<ArchiveBookGenre, string>()
 
   for (const cycle of archiveCycles.value) {
@@ -28,10 +30,10 @@ const genreOptions = computed(() => {
   return [...genres.entries()].map(([value, label]) => ({ value, label }))
 })
 
-const memberOptions = computed(() => {
-  return [...new Set(archiveCycles.value.map((cycle) => cycle.proposedBy))].sort((left, right) =>
-    left.localeCompare(right, 'ru'),
-  )
+const memberOptions = computed<FilterOption[]>(() => {
+  return [...new Set(archiveCycles.value.map((cycle) => cycle.proposedBy))]
+    .sort((left, right) => left.localeCompare(right, 'ru'))
+    .map((name) => ({ value: name, label: name }))
 })
 
 const filteredCycles = computed(() => {
@@ -128,22 +130,29 @@ main.archive.container
       )
 
     .archive__filters
-      label.archive__select-wrap
-        select.archive__select.field-control(v-model="selectedGenre" :aria-label="t('archive.genreAria')" @change="resetPage")
-          option(value="") {{ $t('archive.allGenres') }}
-          option(v-for="genre in genreOptions" :key="genre.value" :value="genre.value") {{ genre.label }}
-        ChevronDown(:size="16" aria-hidden="true")
-      label.archive__select-wrap
-        select.archive__select.field-control(v-model="selectedMember" :aria-label="t('archive.memberAria')" @change="resetPage")
-          option(value="") {{ $t('archive.allMembers') }}
-          option(v-for="member in memberOptions" :key="member" :value="member") {{ member }}
-        ChevronDown(:size="16" aria-hidden="true")
-      label.archive__select-wrap
-        select.archive__select.field-control(v-model="sortMode" :aria-label="t('archive.sortAria')" @change="resetPage")
-          option(value="newest") {{ $t('archive.sortNewest') }}
-          option(value="oldest") {{ $t('archive.sortOldest') }}
-          option(value="rating") {{ $t('archive.sortRating') }}
-        ChevronDown(:size="16" aria-hidden="true")
+      FilterDropdown(
+        v-model="selectedGenre"
+        :options="genreOptions"
+        :placeholder="t('archive.allGenres')"
+        :aria-label="t('archive.genreAria')"
+        :leading-icon="Tags"
+        @change="resetPage"
+      )
+      FilterDropdown(
+        v-model="selectedMember"
+        :options="memberOptions"
+        :placeholder="t('archive.allMembers')"
+        :aria-label="t('archive.memberAria')"
+        :leading-icon="User"
+        @change="resetPage"
+      )
+      FilterDropdown(
+        v-model="sortMode"
+        :options="[{ value: 'newest', label: t('archive.sortNewest') }, { value: 'oldest', label: t('archive.sortOldest') }, { value: 'rating', label: t('archive.sortRating') }]"
+        :aria-label="t('archive.sortAria')"
+        :leading-icon="ArrowUpDown"
+        @change="resetPage"
+      )
 
   section.panel(v-if="cyclesQuery.isLoading.value" aria-live="polite")
     p.body-text {{ $t('common.loadingArchive') }}
@@ -281,26 +290,6 @@ main.archive.container
   transform: translateY(-50%);
 }
 
-.archive__select-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.archive__select-wrap svg {
-  position: absolute;
-  right: 0.85rem;
-  color: var(--text-subtle);
-  pointer-events: none;
-}
-
-.archive__select {
-  min-width: 11rem;
-  padding: 0 2.4rem 0 var(--space-md);
-  appearance: none;
-  font-size: 0.9rem;
-}
-
 .archive__filters {
   display: grid;
   grid-template-columns: 1fr;
@@ -308,7 +297,15 @@ main.archive.container
 
   @include tablet {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  :deep(.filter-dropdown) {
+    @include tablet {
+      width: auto;
+    }
   }
 }
 
