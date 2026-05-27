@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { CircleAlert } from '@lucide/vue'
-import { useI18n } from 'vue-i18n'
 import {
   useCandidateResponseMutation,
   useConfirmCandidateMutation,
 } from '@/queries/candidateQueries'
 import type { BookChoiceEvent } from '@/types/club'
-
-const { t } = useI18n()
 const props = defineProps<{
   choice: BookChoiceEvent
 }>()

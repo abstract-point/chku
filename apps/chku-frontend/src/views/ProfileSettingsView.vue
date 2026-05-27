@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { KeyRound, UserRound } from '@lucide/vue'
-import UserAvatar from '@/components/UserAvatar.vue'
+import FilePicker from '@/components/ui/FilePicker.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
@@ -41,7 +41,6 @@ const passwordMessage = ref('')
 const profileErrors = useFormErrors()
 const passwordErrors = useFormErrors()
 const avatarFile = ref<File | null>(null)
-const avatarPreviewUrl = ref<string | null>(null)
 
 const genreOptions = computed(() => [
   { label: t('settings.notSelected'), value: null as number | null },
@@ -59,23 +58,6 @@ watch(
   { immediate: true },
 )
 
-watch(avatarFile, (file, _oldFile, onCleanup) => {
-  if (!file) {
-    avatarPreviewUrl.value = null
-    return
-  }
-
-  const url = URL.createObjectURL(file)
-  avatarPreviewUrl.value = url
-  onCleanup(() => URL.revokeObjectURL(url))
-})
-
-onBeforeUnmount(() => {
-  if (avatarPreviewUrl.value) {
-    URL.revokeObjectURL(avatarPreviewUrl.value)
-  }
-})
-
 async function saveProfile() {
   profileErrors.clearAllErrors()
   profileMessage.value = ''
@@ -89,7 +71,6 @@ async function saveProfile() {
     if (avatarFile.value) {
       await updateAvatarMutation.mutateAsync(avatarFile.value)
       avatarFile.value = null
-      avatarPreviewUrl.value = null
     }
 
     profileMessage.value = t('settings.updated')
@@ -116,11 +97,6 @@ async function savePassword() {
     passwordErrors.setFromApiError(error)
   }
 }
-
-function selectAvatar(event: Event) {
-  const input = event.target as HTMLInputElement
-  avatarFile.value = input.files?.[0] ?? null
-}
 </script>
 
 <template lang="pug">
@@ -138,19 +114,13 @@ main.profile-settings.container
       .section-header.section-header--compact
         h2 {{ $t('settings.profileData') }}
         UserRound.profile-settings__icon
-      .profile-settings__avatar
-        UserAvatar(
+      AppFormField(:label="t('settings.avatar')" label-for="settings-avatar" :error="profileErrors.getError('avatar')")
+        FilePicker#settings-avatar(
+          v-model="avatarFile"
+          variant="avatar"
+          :existing-url="currentMember.avatarUrl"
           :name="profileForm.name || currentMember.name"
-          :avatar-url="avatarPreviewUrl ?? currentMember.avatarUrl"
-          size="lg"
         )
-        AppFormField(:label="t('settings.avatar')" label-for="settings-avatar" :error="profileErrors.getError('avatar')")
-          AppInput#settings-avatar(
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            @change="selectAvatar"
-            :aria-invalid="profileErrors.hasError('avatar')"
-          )
       AppFormField(:label="t('settings.name')" label-for="settings-name" required :error="profileErrors.getError('name')")
         AppInput#settings-name(
           type="text"
@@ -245,12 +215,6 @@ main.profile-settings.container
 
 .profile-settings__section--wide {
   grid-column: 1 / -1;
-}
-
-.profile-settings__avatar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
 }
 
 .profile-settings__submit {

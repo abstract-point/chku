@@ -13,7 +13,6 @@ const coreStats = computed(() => {
   const stats = dashboardQuery.data.value?.clubStats ?? []
   return stats.slice(0, 3)
 })
-
 </script>
 
 <template lang="pug">

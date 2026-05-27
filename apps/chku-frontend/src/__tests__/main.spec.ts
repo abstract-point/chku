@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { createApp, isReady, mount, use } = vi.hoisted(() => {
-  const mount = vi.fn()
-  const use = vi.fn()
+const { createApp, isReady, mount } = vi.hoisted(() => {
+  const mount = vi.fn<() => void>()
+  const use = vi.fn<() => void>()
 
   return {
     mount,
     use,
-    createApp: vi.fn(() => ({ use, mount })),
-    isReady: vi.fn(),
+    createApp: vi.fn<() => { use: typeof use; mount: typeof mount }>(() => ({ use, mount })),
+    isReady: vi.fn<() => Promise<void>>(),
   }
 })
 
@@ -17,11 +17,13 @@ vi.mock('vue', () => ({
 }))
 
 vi.mock('pinia', () => ({
-  createPinia: vi.fn(() => ({ install: vi.fn() })),
+  createPinia: vi.fn<() => { install: ReturnType<typeof vi.fn> }>(() => ({
+    install: vi.fn<() => void>(),
+  })),
 }))
 
 vi.mock('@tanstack/vue-query', () => ({
-  VueQueryPlugin: { install: vi.fn() },
+  VueQueryPlugin: { install: vi.fn<() => void>() },
 }))
 
 vi.mock('@/queries/client', () => ({

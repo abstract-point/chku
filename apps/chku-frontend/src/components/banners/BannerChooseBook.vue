@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ListPlus } from '@lucide/vue'
-import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import AppBanner from '@/components/ui/AppBanner.vue'
-
-const { t } = useI18n()
 </script>
 
 <template lang="pug">

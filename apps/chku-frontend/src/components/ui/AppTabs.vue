@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-
 export interface Tab {
   id: string
   label: string
@@ -15,8 +13,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()
-
-const activeIndex = computed(() => props.tabs.findIndex((t) => t.id === props.modelValue))
 
 function selectTab(id: string) {
   emit('update:modelValue', id)

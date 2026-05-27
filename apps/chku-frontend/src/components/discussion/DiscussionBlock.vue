@@ -4,7 +4,7 @@ import DiscussionComposer from '@/components/discussion/DiscussionComposer.vue'
 import DiscussionMessageItem from '@/components/discussion/DiscussionMessageItem.vue'
 import type { DiscussionMessage } from '@/types/dashboard'
 
-const props = defineProps<{
+defineProps<{
   discussion: DiscussionMessage[]
   isSubmitting?: boolean
   readonly?: boolean

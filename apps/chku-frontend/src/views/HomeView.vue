@@ -3,11 +3,8 @@ import DashboardBookSelectionCycle from '@/components/dashboard/DashboardBookSel
 import DashboardCurrentCycle from '@/components/dashboard/DashboardCurrentCycle.vue'
 import DashboardMeetingSection from '@/components/dashboard/DashboardMeetingSection.vue'
 import DashboardTurnOrderCard from '@/components/dashboard/DashboardTurnOrderCard.vue'
-import { useI18n } from 'vue-i18n'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
-
-const { t } = useI18n()
 
 const dashboardQuery = useDashboardQuery()
 const { isAdmin } = useAuthSession()

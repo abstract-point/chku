@@ -14,7 +14,7 @@ vi.mock('vue-router', () => ({
   RouterLink: RouterLinkStub,
   useRoute: () => route.value,
   useRouter: () => ({
-    replace: vi.fn(),
+    replace: vi.fn<() => void>(),
   }),
 }))
 
@@ -43,7 +43,7 @@ describe('CycleDetailView', () => {
     expect(wrapper.text()).toContain('Елена')
     expect(wrapper.text()).toContain('9.2/10')
     expect(wrapper.text()).toContain('Отзывы клуба')
-    expect(wrapper.text()).toContain('Обсуждение')
+    expect(wrapper.text()).toContain('Дискуссия')
     expect(wrapper.text()).toContain('Встреча в архиве')
     expect(
       wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/meetings/1'),

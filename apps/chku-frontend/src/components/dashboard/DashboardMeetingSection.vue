@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { CalendarPlus } from '@lucide/vue'
 import { RouterLink } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import DashboardMeetingCard from '@/components/dashboard/DashboardMeetingCard.vue'
 import type { MeetingSummary } from '@/types/dashboard'
-
-const { t } = useI18n()
 
 defineProps<{
   meeting?: MeetingSummary | null

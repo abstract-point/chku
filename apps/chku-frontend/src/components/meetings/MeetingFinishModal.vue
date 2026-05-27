@@ -55,7 +55,9 @@ const progressSorted = computed(() =>
     }),
 )
 
-const attendingMemberIds = computed(() => new Set(props.meeting.attendees.map((attendee) => attendee.id)))
+const attendingMemberIds = computed(
+  () => new Set(props.meeting.attendees.map((attendee) => attendee.id)),
+)
 const medalOrder: OwlMedal[] = ['gold', 'silver', 'bronze']
 
 const owlAwardMembers = computed(() =>
@@ -88,9 +90,7 @@ const progressRows = computed(() =>
   })),
 )
 
-const allOwlsApproved = computed(
-  () => owlAwardMembers.value.length === 0 || owlsApproved.value,
-)
+const allOwlsApproved = computed(() => owlAwardMembers.value.length === 0 || owlsApproved.value)
 
 function medalLabel(medal: BookProgressMember['medal']) {
   if (medal === 'gold') return t('meetings.finishOwlGold')

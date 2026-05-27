@@ -4,7 +4,7 @@ export interface RadioOption {
   value: string | number | boolean
 }
 
-const props = defineProps<{
+defineProps<{
   modelValue: string | number | boolean
   name: string
   options: RadioOption[]

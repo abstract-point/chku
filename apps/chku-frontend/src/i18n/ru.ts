@@ -580,7 +580,7 @@ export default {
     authorLabel: 'Автор',
     authorPlaceholder: 'Например, Михаил Булгаков',
     descLabel: 'Краткое описание',
-    descPlaceholder: 'Коротко опиши, о чём книга.',
+    descPlaceholder: 'Коротко опиши, о чём книга и почему она',
     coverLabel: 'Обложка',
     uploadCover: 'Загрузить свою обложку',
     uploadedCover: 'Загруженная обложка',

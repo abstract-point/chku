@@ -499,33 +499,33 @@ main.meeting-detail.container
   align-items: start;
 
   grid-template-areas:
-    "admin"
-    "rating"
-    "info"
-    "participants"
-    "discussion";
+    'admin'
+    'rating'
+    'info'
+    'participants'
+    'discussion';
 
   &--layout-no-admin {
     grid-template-areas:
-      "rating"
-      "info"
-      "participants"
-      "discussion";
+      'rating'
+      'info'
+      'participants'
+      'discussion';
   }
 
   &--layout-no-rating {
     grid-template-areas:
-      "admin"
-      "info"
-      "participants"
-      "discussion";
+      'admin'
+      'info'
+      'participants'
+      'discussion';
   }
 
   &--layout-info-only {
     grid-template-areas:
-      "info"
-      "participants"
-      "discussion";
+      'info'
+      'participants'
+      'discussion';
   }
 
   @include desktop {
@@ -533,29 +533,29 @@ main.meeting-detail.container
     gap: var(--space-xl);
 
     grid-template-areas:
-      "admin       participants"
-      "rating      participants"
-      "info        participants"
-      "discussion  participants";
+      'admin       participants'
+      'rating      participants'
+      'info        participants'
+      'discussion  participants';
 
     &--layout-no-admin {
       grid-template-areas:
-        "rating      participants"
-        "info        participants"
-        "discussion  participants";
+        'rating      participants'
+        'info        participants'
+        'discussion  participants';
     }
 
     &--layout-no-rating {
       grid-template-areas:
-        "admin       participants"
-        "info        participants"
-        "discussion  participants";
+        'admin       participants'
+        'info        participants'
+        'discussion  participants';
     }
 
     &--layout-info-only {
       grid-template-areas:
-        "info        participants"
-        "discussion  participants";
+        'info        participants'
+        'discussion  participants';
     }
   }
 }
@@ -1032,6 +1032,4 @@ main.meeting-detail.container
 .meeting-detail__missing .button {
   margin-top: var(--space-md);
 }
-
-
 </style>

@@ -17,9 +17,7 @@ const isNextTurn = (member: TurnOrderMember) => member.status === 'Выбира�
 const currentProcessMember = computed(() => {
   const proposer = props.members.find((m) => m.isCurrentCycleProposer)
   if (proposer) return proposer
-  return props.members.find(
-    (m) => m.isChoosingNow || isCurrentTurn(m) || m.active,
-  )
+  return props.members.find((m) => m.isChoosingNow || isCurrentTurn(m) || m.active)
 })
 
 const queueMembers = computed(() => props.members.filter((m) => m !== currentProcessMember.value))
@@ -39,7 +37,11 @@ const allMembers = computed(() => {
     result.push({ member: currentProcessMember.value, isActive: true, isNext: false })
   }
   queueMembers.value.forEach((m) => {
-    result.push({ member: m, isActive: false, isNext: !!m.isNextSelector || isNextTurn(m) || !!m.active })
+    result.push({
+      member: m,
+      isActive: false,
+      isNext: !!m.isNextSelector || isNextTurn(m) || !!m.active,
+    })
   })
   return result
 })
@@ -56,7 +58,7 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
 
   .turn-order__list
     .turn-order__card(
-      v-for="(item, index) in allMembers"
+      v-for="item in allMembers"
       :key="item.member.name"
       :class=`{
         'turn-order__card--active': item.isActive,

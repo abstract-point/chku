@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import MeetingForm from '@/components/meetings/MeetingForm.vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
@@ -11,7 +10,6 @@ import { ApiError } from '@/api/http'
 
 const router = useRouter()
 const { isAdmin } = useAuthSession()
-const { t } = useI18n()
 const dashboardQuery = useDashboardQuery()
 const createMutation = useCreateMeetingMutation()
 const formErrors = useFormErrors()

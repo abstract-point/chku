@@ -10,14 +10,18 @@ function mockWideViewport() {
     configurable: true,
     value: 1440,
   })
-  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
-    matches: query === '(min-width: 1280px)',
-    media: query,
-    onchange: null,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  }))
+  window.matchMedia = vi
+    .fn<(query: string) => MediaQueryList>()
+    .mockImplementation((query: string) => ({
+      matches: query === '(min-width: 1280px)',
+      media: query,
+      onchange: null,
+      addListener: vi.fn<() => void>(),
+      removeListener: vi.fn<() => void>(),
+      addEventListener: vi.fn<() => void>(),
+      removeEventListener: vi.fn<() => void>(),
+      dispatchEvent: vi.fn<() => boolean>(() => true),
+    }))
 }
 
 function mountProposal() {

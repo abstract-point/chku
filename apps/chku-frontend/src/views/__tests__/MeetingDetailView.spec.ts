@@ -66,7 +66,7 @@ describe('MeetingDetailView', () => {
     const wrapper = mountMeetingDetail()
     const addButton = wrapper
       .findAll('button')
-      .find((button) => button.text().includes('Добавить сообщение'))
+      .find((button) => button.text().includes('Добавить тему'))
     expect(addButton).toBeTruthy()
 
     await addButton!.trigger('click')
@@ -74,7 +74,7 @@ describe('MeetingDetailView', () => {
     const input = wrapper.find('textarea')
     const submitButton = wrapper
       .findAll('button')
-      .find((button) => button.text().includes('Добавить сообщение'))
+      .find((button) => button.text().includes('Добавить тему'))
 
     await input.setValue('Новая тема для обсуждения')
     await submitButton!.trigger('click')

@@ -2,11 +2,8 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { CalendarDays, Play } from '@lucide/vue'
-import { useI18n } from 'vue-i18n'
 import AppBanner from '@/components/ui/AppBanner.vue'
 import type { MeetingSummary } from '@/types/dashboard'
-
-const { t } = useI18n()
 const props = defineProps<{
   meeting: MeetingSummary
 }>()

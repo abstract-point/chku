@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import UserAvatar from '@/components/UserAvatar.vue'
-import { useI18n } from 'vue-i18n'
 import type { MeetingAttendee } from '@/types/dashboard'
-
-const { t } = useI18n()
 
 defineProps<{
   member: MeetingAttendee

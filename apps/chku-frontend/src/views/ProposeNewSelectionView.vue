@@ -489,9 +489,9 @@ main.proposal.container
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
-    "cover header"
-    "content content"
-    "actions actions";
+    'cover header'
+    'content content'
+    'actions actions';
   gap: var(--space-sm) var(--space-md);
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
@@ -507,8 +507,8 @@ main.proposal.container
   @include tablet {
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
-      "cover header actions"
-      "cover content actions";
+      'cover header actions'
+      'cover content actions';
   }
 }
 
@@ -535,14 +535,14 @@ main.proposal.container
 .proposal__book--rejected {
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
-    "cover header"
-    "content content";
+    'cover header'
+    'content content';
 
   @include tablet {
     grid-template-columns: auto minmax(0, 1fr);
     grid-template-areas:
-      "cover header"
-      "cover content";
+      'cover header'
+      'cover content';
   }
 }
 

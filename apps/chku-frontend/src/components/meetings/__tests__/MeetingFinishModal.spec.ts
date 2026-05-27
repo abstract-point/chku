@@ -87,7 +87,9 @@ describe('MeetingFinishModal', () => {
     expect(wrapper.text()).toContain('8/10')
     expect(wrapper.text()).toContain(longReview)
     expect(wrapper.find('.finish-modal__review').exists()).toBe(true)
-    expect(wrapper.text()).not.toContain('Я подтверждаю, что данные о прочтении участников достоверны')
+    expect(wrapper.text()).not.toContain(
+      'Я подтверждаю, что данные о прочтении участников достоверны',
+    )
 
     expect(wrapper.findAll('.finish-modal__owl-icon--gold')).toHaveLength(1)
     expect(wrapper.findAll('.finish-modal__owl-icon--silver')).toHaveLength(1)
@@ -96,7 +98,9 @@ describe('MeetingFinishModal', () => {
     expect(wrapper.text()).toContain('Для завершения цикла утвердите сов.')
     expect(wrapper.text()).toContain('Утвердить сов')
 
-    const confirmButton = wrapper.findAll('button').find((button) => button.text().includes('Завершить'))
+    const confirmButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Завершить'))
     expect(confirmButton).toBeTruthy()
     expect((confirmButton!.element as HTMLButtonElement).disabled).toBe(true)
 

@@ -5,7 +5,7 @@ import LoginView from '../LoginView.vue'
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({
-    push: vi.fn(),
+    push: vi.fn<() => void>(),
   }),
 }))
 

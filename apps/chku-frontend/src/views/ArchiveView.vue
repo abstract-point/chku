@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowUpDown, CalendarCheck, MessageSquare, Search, Star, Tags, User } from '@lucide/vue'
@@ -69,11 +69,13 @@ const filteredCycles = computed(() => {
 
 const totalPages = computed(() => Math.max(1, Math.ceil(filteredCycles.value.length / pageSize)))
 
-const paginatedCycles = computed(() => {
-  if (currentPage.value > totalPages.value) {
-    currentPage.value = totalPages.value
+watch(totalPages, (newTotal) => {
+  if (currentPage.value > newTotal) {
+    currentPage.value = newTotal
   }
+})
 
+const paginatedCycles = computed(() => {
   const startIndex = (currentPage.value - 1) * pageSize
 
   return filteredCycles.value.slice(startIndex, startIndex + pageSize)

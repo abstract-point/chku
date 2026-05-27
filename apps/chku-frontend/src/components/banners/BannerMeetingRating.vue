@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import { Star } from '@lucide/vue'
-import { useI18n } from 'vue-i18n'
 import AppBanner from '@/components/ui/AppBanner.vue'
-
-const { t } = useI18n()
 
 defineProps<{
   meetingId: string

@@ -118,7 +118,7 @@ function queryResult<T>(data: T) {
     isLoading: ref(false),
     isFetching: ref(false),
     error: ref(null),
-    refetch: vi.fn(),
+    refetch: vi.fn<() => void>(),
   }
 }
 
@@ -126,11 +126,13 @@ function mutationResult() {
   return {
     isPending: ref(false),
     error: ref(null),
-    reset: vi.fn(),
-    mutate: vi.fn((_payload, options?: { onSuccess?: () => void }) => {
-      options?.onSuccess?.()
-    }),
-    mutateAsync: vi.fn(async () => undefined),
+    reset: vi.fn<() => void>(),
+    mutate: vi.fn<(_payload: unknown, options?: { onSuccess?: () => void }) => void>(
+      (_payload, options) => {
+        options?.onSuccess?.()
+      },
+    ),
+    mutateAsync: vi.fn<() => Promise<undefined>>(async () => undefined),
   }
 }
 
@@ -163,8 +165,8 @@ vi.mock('@/queries/authQueries', () => ({
     queryFn: async () => authSession.value,
     staleTime: 60_000,
   }),
-  fetchAuthSession: vi.fn(async () => authSession.value),
-  getCachedAuthSession: vi.fn(() => authSession.value),
+  fetchAuthSession: vi.fn<() => Promise<typeof authSession.value>>(async () => authSession.value),
+  getCachedAuthSession: vi.fn<() => typeof authSession.value>(() => authSession.value),
   useAuthSessionQuery: () => queryResult(authSession.value),
   useAuthSession: () => ({
     sessionQuery: queryResult(authSession.value),
@@ -275,7 +277,7 @@ vi.mock('@/queries/meetingQueries', () => ({
       data,
       isLoading: ref(false),
       error,
-      refetch: vi.fn(),
+      refetch: vi.fn<() => void>(),
     }
   },
   useUpdateMeetingRsvpMutation: () => mutationResult(),

@@ -306,6 +306,4 @@ main.cycle-detail.container
   width: 100%;
   justify-content: center;
 }
-
-
 </style>

@@ -6,6 +6,7 @@ import { ShieldCheck, UserPlus } from '@lucide/vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useCreateMemberMutation } from '@/queries/memberQueries'
 import { useFormErrors } from '@/composables/useFormErrors'
+import FilePicker from '@/components/ui/FilePicker.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
@@ -45,11 +46,6 @@ async function submit() {
   } catch (e: unknown) {
     formErrors.setFromApiError(e)
   }
-}
-
-function selectAvatar(event: Event) {
-  const input = event.target as HTMLInputElement
-  form.value.avatar = input.files?.[0] ?? null
 }
 
 const roleOptions = [
@@ -108,11 +104,10 @@ main.add-member.container
             :aria-invalid="formErrors.hasError('password')"
           )
         AppFormField(:label="t('settings.avatar')" label-for="am-avatar" :error="formErrors.getError('avatar')")
-          AppInput#am-avatar(
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            @change="selectAvatar"
-            :aria-invalid="formErrors.hasError('avatar')"
+          FilePicker#am-avatar(
+            v-model="form.avatar"
+            variant="avatar"
+            :name="form.name"
           )
         AppFormField(label="Дата вступления" label-for="am-joined" required :error="formErrors.getError('joined_at')")
           AppInput#am-joined(
