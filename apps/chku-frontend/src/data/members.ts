@@ -7,7 +7,7 @@ export const members = [
     memberSince: '2021',
     isActive: true,
     email: 'elena@example.com',
-    favoriteGenre: 'Современная проза',
+    favoriteGenres: [{ id: 1, slug: 'contemporary_fiction', name: 'Современная проза' }],
     stats: {
       read: 14,
       proposed: 3,
@@ -70,7 +70,7 @@ export const members = [
     memberSince: '2021',
     isActive: true,
     email: 'mikhail@example.com',
-    favoriteGenre: 'Фантастика',
+    favoriteGenres: [{ id: 2, slug: 'science_fiction', name: 'Научная фантастика' }],
     stats: {
       read: 16,
       proposed: 4,
@@ -133,7 +133,7 @@ export const members = [
     memberSince: '2022',
     isActive: true,
     email: 'anna@example.com',
-    favoriteGenre: 'Нон-фикшн',
+    favoriteGenres: [{ id: 26, slug: 'nonfiction', name: 'Нон-фикшн' }],
     stats: {
       read: 12,
       proposed: 2,
@@ -196,7 +196,7 @@ export const members = [
     memberSince: '2022',
     isActive: true,
     email: 'timur@example.com',
-    favoriteGenre: 'Классика',
+    favoriteGenres: [{ id: 3, slug: 'classic', name: 'Классика' }],
     stats: {
       read: 10,
       proposed: 2,
@@ -259,7 +259,7 @@ export const members = [
     memberSince: '2021',
     isActive: false,
     email: 'olga@example.com',
-    favoriteGenre: 'Проза',
+    favoriteGenres: [{ id: 4, slug: 'literary_fiction', name: 'Литературная проза' }],
     stats: {
       read: 11,
       proposed: 2,
@@ -322,7 +322,7 @@ export const members = [
     memberSince: '2020',
     isActive: false,
     email: 'dmitry@example.com',
-    favoriteGenre: 'История',
+    favoriteGenres: [{ id: 27, slug: 'history', name: 'История' }],
     stats: {
       read: 8,
       proposed: 1,

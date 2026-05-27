@@ -6,11 +6,11 @@ export type CurrentBook = {
   description: string
   coverColor?: string | null
   coverUrl?: string | null
-  genre?: {
+  genres?: {
     id: number
     slug: string
     name: string
-  } | null
+  }[]
   canEditBook: boolean
   progress: number
   progressLabel: string
@@ -63,7 +63,7 @@ export type MeetingAttendee = {
   name: string
   avatarUrl?: string | null
   status: 'attending' | 'not_attending' | 'pending'
-  favoriteGenre?: string
+  favoriteGenres?: { id: number; slug: string; name: string }[]
   memberSince?: string
   isAdmin?: boolean
 }

@@ -6,6 +6,7 @@ export type BookQueuePayload = {
   author: string
   description?: string
   coverFile?: File | null
+  genre_ids?: number[]
 }
 
 export const bookQueueApi = {
@@ -23,6 +24,9 @@ export const bookQueueApi = {
       fd.append('title', payload.title)
       fd.append('author', payload.author)
       if (payload.description) fd.append('description', payload.description)
+      if (payload.genre_ids?.length) {
+        payload.genre_ids.forEach((id) => fd.append('genre_ids[]', String(id)))
+      }
       fd.append('coverFile', payload.coverFile)
       return http.postForm<unknown, ApiMemberBookQueueItem>('/me/book-queue', fd)
     }
@@ -35,6 +39,9 @@ export const bookQueueApi = {
       if (payload.title) fd.append('title', payload.title)
       if (payload.author) fd.append('author', payload.author)
       if (payload.description != null) fd.append('description', payload.description)
+      if (payload.genre_ids?.length) {
+        payload.genre_ids.forEach((id) => fd.append('genre_ids[]', String(id)))
+      }
       fd.append('coverFile', payload.coverFile)
       return http.patchForm<unknown, ApiMemberBookQueueItem>(`/me/book-queue/${id}`, fd)
     }

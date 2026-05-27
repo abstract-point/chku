@@ -36,6 +36,7 @@ export type BookQueueItem = {
   coverUrl?: string | null
   coverColor?: string | null
   description?: string | null
+  genres?: { id: number; slug: string; name: string }[]
   rejectionInfo?: {
     rejectedAt: string
     rejectedByMembers: string[]
@@ -49,8 +50,7 @@ export type MemberProfile = {
   memberSince: string
   isActive: boolean
   email: string
-  favoriteGenreId?: number | null
-  favoriteGenre: string
+  favoriteGenres: { id: number; slug: string; name: string }[]
   stats: {
     read: number
     proposed: number
@@ -66,6 +66,7 @@ export type ProfileBook = {
   title: string
   coverTitle: string
   author: string
+  genres?: { id: number; slug: string; name: string }[]
   coverColor?: string | null
   cycleNumber: number
   cycleLabel: string
@@ -78,7 +79,7 @@ export type ProfileBook = {
   attendedMeeting: boolean
 }
 
-export type ArchiveBookGenre = 'fiction' | 'nonfiction' | 'scifi'
+export type ArchiveBookGenre = string
 
 export type ArchiveBookReview = {
   memberName: string
@@ -127,15 +128,11 @@ export type ArchiveCycle = {
     description?: string | null
     coverColor?: string | null
     coverUrl?: string | null
-    genre?: {
-      id: number
-      slug: string
-      name: string
-    }
+    genres?: { id: number; slug: string; name: string }[]
   }
   coverTitle: string
-  genre: ArchiveBookGenre
-  genreLabel: string
+  genre: string | null
+  genreLabel: string | null
   completedLabel?: string | null
   proposedBy: string
   proposerAvatarUrl?: string | null

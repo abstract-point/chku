@@ -27,7 +27,7 @@ export const authApi = {
     return http.get<unknown, ApiAuthUser>('/me')
   },
 
-  async updateProfile(payload: { name: string; email: string; favorite_genre_id: number | null }) {
+  async updateProfile(payload: { name: string; email: string; favorite_genre_ids?: number[] }) {
     return http.patch<unknown, ApiMember>('/me/profile', payload)
   },
 

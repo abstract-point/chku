@@ -9,7 +9,7 @@ export const currentBook = {
     'В послевоенной Барселоне мальчик находит таинственную книгу на Кладбище забытых книг. Эта находка ведёт его в историю о памяти, любви и старых тайнах города.',
   coverColor: '#3a405a',
   coverUrl: null,
-  genre: null,
+  genres: [],
   canEditBook: false,
   progress: 65,
   progressLabel: '65% · глава 12',

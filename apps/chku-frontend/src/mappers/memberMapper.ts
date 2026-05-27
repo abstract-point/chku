@@ -9,8 +9,7 @@ export function mapMember(member: ApiMember): MemberProfile {
     memberSince: member.memberSince,
     isActive: member.isActive,
     email: member.email,
-    favoriteGenreId: member.favoriteGenreId ?? null,
-    favoriteGenre: member.favoriteGenre,
+    favoriteGenres: member.favoriteGenres ?? [],
     stats: member.stats ?? {
       read: 0,
       proposed: 0,

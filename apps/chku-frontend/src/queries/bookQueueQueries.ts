@@ -18,6 +18,7 @@ function mapQueueItem(item: ApiMemberBookQueueItem): BookQueueItem {
     coverUrl: item.book.coverUrl,
     coverColor: item.book.coverColor,
     description: item.description,
+    genres: item.book.genres,
   }
 }
 
@@ -88,12 +89,14 @@ export function useUpdateBookQueueItemMutation() {
       author?: string
       description?: string | null
       coverFile?: File | null
+      genre_ids?: number[]
     }) =>
       bookQueueApi.update(payload.id, {
         title: payload.title,
         author: payload.author,
         description: payload.description ?? undefined,
         coverFile: payload.coverFile,
+        genre_ids: payload.genre_ids,
       }),
     onSuccess: () => invalidateQueue(client),
   })

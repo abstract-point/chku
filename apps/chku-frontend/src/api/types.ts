@@ -5,8 +5,7 @@ export type ApiMember = {
   email: string
   isActive: boolean
   memberSince: string
-  favoriteGenreId?: number | null
-  favoriteGenre: string
+  favoriteGenres: ApiGenre[]
   isAdmin?: boolean
   stats?: {
     read: number
@@ -23,6 +22,7 @@ export type ApiProfileBook = {
   title: string
   coverTitle: string
   author: string
+  genres: { id: number; slug: string; name: string }[]
   coverColor?: string | null
   cycleNumber: number
   cycleLabel: string
@@ -49,11 +49,7 @@ export type ApiBook = {
   description?: string
   coverColor?: string | null
   coverUrl?: string | null
-  genre?: {
-    id: number
-    slug: string
-    name: string
-  }
+  genres?: ApiGenre[]
 }
 
 export type ApiCandidateResponseValue = 'not_read' | 'read' | 'pending'
@@ -145,7 +141,7 @@ export type ApiDashboard = {
     description: string
     coverColor?: string | null
     coverUrl?: string | null
-    genre?: ApiBook['genre'] | null
+    genres: ApiGenre[]
     canEditBook: boolean
     progress: number
     progressLabel: string
@@ -225,8 +221,8 @@ export type ApiCycle = {
   canEditBook: boolean
   book: ApiBook
   coverTitle: string
-  genre: 'fiction' | 'nonfiction' | 'scifi'
-  genreLabel: string
+  genre: string | null
+  genreLabel: string | null
   completedLabel?: string | null
   proposedBy: string
   proposerAvatarUrl?: string | null

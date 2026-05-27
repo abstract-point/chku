@@ -29,7 +29,7 @@ export function mapMeetingSummary(meeting: ApiMeeting): MeetingSummary {
         name: rsvp.member.name,
         avatarUrl: rsvp.member.avatarUrl ?? null,
         status: rsvp.status,
-        favoriteGenre: rsvp.member.favoriteGenre,
+        favoriteGenres: rsvp.member.favoriteGenres ?? [],
         memberSince: rsvp.member.memberSince,
       })) ?? [],
   }
