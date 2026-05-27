@@ -31,7 +31,7 @@ defineProps<{
   bottom: 100%;
   left: 0;
   right: 0;
-  height: 5rem;
+  height: 0.75rem;
   z-index: 99;
 }
 

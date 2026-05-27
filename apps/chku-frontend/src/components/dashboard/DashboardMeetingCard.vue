@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { RouterLink } from 'vue-router'
-import { Link as LinkIcon, MapPin, Monitor } from '@lucide/vue'
+import { RouterLink, useRouter } from 'vue-router'
+import { ArrowRight, Link as LinkIcon, MapPin, Monitor } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthSession } from '@/queries/authQueries'
 import { useUpdateMeetingRsvpMutation } from '@/queries/meetingQueries'
@@ -9,6 +9,7 @@ import MemberTooltip from '@/components/dashboard/MemberTooltip.vue'
 import type { MeetingSummary } from '@/types/dashboard'
 
 const { t } = useI18n()
+const router = useRouter()
 const props = defineProps<{
   meeting: MeetingSummary
 }>()
@@ -35,24 +36,34 @@ const sectionLabel = computed(() =>
 function setRsvp(status: 'attending' | 'not_attending') {
   rsvpMutation.mutate(status)
 }
+
+function goToMeeting() {
+  router.push(`/meetings/${props.meeting.id}`)
+}
 </script>
 
 <template lang="pug">
 section.panel.dashboard-card(aria-labelledby="meeting-title")
   .section-header.section-header--compact
     span#meeting-title.label-text {{ sectionLabel }}
-  .dashboard-card__meta
-    h3.dashboard-card__title {{ meeting.dateLabel }}
-    p.dashboard-card__date-extra.body-text {{ meeting.dayTimeLabel }}
-    p.body-text.dashboard-card__text(v-if="!meeting.isOnline")
-      MapPin(:size="17")
-      span {{ meeting.place }}
-    p.body-text.dashboard-card__text(v-else)
-      Monitor(:size="17")
-      span {{ $t('dash.online') }}
-    p.body-text.dashboard-card__text(v-if="meeting.link")
-      LinkIcon(:size="17")
-      a.dashboard-card__meeting-link(:href="meeting.link" target="_blank" rel="noopener noreferrer") {{ meeting.link }}
+  .dashboard-card__meta-link(@click="goToMeeting")
+    .dashboard-card__meta
+      h3.dashboard-card__title {{ meeting.dateLabel }}
+      p.dashboard-card__date-extra.body-text {{ meeting.dayTimeLabel }}
+      p.body-text.dashboard-card__text(v-if="!meeting.isOnline")
+        MapPin(:size="17")
+        span {{ meeting.place }}
+      p.body-text.dashboard-card__text(v-else)
+        Monitor(:size="17")
+        span {{ $t('dash.online') }}
+      p.body-text.dashboard-card__text(v-if="meeting.link")
+        LinkIcon(:size="17")
+        a.dashboard-card__meeting-link(
+          :href="meeting.link"
+          target="_blank"
+          rel="noopener noreferrer"
+          @click.stop
+        ) {{ meeting.link }}
   .dashboard-card__avatars(v-if="attendingMembers.length" :aria-label="$t('dash.meetingAttendeesAria')")
     MemberTooltip(v-for="member in visibleAttendees" :key="member.id" :member="member")
     span.avatar.avatar--more(v-if="extraCount > 0") +{{ extraCount }}
@@ -70,7 +81,9 @@ section.panel.dashboard-card(aria-labelledby="meeting-title")
     :disabled="rsvpMutation.isPending.value"
     @click="setRsvp('not_attending')"
   ) {{ $t('dash.cannotAttend') }}
-  RouterLink.button.button--ghost.label-text.dashboard-card__link(:to="`/meetings/${meeting.id}`") {{ $t('dash.meetingDetails') }}
+  RouterLink.button.button--secondary.dashboard-card__link(:to="`/meetings/${meeting.id}`")
+    span {{ $t('dash.meetingDetails') }}
+    ArrowRight(:size="16")
 </template>
 
 <style scoped>
@@ -118,5 +131,14 @@ section.panel.dashboard-card(aria-labelledby="meeting-title")
 .dashboard-card__link {
   width: 100%;
   margin-top: var(--space-sm);
+}
+
+.dashboard-card__meta-link {
+  display: block;
+  cursor: pointer;
+}
+
+.dashboard-card__meta-link:hover .dashboard-card__title {
+  color: var(--accent);
 }
 </style>
