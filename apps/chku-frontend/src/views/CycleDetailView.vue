@@ -48,7 +48,7 @@ main.cycle-detail.container
       span /
       span.cycle-detail__breadcrumb-current {{ cycle.cycleLabel }}
 
-    .cycle-detail__hero
+    .cycle-detail__hero(:class="{ 'cycle-detail__hero--editing': isEditingBook }")
       .book-cover.cycle-detail__cover(:style="{ backgroundColor: cycle.book.coverColor ?? undefined }" :aria-label="t('archiveBook.coverAria', { title: cycle.book.title })")
         img.cycle-detail__cover-image(v-if="cycle.book.coverUrl" :src="cycle.book.coverUrl" :alt="cycle.book.title")
         .book-cover__content.cycle-detail__cover-title(v-else) {{ cycle.coverTitle }}
@@ -207,6 +207,14 @@ main.cycle-detail.container
 
   @include tablet {
     grid-template-columns: 18rem minmax(0, 1fr);
+  }
+}
+
+.cycle-detail__hero--editing .cycle-detail__cover {
+  display: none;
+
+  @include tablet {
+    display: flex;
   }
 }
 

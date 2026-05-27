@@ -117,7 +117,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
       Pencil.current-book__button-icon
       | {{ $t('cycle.editBook') }}
 
-  article.current-book
+  article.current-book(:class="{ 'current-book--editing': isBookFormOpen }")
     .book-cover.current-book__cover(:style="{ backgroundColor: book.coverColor ?? undefined }" :aria-label="$t('archive.coverAria', { title: book.title })")
       img.current-book__cover-image(v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title")
       .book-cover__content(v-else)
@@ -302,6 +302,14 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.4;
+}
+
+.current-book--editing .current-book__cover {
+  display: none;
+
+  @media (min-width: 1280px) {
+    display: flex;
+  }
 }
 
 .current-book__edit-panel {
