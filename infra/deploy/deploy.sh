@@ -25,4 +25,9 @@ docker compose --env-file apps/chku-backend/.env \
   -f infra/docker/prod/docker-compose.yml \
   exec -T backend php artisan queue:restart
 
+echo "[deploy] Reloading nginx configuration..."
+docker compose --env-file apps/chku-backend/.env \
+  -f infra/docker/prod/docker-compose.yml \
+  exec -T nginx nginx -s reload
+
 echo "[deploy] Complete."
