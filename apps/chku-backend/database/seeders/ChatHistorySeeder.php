@@ -90,16 +90,6 @@ class ChatHistorySeeder extends Seeder
             ['short_name' => 'ЧКУ'],
             ['name' => 'Читальный клуб умничек'],
         );
-
-        $genres = [
-            ['slug' => 'fiction', 'name' => 'Проза'],
-            ['slug' => 'nonfiction', 'name' => 'Нон-фикшн'],
-            ['slug' => 'scifi', 'name' => 'Фантастика'],
-        ];
-
-        foreach ($genres as $genreData) {
-            Genre::firstOrCreate(['slug' => $genreData['slug']], $genreData);
-        }
     }
 
     private function seedUsersAndMembers(): void
@@ -110,7 +100,7 @@ class ChatHistorySeeder extends Seeder
                 'email' => 'nastya@chku.local',
                 'joined' => '2026-02-01',
                 'active' => true,
-                'genre' => 'fiction',
+                'genre' => 'classic',
                 'role' => 'admin',
             ],
             [
@@ -118,7 +108,7 @@ class ChatHistorySeeder extends Seeder
                 'email' => 'ivan@chku.local',
                 'joined' => '2026-02-01',
                 'active' => true,
-                'genre' => 'fiction',
+                'genre' => 'classic',
                 'role' => 'admin',
             ],
             [
@@ -127,7 +117,7 @@ class ChatHistorySeeder extends Seeder
                 'joined' => '2026-02-01',
                 'active' => false,
                 'deactivated_at' => '2026-03-10 00:00:00',
-                'genre' => 'scifi',
+                'genre' => 'science_fiction',
                 'role' => 'member',
             ],
             [
@@ -135,7 +125,7 @@ class ChatHistorySeeder extends Seeder
                 'email' => 'denis@chku.local',
                 'joined' => '2026-02-16',
                 'active' => true,
-                'genre' => 'nonfiction',
+                'genre' => 'history',
                 'role' => 'member',
             ],
             [
@@ -143,7 +133,7 @@ class ChatHistorySeeder extends Seeder
                 'email' => 'alexander@chku.local',
                 'joined' => '2026-04-06',
                 'active' => true,
-                'genre' => 'fiction',
+                'genre' => 'classic',
                 'role' => 'member',
             ],
             [
@@ -151,7 +141,7 @@ class ChatHistorySeeder extends Seeder
                 'email' => 'andrey@chku.local',
                 'joined' => '2026-05-11',
                 'active' => true,
-                'genre' => 'fiction',
+                'genre' => 'classic',
                 'role' => 'member',
             ],
         ];
@@ -176,12 +166,16 @@ class ChatHistorySeeder extends Seeder
                     'is_active' => $data['active'],
                     'deactivated_at' => $data['deactivated_at'] ?? null,
                     'joined_at' => $data['joined'],
-                    'favorite_genre_id' => Genre::where('slug', $data['genre'])->value('id'),
                 ],
             );
 
             if (! $member->wasRecentlyCreated) {
                 $member->update(['is_active' => $data['active']]);
+            }
+
+            $genreId = Genre::where('slug', $data['genre'])->value('id');
+            if ($genreId) {
+                $member->favoriteGenres()->syncWithoutDetaching($genreId);
             }
 
             $user->syncRoles([$data['role']]);
@@ -198,7 +192,7 @@ class ChatHistorySeeder extends Seeder
                 'title' => 'Сами Боги',
                 'author' => 'Айзек Азимов',
                 'slug' => 'sami-bogi',
-                'genre' => 'scifi',
+                'genre' => 'science_fiction',
                 'color' => '#3d5a5a',
                 'desc' => 'Роман о контакте с внеземной цивилизацией из параллельной вселенной, где законы физики отличаются от наших.',
             ],
@@ -206,7 +200,7 @@ class ChatHistorySeeder extends Seeder
                 'title' => 'Защита Лужина',
                 'author' => 'Владимир Набоков',
                 'slug' => 'zashita-luzhina',
-                'genre' => 'fiction',
+                'genre' => 'classic',
                 'color' => '#4a3b4a',
                 'desc' => 'История гениального шахматиста, для которого игра становится единственной реальностью, а внешний мир — угрозой.',
             ],
@@ -214,7 +208,7 @@ class ChatHistorySeeder extends Seeder
                 'title' => 'Тень',
                 'author' => 'Иван Филиппов',
                 'slug' => 'ten',
-                'genre' => 'fiction',
+                'genre' => 'classic',
                 'color' => '#2a2a3a',
                 'desc' => 'Лёгкое чтиво — роман о тайнах и тёмных сторонах человеческой души.',
             ],
@@ -226,11 +220,15 @@ class ChatHistorySeeder extends Seeder
                 [
                     'title' => $data['title'],
                     'author' => $data['author'],
-                    'genre_id' => Genre::where('slug', $data['genre'])->value('id'),
                     'description' => $data['desc'],
                     'cover_color' => $data['color'],
                 ],
             );
+
+            $genreId = Genre::where('slug', $data['genre'])->value('id');
+            if ($genreId) {
+                $book->genres()->syncWithoutDetaching($genreId);
+            }
 
             $this->books[$data['slug']] = $book;
         }
