@@ -29,7 +29,15 @@ export const bookQueueApi = {
     return http.post<unknown, ApiMemberBookQueueItem>('/me/book-queue', payload)
   },
 
-  async update(id: number, payload: Pick<BookQueuePayload, 'description'>) {
+  async update(id: number, payload: Partial<BookQueuePayload>) {
+    if (payload.coverFile) {
+      const fd = new FormData()
+      if (payload.title) fd.append('title', payload.title)
+      if (payload.author) fd.append('author', payload.author)
+      if (payload.description != null) fd.append('description', payload.description)
+      fd.append('coverFile', payload.coverFile)
+      return http.patchForm<unknown, ApiMemberBookQueueItem>(`/me/book-queue/${id}`, fd)
+    }
     return http.patch<unknown, ApiMemberBookQueueItem>(`/me/book-queue/${id}`, payload)
   },
 

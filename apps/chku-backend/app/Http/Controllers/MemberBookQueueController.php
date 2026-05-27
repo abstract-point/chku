@@ -6,6 +6,7 @@ use App\Enums\BookCandidateStatusEnum;
 use App\Enums\MemberBookQueueItemStatusEnum;
 use App\Http\Resources\MemberBookQueueItemResource;
 use App\Models\Book;
+use App\Models\ClubMember;
 use App\Models\Genre;
 use App\Models\MemberBookQueueItem;
 use App\Services\BookCoverDownloadService;
@@ -81,14 +82,23 @@ final class MemberBookQueueController extends Controller
         MemberBookQueueItem $item,
         CurrentMemberService $currentMember,
     ): MemberBookQueueItemResource {
-        $this->authorizeOwner($item, $currentMember->get()->id);
+        $member = $currentMember->get();
+        $this->authorizeOwnerOrAdmin($item, $member);
 
         $payload = $request->validate([
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'author' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
+            'coverFile' => ['nullable', 'image', 'max:5120'],
         ]);
 
         $item->load('book');
-        $item->book->update($payload);
+        $bookPayload = collect($payload)->only(['title', 'author', 'description'])->all();
+        if (isset($bookPayload['title'])) {
+            $bookPayload['slug'] = $this->uniqueSlug($bookPayload['title']);
+        }
+        $item->book->update($bookPayload);
+        $this->attachCover($item->book, $payload);
 
         return new MemberBookQueueItemResource($item->refresh()->load('book.genre', 'book.primaryCover'));
     }
@@ -99,7 +109,7 @@ final class MemberBookQueueController extends Controller
         MemberBookQueueService $queue,
     ): MemberBookQueueItemResource
     {
-        $this->authorizeOwner($item, $currentMember->get()->id);
+        $this->authorizeOwnerOrAdmin($item, $currentMember->get());
         $item = $queue->removeFromLiveQueue($item, MemberBookQueueItemStatusEnum::Removed);
 
         return new MemberBookQueueItemResource($item->refresh()->load('book.genre', 'book.primaryCover'));
@@ -137,7 +147,7 @@ final class MemberBookQueueController extends Controller
         TurnOrderService $turnOrder,
     ): MemberBookQueueItemResource {
         $member = $currentMember->get();
-        $this->authorizeOwner($item, $member->id);
+        $this->authorizeOwnerOrAdmin($item, $member);
         abort_if($item->status !== MemberBookQueueItemStatusEnum::Queued, 422, 'Кандидатом можно сделать только книгу в очереди.');
 
         $item = $queue->moveToHead($item);
@@ -150,9 +160,13 @@ final class MemberBookQueueController extends Controller
         return new MemberBookQueueItemResource($item->refresh()->load('book.genre', 'book.primaryCover'));
     }
 
-    private function authorizeOwner(MemberBookQueueItem $item, int $memberId): void
+    private function authorizeOwnerOrAdmin(MemberBookQueueItem $item, ClubMember $member): void
     {
-        abort_if($item->club_member_id !== $memberId, 403, 'Нельзя менять чужую очередь.');
+        $isAdmin = $member->user?->hasAnyRole(['admin', 'developer']) ?? false;
+        if ($isAdmin) {
+            return;
+        }
+        abort_if($item->club_member_id !== $member->id, 403, 'Нельзя менять чужую очередь.');
     }
 
     private function uniqueSlug(string $title): string

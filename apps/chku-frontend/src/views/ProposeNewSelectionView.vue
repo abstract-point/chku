@@ -15,9 +15,11 @@ import {
   useUpdateBookQueueItemMutation,
 } from '@/queries/bookQueueQueries'
 import { useFormErrors } from '@/composables/useFormErrors'
+import { useAuthSession } from '@/queries/authQueries'
 import type { BookQueueItem } from '@/types/club'
 
 const { t } = useI18n()
+const { isAdmin } = useAuthSession()
 const queueQuery = useBookQueueQuery()
 const rejectedQuery = useRejectedBookQueueQuery()
 const createQueueItem = useCreateBookQueueItemMutation()
@@ -27,7 +29,7 @@ const updateQueueItem = useUpdateBookQueueItemMutation()
 
 const activeTab = ref<'queue' | 'rejected'>('queue')
 const editingId = ref<number | null>(null)
-const editForms = reactive<Record<number, { description: string }>>({})
+const editForms = reactive<Record<number, { title: string; author: string; description: string; coverFile: File | null }>>({})
 
 const form = reactive({
   title: '',
@@ -126,7 +128,10 @@ function promote(item: BookQueueItem) {
 function startEdit(item: BookQueueItem) {
   editingId.value = item.id
   editForms[item.id] = {
+    title: item.title,
+    author: item.author,
     description: item.description ?? '',
+    coverFile: null,
   }
 }
 
@@ -140,13 +145,17 @@ function saveEdit(item: BookQueueItem) {
   updateQueueItem.mutate(
     {
       id: item.id,
+      title: editForm.title.trim(),
+      author: editForm.author.trim(),
       description: editForm.description.trim() || null,
+      coverFile: editForm.coverFile,
     },
     { onSuccess: cancelEdit },
   )
 }
 
 function isEditable(item: BookQueueItem) {
+  if (isAdmin.value) return true
   return item.status === 'queued' || item.status === 'in_verification'
 }
 
@@ -275,6 +284,24 @@ main.proposal.container
             template(v-if="editingId === item.id")
               .proposal__book-edit
                 .proposal__field
+                  label.label-text(:for="`edit-title-${item.id}`") {{ $t('books.titleLabel') }}
+                  input.field-control.proposal__input(
+                    :id="`edit-title-${item.id}`"
+                    v-model="editForms[item.id].title"
+                    type="text"
+                    :maxlength="255"
+                    :placeholder="t('books.titlePlaceholder')"
+                  )
+                .proposal__field
+                  label.label-text(:for="`edit-author-${item.id}`") {{ $t('books.authorLabel') }}
+                  input.field-control.proposal__input(
+                    :id="`edit-author-${item.id}`"
+                    v-model="editForms[item.id].author"
+                    type="text"
+                    :maxlength="255"
+                    :placeholder="t('books.authorPlaceholder')"
+                  )
+                .proposal__field
                   label.label-text(:for="`edit-desc-${item.id}`") {{ $t('books.descLabel') }}
                   textarea.field-control.proposal__textarea(
                     :id="`edit-desc-${item.id}`"
@@ -283,6 +310,16 @@ main.proposal.container
                     :placeholder="t('books.descPlaceholder')"
                   )
                   span.label-text {{ `${editForms[item.id]?.description?.length ?? 0}/500` }}
+                .proposal__field
+                  label.label-text(:for="`edit-cover-${item.id}`") {{ $t('books.coverLabel') }}
+                  FilePicker(
+                    :id="`edit-cover-${item.id}`"
+                    v-model="editForms[item.id].coverFile"
+                    variant="cover"
+                    :cover-title="editForms[item.id].title"
+                    :existing-url="item.coverUrl"
+                    accept="image/*"
+                  )
                 .proposal__edit-actions
                   button.button.button--primary.label-text(
                     type="button"

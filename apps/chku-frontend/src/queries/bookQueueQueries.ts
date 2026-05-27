@@ -82,9 +82,18 @@ export function useMakeBookQueueItemCandidateMutation() {
 export function useUpdateBookQueueItemMutation() {
   const client = useQueryClient()
   return useMutation({
-    mutationFn: (payload: { id: number; description?: string | null }) =>
+    mutationFn: (payload: {
+      id: number
+      title?: string
+      author?: string
+      description?: string | null
+      coverFile?: File | null
+    }) =>
       bookQueueApi.update(payload.id, {
+        title: payload.title,
+        author: payload.author,
         description: payload.description ?? undefined,
+        coverFile: payload.coverFile,
       }),
     onSuccess: () => invalidateQueue(client),
   })
