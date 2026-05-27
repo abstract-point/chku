@@ -17,7 +17,6 @@ class BookCandidateResource extends JsonResource
             'cycleNumber' => $this->readingCycle?->cycle_number,
             'book' => new BookResource($this->whenLoaded('book')),
             'proposer' => new MemberResource($this->whenLoaded('proposer')),
-            'reason' => $this->reason,
             'description' => $this->description,
             'status' => $this->status->value,
             'responses' => BookCandidateResponseResource::collection($this->whenLoaded('responses')),

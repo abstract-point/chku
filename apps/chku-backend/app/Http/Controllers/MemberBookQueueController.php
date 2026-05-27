@@ -49,8 +49,7 @@ final class MemberBookQueueController extends Controller
         $payload = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:2000'],
-            'reason' => ['nullable', 'string', 'max:2000'],
+            'description' => ['nullable', 'string', 'max:500'],
             'coverFile' => ['nullable', 'image', 'max:5120'],
         ]);
 
@@ -66,7 +65,6 @@ final class MemberBookQueueController extends Controller
         $item = $queue->createAtHead(
             $member,
             $book,
-            $payload['reason'] ?? null,
             $payload['description'] ?? null,
         );
 
@@ -87,8 +85,7 @@ final class MemberBookQueueController extends Controller
         $this->authorizeOwner($item, $currentMember->get()->id);
 
         $payload = $request->validate([
-            'reason' => ['nullable', 'string', 'max:2000'],
-            'description' => ['nullable', 'string', 'max:2000'],
+            'description' => ['nullable', 'string', 'max:500'],
         ]);
 
         $item->update($payload);

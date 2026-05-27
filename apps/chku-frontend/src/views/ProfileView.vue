@@ -106,7 +106,6 @@ main.profile.container
             span.profile__next-book-label.label-text {{ nextQueueLabel }}
             strong {{ nextQueueBook.title }}
             small {{ nextQueueBook.author }}
-            p.body-text(v-if="nextQueueBook.reason") {{ nextQueueBook.reason }}
         RouterLink.button.button--primary.label-text.profile__turn-action(to="/propose-selection")
           | {{ $t('profile.openQueue') }}
 
@@ -124,7 +123,6 @@ main.profile.container
             span.profile__next-book-label.label-text {{ nextQueueLabel }}
             strong {{ nextQueueBook.title }}
             small {{ nextQueueBook.author }}
-            p.body-text(v-if="nextQueueBook.reason") {{ nextQueueBook.reason }}
         RouterLink.button.button--primary.label-text.profile__turn-action(to="/propose-selection")
           | {{ $t('profile.manageQueue') }}
 

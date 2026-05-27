@@ -9,7 +9,6 @@ export function mapCandidateToChoice(candidate: ApiBookCandidate): BookChoiceEve
     bookTitle: candidate.book.title,
     author: candidate.book.author,
     description: candidate.description,
-    reason: candidate.reason,
     responses: candidate.responses,
     status: candidate.status,
     canConfirm: candidate.canConfirm,

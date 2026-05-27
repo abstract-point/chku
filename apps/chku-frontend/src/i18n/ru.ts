@@ -36,6 +36,9 @@ export default {
     errorList: 'Не удалось загрузить список.',
     notFound: 'Не найдено',
     noResults: 'Ничего не найдено',
+    chooseFile: 'Выбрать файл',
+    removeFile: 'Удалить файл',
+    preview: 'Предпросмотр',
   },
 
   nav: {
@@ -163,7 +166,7 @@ export default {
     awaitingOwner: 'Ожидает подтверждения',
     awaitingVerification: 'Ожидает проверки',
     proposedBy: 'Предложил(а) {name}',
-    whyThisBook: 'Почему эта книга',
+
     iveRead: 'Я читал(а)',
     notRead: 'Не читал(а)',
     confirmBook: 'Подтвердить книгу',
@@ -578,11 +581,11 @@ export default {
     authorPlaceholder: 'Например, Михаил Булгаков',
     descLabel: 'Краткое описание',
     descPlaceholder: 'Коротко опиши, о чём книга.',
-    reasonLabel: 'Почему эта книга?',
-    reasonPlaceholder: 'Какие темы она может открыть для клуба?',
+    coverLabel: 'Обложка',
     uploadCover: 'Загрузить свою обложку',
     uploadedCover: 'Загруженная обложка',
     removeCover: 'Удалить загруженную обложку',
+    noCover: 'Нет обложки',
     adding: 'Добавляем…',
     addToQueue: 'Добавить в очередь',
     queueTitle: 'Очередь',
@@ -616,7 +619,6 @@ export default {
     rejectedBadge: 'Отклонена',
     rejectedBy: 'Отклонена {date}',
     readBy: 'Прочитали: {members}',
-    whyPrefix: 'Почему: {reason}',
   },
 
   dates: {

@@ -7,6 +7,7 @@ const props = defineProps<{
   required?: boolean
   disabled?: boolean
   rows?: number
+  maxlength?: number
   ariaInvalid?: boolean
 }>()
 
@@ -36,6 +37,7 @@ textarea.app-textarea.field-control(
   :required="required"
   :disabled="disabled"
   :rows="rows ?? 4"
+  :maxlength="maxlength"
   :aria-invalid="ariaInvalid || undefined"
   @input="onInput"
   @blur="onBlur"

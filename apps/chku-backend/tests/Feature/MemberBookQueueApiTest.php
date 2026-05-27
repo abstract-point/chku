@@ -29,7 +29,6 @@ class MemberBookQueueApiTest extends TestCase
             'title' => 'Пикник на обочине',
             'author' => 'Аркадий и Борис Стругацкие',
             'description' => 'Фантастическая повесть о Зоне.',
-            'reason' => 'Хорошо подойдёт для разговора о желаниях.',
         ]);
 
         $create->assertCreated();

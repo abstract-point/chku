@@ -94,7 +94,6 @@ main.cycle-detail.container
           .section-header
             h2 {{ $t('cycle.verification') }}
             span.label-text {{ cycle.candidate.status }}
-          p.body-text(v-if="cycle.candidate.reason") {{ cycle.candidate.reason }}
           ul.data-list
             li.data-list__item(v-for="response in cycle.candidate.responses" :key="response.id")
               span.label-text {{ response.member.name }}

@@ -57,7 +57,7 @@ final class CycleController extends Controller
         $rules = [
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:2000'],
+            'description' => ['nullable', 'string', 'max:500'],
             'genreId' => ['nullable', 'integer', Rule::exists('genres', 'id')],
             'coverFile' => ['nullable', 'image', 'max:5120'],
         ];

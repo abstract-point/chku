@@ -179,19 +179,22 @@ main.archive.container
             span.label-text(v-if="cycle.completedLabel") {{ $t('archive.completed', { label: cycle.completedLabel }) }}
             span.label-text(v-else) {{ cycle.statusLabel }}
             span.label-text {{ $t('archive.proposedBy', { name: cycle.proposedBy }) }}
-          .archive-card__stats(:aria-label="t('archive.statsAria')")
-            span.archive-card__stat.label-text
-              Star(:size="15" aria-hidden="true")
-              span {{ ratingLabel(cycle.averageRating ?? cycle.rating) }}
-            span.archive-card__stat.label-text
-              Star(:size="15" aria-hidden="true")
-              span {{ $t('archive.ratingsN', { n: cycle.ratingsCount ?? cycle.reviews.length }) }}
-            span.archive-card__stat.label-text
-              MessageSquare(:size="15" aria-hidden="true")
-              span {{ $t('archive.reviewsN', { n: cycle.reviewsCount ?? cycle.reviews.length }) }}
-            span.archive-card__stat.label-text
-              CalendarCheck(:size="15" aria-hidden="true")
-              span {{ cycle.attendingCount ?? 0 }}/{{ cycle.rsvpCount ?? 0 }} RSVP
+          .archive-card__description(v-if="cycle.status !== 'completed' && cycle.book.description")
+            p.body-text {{ cycle.book.description }}
+          .archive-card__footer(v-if="cycle.status === 'completed'")
+            .archive-card__stats(:aria-label="t('archive.statsAria')")
+                span.archive-card__stat.label-text
+                  Star(:size="15" aria-hidden="true")
+                  span {{ ratingLabel(cycle.averageRating ?? cycle.rating) }}
+                span.archive-card__stat.label-text
+                  Star(:size="15" aria-hidden="true")
+                  span {{ $t('archive.ratingsN', { n: cycle.ratingsCount ?? cycle.reviews.length }) }}
+                span.archive-card__stat.label-text
+                  MessageSquare(:size="15" aria-hidden="true")
+                  span {{ $t('archive.reviewsN', { n: cycle.reviewsCount ?? cycle.reviews.length }) }}
+                span.archive-card__stat.label-text
+                  CalendarCheck(:size="15" aria-hidden="true")
+                  span {{ cycle.attendingCount ?? 0 }}/{{ cycle.rsvpCount ?? 0 }} RSVP
 
   section.panel.archive__empty(v-else aria-live="polite")
     .section-header.section-header--compact
@@ -461,13 +464,30 @@ main.archive.container
   color: var(--text-muted);
 }
 
+.archive-card__footer {
+  margin-top: auto;
+  padding-top: var(--space-md);
+  border-top: var(--border-width) solid var(--border);
+}
+
+.archive-card__description {
+  margin-bottom: var(--space-md);
+}
+
+.archive-card__description .body-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 .archive-card__stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-sm);
-  margin-top: auto;
-  padding-top: var(--space-md);
-  border-top: var(--border-width) solid var(--border);
 }
 
 .archive-card__stat {

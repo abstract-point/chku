@@ -18,7 +18,6 @@ function mapQueueItem(item: ApiMemberBookQueueItem): BookQueueItem {
     coverUrl: item.book.coverUrl,
     coverColor: item.book.coverColor,
     description: item.description ?? item.book.description,
-    reason: item.reason,
   }
 }
 
@@ -83,10 +82,9 @@ export function useMakeBookQueueItemCandidateMutation() {
 export function useUpdateBookQueueItemMutation() {
   const client = useQueryClient()
   return useMutation({
-    mutationFn: (payload: { id: number; description?: string | null; reason?: string | null }) =>
+    mutationFn: (payload: { id: number; description?: string | null }) =>
       bookQueueApi.update(payload.id, {
         description: payload.description ?? undefined,
-        reason: payload.reason ?? undefined,
       }),
     onSuccess: () => invalidateQueue(client),
   })

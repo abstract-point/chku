@@ -73,7 +73,6 @@ class CurrentTestCycleSeeder extends Seeder
         MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'elena@example.com')?->id,
             'book_id' => $books['cvety-dlya-elzherona']->id,
-            'reason' => 'Книга поднимает вечный вопрос о цене знаний и о том, что делает нас людьми.',
             'description' => $books['cvety-dlya-elzherona']->description,
             'status' => MemberBookQueueItemStatusEnum::Approved,
         ]);
@@ -81,7 +80,6 @@ class CurrentTestCycleSeeder extends Seeder
         $elenaFirst = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'elena@example.com')?->id,
             'book_id' => $books['shum-vremeni']->id,
-            'reason' => 'Роман о компромиссе и достоинстве в эпохе террора — хороший материал для дискуссии.',
             'description' => $books['shum-vremeni']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
@@ -89,7 +87,6 @@ class CurrentTestCycleSeeder extends Seeder
         $elenaSecond = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'elena@example.com')?->id,
             'book_id' => $books['oblachnyj-atlas']->id,
-            'reason' => 'Шесть переплетённых историй из разных эпох — интересно обсудить связи между ними.',
             'description' => $books['oblachnyj-atlas']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
@@ -98,7 +95,6 @@ class CurrentTestCycleSeeder extends Seeder
         $mikhailFirst = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'mikhail@example.com')?->id,
             'book_id' => $books['piknik-na-obochine']->id,
-            'reason' => 'Хочется обсудить тему непостижимого и человеческую жадность перед лицом неизвестного.',
             'description' => $books['piknik-na-obochine']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
@@ -106,7 +102,6 @@ class CurrentTestCycleSeeder extends Seeder
         $mikhailSecond = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'mikhail@example.com')?->id,
             'book_id' => $books['kratkaya-istoriya-vremeni']->id,
-            'reason' => 'Научпоп, который меняет взгляд на мир. Хороший контраст после художественной прозы.',
             'description' => $books['kratkaya-istoriya-vremeni']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
@@ -115,7 +110,6 @@ class CurrentTestCycleSeeder extends Seeder
         $adminFirst = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'admin@example.com')?->id,
             'book_id' => $books['piknik-na-obochine']->id,
-            'reason' => 'Хочется обсудить тему непостижимого и человеческую жадность перед лицом неизвестного.',
             'description' => $books['piknik-na-obochine']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);
@@ -123,7 +117,6 @@ class CurrentTestCycleSeeder extends Seeder
         $adminSecond = MemberBookQueueItem::create([
             'club_member_id' => $members->firstWhere('user.email', 'admin@example.com')?->id,
             'book_id' => $books['1984']->id,
-            'reason' => 'Классика антиутопии, отличный повод поговорить о свободе и контроле.',
             'description' => $books['1984']->description,
             'status' => MemberBookQueueItemStatusEnum::Queued,
         ]);

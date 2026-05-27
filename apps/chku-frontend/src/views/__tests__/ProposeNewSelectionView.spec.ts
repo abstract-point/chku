@@ -34,7 +34,6 @@ describe('ProposeNewSelectionView', () => {
     expect(wrapper.text()).toContain('Моя очередь книг')
     expect(wrapper.text()).toContain('Добавить книгу')
     expect(wrapper.text()).toContain('Название книги')
-    expect(wrapper.text()).toContain('Почему эта книга?')
   })
 
   it('marks required fields with an asterisk', () => {
@@ -55,9 +54,6 @@ describe('ProposeNewSelectionView', () => {
     await wrapper
       .get('#book-description')
       .setValue('История странника и его попытки искупить прошлое.')
-    await wrapper
-      .get('#book-reason')
-      .setValue('Подойдёт для разговора о времени, вине и милосердии.')
     await wrapper.find('form').trigger('submit')
 
     expect(wrapper.text()).toContain('Название книги*')
@@ -71,7 +67,7 @@ describe('ProposeNewSelectionView', () => {
     expect(editButtons.length).toBeGreaterThan(0)
   })
 
-  it('groups queue item description and reason in one content area', () => {
+  it('displays book description in queue item', () => {
     setActivePinia(createPinia())
     const wrapper = mountProposal()
 
@@ -81,9 +77,6 @@ describe('ProposeNewSelectionView', () => {
     expect(content.exists()).toBe(true)
     expect(content.find('.proposal__book-meta').text()).toBe(
       'Документальный роман о выборе под давлением.',
-    )
-    expect(content.find('.proposal__book-reason').text()).toBe(
-      'Почему: Роман о компромиссе и достоинстве в эпоху террора.',
     )
   })
 

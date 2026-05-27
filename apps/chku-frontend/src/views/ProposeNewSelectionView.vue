@@ -5,7 +5,7 @@ import { BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Send, Trash2, X } fr
 import AppTabs from '@/components/ui/AppTabs.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
-import BookCoverPicker from '@/components/books/BookCoverPicker.vue'
+import FilePicker from '@/components/ui/FilePicker.vue'
 import {
   useBookQueueQuery,
   useCreateBookQueueItemMutation,
@@ -27,13 +27,12 @@ const updateQueueItem = useUpdateBookQueueItemMutation()
 
 const activeTab = ref<'queue' | 'rejected'>('queue')
 const editingId = ref<number | null>(null)
-const editForms = reactive<Record<number, { description: string; reason: string }>>({})
+const editForms = reactive<Record<number, { description: string }>>({})
 
 const form = reactive({
   title: '',
   author: '',
   description: '',
-  reason: '',
   coverFile: null as File | null,
 })
 const formErrors = useFormErrors()
@@ -71,7 +70,6 @@ function resetForm() {
   form.title = ''
   form.author = ''
   form.description = ''
-  form.reason = ''
   form.coverFile = null
   formErrors.clearAllErrors()
 }
@@ -84,7 +82,6 @@ function submitBook() {
       title: form.title.trim(),
       author: form.author.trim(),
       description: form.description.trim(),
-      reason: form.reason.trim(),
       coverFile: form.coverFile,
     },
     {
@@ -130,7 +127,6 @@ function startEdit(item: BookQueueItem) {
   editingId.value = item.id
   editForms[item.id] = {
     description: item.description ?? '',
-    reason: item.reason ?? '',
   }
 }
 
@@ -145,7 +141,6 @@ function saveEdit(item: BookQueueItem) {
     {
       id: item.id,
       description: editForm.description.trim() || null,
-      reason: editForm.reason.trim() || null,
     },
     { onSuccess: cancelEdit },
   )
@@ -179,41 +174,39 @@ main.proposal.container
           h2#queue-form-title {{ $t('books.addBook') }}
           Plus.proposal__button-icon
         form.proposal__form-fields(@submit.prevent="submitBook" novalidate)
-          AppFormField(:label="t('books.titleLabel')" label-for="book-title" required :error="formErrors.getError('title')")
+          AppFormField(:label="t('books.titleLabel')" label-for="book-title" required :error="formErrors.getError('title')" :hint="`${form.title.length}/255`")
             input#book-title.field-control.proposal__text-input(
               v-model="form.title"
               type="text"
+              :maxlength="255"
               :placeholder="t('books.titlePlaceholder')"
               :aria-invalid="formErrors.hasError('title')"
             )
 
-          AppFormField(:label="t('books.authorLabel')" label-for="book-author" required :error="formErrors.getError('author')")
+          AppFormField(:label="t('books.authorLabel')" label-for="book-author" required :error="formErrors.getError('author')" :hint="`${form.author.length}/255`")
             input#book-author.field-control.proposal__text-input(
               v-model="form.author"
               type="text"
+              :maxlength="255"
               :placeholder="t('books.authorPlaceholder')"
               :aria-invalid="formErrors.hasError('author')"
             )
 
-          AppFormField(:label="t('books.descLabel')" label-for="book-description" :error="formErrors.getError('description')")
+          AppFormField(:label="t('books.descLabel')" label-for="book-description" :error="formErrors.getError('description')" :hint="`${form.description.length}/500`")
             AppTextarea#book-description(
               v-model="form.description"
+              :maxlength="500"
               :placeholder="t('books.descPlaceholder')"
               :aria-invalid="formErrors.hasError('description')"
             )
 
-          AppFormField(:label="t('books.reasonLabel')" label-for="book-reason" :error="formErrors.getError('reason')")
-            AppTextarea#book-reason(
-              v-model="form.reason"
-              :placeholder="t('books.reasonPlaceholder')"
-              :aria-invalid="formErrors.hasError('reason')"
+          AppFormField(:label="t('books.coverLabel')" label-for="book-cover" :error="formErrors.getError('cover')")
+            FilePicker#book-cover(
+              v-model="form.coverFile"
+              variant="cover"
+              :cover-title="form.title"
+              accept="image/*"
             )
-
-          BookCoverPicker(
-            v-model:coverFile="form.coverFile"
-            :title="form.title"
-            :author="form.author"
-          )
 
           .proposal__actions
             button.button.button--primary.label-text(type="submit" :disabled="createQueueItem.isPending.value")
@@ -286,15 +279,10 @@ main.proposal.container
                   textarea.field-control.proposal__textarea(
                     :id="`edit-desc-${item.id}`"
                     v-model="editForms[item.id].description"
+                    :maxlength="500"
                     :placeholder="t('books.descPlaceholder')"
                   )
-                .proposal__field
-                  label.label-text(:for="`edit-reason-${item.id}`") {{ $t('books.reasonLabel') }}
-                  textarea.field-control.proposal__textarea(
-                    :id="`edit-reason-${item.id}`"
-                    v-model="editForms[item.id].reason"
-                    :placeholder="t('books.reasonPlaceholder')"
-                  )
+                  span.label-text {{ `${editForms[item.id]?.description?.length ?? 0}/500` }}
                 .proposal__edit-actions
                   button.button.button--primary.label-text(
                     type="button"
@@ -311,10 +299,8 @@ main.proposal.container
                     | {{ $t('books.cancel') }}
                 p.proposal__error(v-if="updateQueueItem.error.value") {{ $t('books.editError') }}
             template(v-else)
-              .proposal__book-content(v-if="item.description || item.reason")
+              .proposal__book-content(v-if="item.description")
                 p.proposal__book-meta(v-if="item.description") {{ item.description }}
-                p.proposal__book-reason(v-if="item.reason")
-                  span {{ $t('books.whyPrefix', { reason: item.reason }) }}
             .proposal__book-actions
               button.button.button--secondary.label-text(
                 v-if="index !== 0"
@@ -366,10 +352,8 @@ main.proposal.container
                 h3.proposal__book-title {{ item.title }}
                 p.proposal__book-author {{ item.author }}
               span.badge.badge--sm.badge--danger {{ $t('books.rejectedBadge') }}
-            .proposal__book-content(v-if="item.description || item.reason || item.rejectionInfo")
+            .proposal__book-content(v-if="item.description || item.rejectionInfo")
               p.proposal__book-meta(v-if="item.description") {{ item.description }}
-              p.proposal__book-reason(v-if="item.reason")
-                span {{ $t('books.whyPrefix', { reason: item.reason }) }}
               .proposal__book-rejection(v-if="item.rejectionInfo")
                 | {{ $t('books.rejectedBy', { date: formatDate(item.rejectionInfo.rejectedAt) }) }}
                 template(v-if="item.rejectionInfo.rejectedByMembers.length")
@@ -673,13 +657,8 @@ main.proposal.container
 }
 
 .proposal__book-meta,
-.proposal__book-reason,
 .proposal__book-rejection {
   margin: 0;
-}
-
-.proposal__book-reason span {
-  color: var(--text-secondary);
 }
 
 .proposal__book-rejection {

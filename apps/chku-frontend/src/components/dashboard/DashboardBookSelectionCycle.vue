@@ -125,9 +125,6 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
           p.current-book__author — {{ candidate.book.author }}
         p.body-text.current-book__description
           | {{ candidate.description || candidate.book.description }}
-        .panel.panel--filled.book-selection__reason(v-if="candidate.reason")
-          span.label-text {{ $t('dash.whyThisBook') }}
-          p.body-text {{ candidate.reason }}
         .book-selection__actions(v-if="canRespond || candidate.canConfirm")
           button.button.button--secondary.label-text(
             v-if="canRespond"
@@ -254,13 +251,6 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
   margin-bottom: var(--space-lg);
   color: var(--text-muted);
   font-size: 1rem;
-}
-
-.book-selection__reason {
-  display: grid;
-  gap: var(--space-xs);
-  padding: var(--space-md);
-  border-radius: var(--radius-inner);
 }
 
 .book-selection__actions {

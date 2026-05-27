@@ -52,8 +52,6 @@ export const activeCandidate = {
     ...members[0]!,
     name: 'Елена',
   },
-  reason:
-    'Подойдёт для обсуждения ответственности, дружбы и того, как интеллектуальная среда меняет людей.',
   description: 'Роман о закрытом круге студентов, античной культуре и последствиях одного решения.',
   status: 'pending' as const,
   responses: [
@@ -312,7 +310,6 @@ vi.mock('@/queries/bookQueueQueries', () => ({
         title: 'Шум времени',
         author: 'Джулиан Барнс',
         description: 'Документальный роман о выборе под давлением.',
-        reason: 'Роман о компромиссе и достоинстве в эпоху террора.',
       },
       {
         id: 2,
@@ -323,7 +320,6 @@ vi.mock('@/queries/bookQueueQueries', () => ({
         status: 'queued',
         title: 'Лавр',
         author: 'Евгений Водолазкин',
-        reason: 'История странника и его попытки искупить прошлое.',
       },
     ]),
     items: computed(() => [
@@ -337,7 +333,6 @@ vi.mock('@/queries/bookQueueQueries', () => ({
         title: 'Шум времени',
         author: 'Джулиан Барнс',
         description: 'Документальный роман о выборе под давлением.',
-        reason: 'Роман о компромиссе и достоинстве в эпоху террора.',
       },
       {
         id: 2,
@@ -348,7 +343,6 @@ vi.mock('@/queries/bookQueueQueries', () => ({
         status: 'queued',
         title: 'Лавр',
         author: 'Евгений Водолазкин',
-        reason: 'История странника и его попытки искупить прошлое.',
       },
     ]),
   }),

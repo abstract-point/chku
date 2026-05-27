@@ -4,7 +4,7 @@ import { Save, X } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
-import BookCoverPicker from '@/components/books/BookCoverPicker.vue'
+import FilePicker from '@/components/ui/FilePicker.vue'
 import { useFormErrors } from '@/composables/useFormErrors'
 import { useUpdateCycleBookMutation } from '@/queries/cycleQueries'
 
@@ -81,34 +81,41 @@ function cancel() {
 
 <template lang="pug">
 form.cycle-book-form(@submit.prevent="saveBook" novalidate)
-  AppFormField(:label="t('books.titleLabel')" :label-for="`${idPrefix}-title`" required :error="formErrors.getError('title')")
+  AppFormField(:label="t('books.titleLabel')" :label-for="`${idPrefix}-title`" required :error="formErrors.getError('title')" :hint="`${form.title.length}/255`")
     input.field-control.cycle-book-form__input(
       :id="`${idPrefix}-title`"
       v-model="form.title"
       type="text"
+      :maxlength="255"
       :placeholder="t('books.titlePlaceholder')"
       :aria-invalid="formErrors.hasError('title')"
     )
-  AppFormField(:label="t('books.authorLabel')" :label-for="`${idPrefix}-author`" required :error="formErrors.getError('author')")
+  AppFormField(:label="t('books.authorLabel')" :label-for="`${idPrefix}-author`" required :error="formErrors.getError('author')" :hint="`${form.author.length}/255`")
     input.field-control.cycle-book-form__input(
       :id="`${idPrefix}-author`"
       v-model="form.author"
       type="text"
+      :maxlength="255"
       :placeholder="t('books.authorPlaceholder')"
       :aria-invalid="formErrors.hasError('author')"
     )
-  AppFormField(:label="t('books.descLabel')" :label-for="`${idPrefix}-description`" :error="formErrors.getError('description')")
+  AppFormField(:label="t('books.descLabel')" :label-for="`${idPrefix}-description`" :error="formErrors.getError('description')" :hint="`${form.description.length}/500`")
     AppTextarea(
       :id="`${idPrefix}-description`"
       v-model="form.description"
+      :maxlength="500"
       :placeholder="t('books.descPlaceholder')"
       :aria-invalid="formErrors.hasError('description')"
     )
-  BookCoverPicker(
-    v-model:coverFile="form.coverFile"
-    :title="form.title"
-    :author="form.author"
-  )
+  AppFormField(:label="t('books.coverLabel')" :label-for="`${idPrefix}-cover`" :error="formErrors.getError('cover')")
+    FilePicker(
+      :id="`${idPrefix}-cover`"
+      v-model="form.coverFile"
+      variant="cover"
+      :existing-url="props.book.coverUrl"
+      :cover-title="form.title"
+      accept="image/*"
+    )
   .cycle-book-form__actions
     button.button.button--primary.label-text(type="submit" :disabled="updateBook.isPending.value")
       Save.cycle-book-form__icon

@@ -5,7 +5,6 @@ export type BookQueuePayload = {
   title: string
   author: string
   description?: string
-  reason?: string
   coverFile?: File | null
 }
 
@@ -24,14 +23,13 @@ export const bookQueueApi = {
       fd.append('title', payload.title)
       fd.append('author', payload.author)
       if (payload.description) fd.append('description', payload.description)
-      if (payload.reason) fd.append('reason', payload.reason)
       fd.append('coverFile', payload.coverFile)
       return http.postForm<unknown, ApiMemberBookQueueItem>('/me/book-queue', fd)
     }
     return http.post<unknown, ApiMemberBookQueueItem>('/me/book-queue', payload)
   },
 
-  async update(id: number, payload: Pick<BookQueuePayload, 'description' | 'reason'>) {
+  async update(id: number, payload: Pick<BookQueuePayload, 'description'>) {
     return http.patch<unknown, ApiMemberBookQueueItem>(`/me/book-queue/${id}`, payload)
   },
 

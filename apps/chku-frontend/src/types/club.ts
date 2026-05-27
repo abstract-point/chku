@@ -5,7 +5,6 @@ export type BookChoiceEvent = {
   bookTitle: string
   author: string
   description: string
-  reason: string
   responses?: {
     id: number
     member: {
@@ -23,7 +22,6 @@ export type BookProposalForm = {
   title: string
   author: string
   description: string
-  reason: string
 }
 
 export type BookQueueItem = {
@@ -38,7 +36,6 @@ export type BookQueueItem = {
   coverUrl?: string | null
   coverColor?: string | null
   description?: string | null
-  reason?: string | null
   rejectionInfo?: {
     rejectedAt: string
     rejectedByMembers: string[]
@@ -153,7 +150,6 @@ export type ArchiveCycle = {
   candidate?: {
     id: number
     status: 'pending' | 'awaiting_owner_confirmation' | 'approved' | 'rejected'
-    reason?: string | null
     description?: string | null
     responses: {
       id: number

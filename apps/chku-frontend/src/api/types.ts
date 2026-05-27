@@ -64,7 +64,6 @@ export type ApiBookCandidate = {
   cycleNumber?: number | null
   book: ApiBook
   proposer: ApiMember
-  reason: string
   description: string
   status: 'pending' | 'awaiting_owner_confirmation' | 'approved' | 'rejected'
   responses: ApiBookCandidateResponse[]
