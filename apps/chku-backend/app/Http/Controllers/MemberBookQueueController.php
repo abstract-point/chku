@@ -52,6 +52,8 @@ final class MemberBookQueueController extends Controller
             'author' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
             'coverFile' => ['nullable', 'image', 'max:5120'],
+            'genre_ids' => ['nullable', 'array', 'max:5'],
+            'genre_ids.*' => ['integer', Rule::exists('genres', 'id')],
         ]);
 
         $member = $currentMember->get();
@@ -60,6 +62,8 @@ final class MemberBookQueueController extends Controller
             ['slug' => $this->uniqueSlug($payload['title'])],
             $this->bookPayload($payload),
         );
+
+        $book->genres()->sync($payload['genre_ids'] ?? []);
 
         $this->attachCover($book, $payload);
 
@@ -74,7 +78,7 @@ final class MemberBookQueueController extends Controller
             $stateMachine->syncPendingCandidateWithQueueHead($member);
         }
 
-        return new MemberBookQueueItemResource($item->load('book.genre', 'book.primaryCover'));
+        return new MemberBookQueueItemResource($item->load('book.genres', 'book.primaryCover'));
     }
 
     public function update(
@@ -90,6 +94,8 @@ final class MemberBookQueueController extends Controller
             'author' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
             'coverFile' => ['nullable', 'image', 'max:5120'],
+            'genre_ids' => ['nullable', 'array', 'max:5'],
+            'genre_ids.*' => ['integer', Rule::exists('genres', 'id')],
         ]);
 
         $item->load('book');
@@ -98,9 +104,14 @@ final class MemberBookQueueController extends Controller
             $bookPayload['slug'] = $this->uniqueSlug($bookPayload['title']);
         }
         $item->book->update($bookPayload);
+
+        if (array_key_exists('genre_ids', $payload)) {
+            $item->book->genres()->sync($payload['genre_ids'] ?? []);
+        }
+
         $this->attachCover($item->book, $payload);
 
-        return new MemberBookQueueItemResource($item->refresh()->load('book.genre', 'book.primaryCover'));
+        return new MemberBookQueueItemResource($item->refresh()->load('book.genres', 'book.primaryCover'));
     }
 
     public function destroy(
@@ -112,7 +123,7 @@ final class MemberBookQueueController extends Controller
         $this->authorizeOwnerOrAdmin($item, $currentMember->get());
         $item = $queue->removeFromLiveQueue($item, MemberBookQueueItemStatusEnum::Removed);
 
-        return new MemberBookQueueItemResource($item->refresh()->load('book.genre', 'book.primaryCover'));
+        return new MemberBookQueueItemResource($item->refresh()->load('book.genres', 'book.primaryCover'));
     }
 
     public function reorder(
@@ -157,7 +168,7 @@ final class MemberBookQueueController extends Controller
             $stateMachine->makeQueueItemCandidate($item);
         }
 
-        return new MemberBookQueueItemResource($item->refresh()->load('book.genre', 'book.primaryCover'));
+        return new MemberBookQueueItemResource($item->refresh()->load('book.genres', 'book.primaryCover'));
     }
 
     private function authorizeOwnerOrAdmin(MemberBookQueueItem $item, ClubMember $member): void
@@ -190,7 +201,6 @@ final class MemberBookQueueController extends Controller
             'author' => $payload['author'],
             'slug' => $this->uniqueSlug($payload['title']),
             'description' => $payload['description'] ?? null,
-            'genre_id' => Genre::where('slug', 'fiction')->value('id'),
             'cover_color' => '#3a405a',
         ];
     }

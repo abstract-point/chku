@@ -12,7 +12,7 @@ final class SessionController extends Controller
     public function me(CurrentMemberService $currentMember): MemberDetailResource
     {
         return new MemberDetailResource(
-            $currentMember->get()->load('user', 'favoriteGenre', 'readingProgress', 'proposedCycles', 'meetingRsvps')
+            $currentMember->get()->load('user', 'favoriteGenres', 'readingProgress', 'proposedCycles', 'meetingRsvps')
         );
     }
 }

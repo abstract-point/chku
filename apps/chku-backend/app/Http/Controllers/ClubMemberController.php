@@ -33,7 +33,7 @@ final class ClubMemberController extends Controller
         $this->authorize('viewAny', ClubMember::class);
 
         return MemberResource::collection(
-            ClubMember::with('user', 'favoriteGenre')
+            ClubMember::with('user', 'favoriteGenres')
                 ->orderByDesc('is_active')
                 ->orderBy(User::select('name')->whereColumn('users.id', 'club_members.user_id'))
                 ->get()
@@ -45,7 +45,7 @@ final class ClubMemberController extends Controller
         $this->authorize('view', $member);
 
         return new MemberDetailResource(
-            $member->load('user', 'favoriteGenre', 'readingProgress', 'proposedCycles', 'meetingRsvps')
+            $member->load('user', 'favoriteGenres', 'readingProgress', 'proposedCycles', 'meetingRsvps')
         );
     }
 
@@ -73,7 +73,8 @@ final class ClubMemberController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8'],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'favorite_genre_id' => ['nullable', 'integer', 'exists:genres,id'],
+            'favorite_genre_ids' => ['nullable', 'array', 'max:5'],
+            'favorite_genre_ids.*' => ['integer', 'exists:genres,id'],
             'joined_at' => ['required', 'date'],
             'role' => ['required', 'string', 'in:member,admin,developer'],
         ]);
@@ -95,8 +96,9 @@ final class ClubMemberController extends Controller
                 'user_id' => $user->id,
                 'is_active' => true,
                 'joined_at' => $payload['joined_at'],
-                'favorite_genre_id' => $payload['favorite_genre_id'] ?? null,
             ]);
+
+            $member->favoriteGenres()->sync($payload['favorite_genre_ids'] ?? []);
 
             if (isset($payload['avatar'])) {
                 $user->forceFill([
@@ -116,11 +118,11 @@ final class ClubMemberController extends Controller
             $this->auditLog->logMemberCreated($member, $actor);
         }
 
-        $member->load('user', 'favoriteGenre', 'club');
+        $member->load('user', 'favoriteGenres', 'club');
         event(new MemberJoinedClub($member));
 
         return new MemberDetailResource(
-            $member->load('user', 'favoriteGenre')
+            $member->load('user', 'favoriteGenres')
         );
     }
 

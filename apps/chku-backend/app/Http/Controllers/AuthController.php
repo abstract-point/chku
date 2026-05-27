@@ -54,7 +54,7 @@ final class AuthController extends Controller
         Auth::login($user, $this->shouldRemember($user));
         $request->session()->regenerate();
 
-        $member = ClubMember::with('user', 'favoriteGenre')
+        $member = ClubMember::with('user', 'favoriteGenres')
             ->where('user_id', $user->id)
             ->first();
 
@@ -138,7 +138,7 @@ final class AuthController extends Controller
             throw new AuthenticationException('Unauthenticated.');
         }
 
-        $member = ClubMember::with('user', 'favoriteGenre', 'readingProgress', 'proposedCycles', 'meetingRsvps')
+        $member = ClubMember::with('user', 'favoriteGenres', 'readingProgress', 'proposedCycles', 'meetingRsvps')
             ->where('user_id', $user->id)
             ->first();
 

@@ -20,7 +20,7 @@ final class BookCandidateController extends Controller
     public function active(): BookCandidateResource|JsonResponse
     {
         $candidate = BookCandidate::with([
-            'book.genre',
+            'book.genres',
             'proposer.user',
             'readingCycle',
             'responses.clubMember.user',
@@ -68,7 +68,7 @@ final class BookCandidateController extends Controller
         $candidate = $stateMachine->recalculateCandidate($candidate);
 
         return new BookCandidateResource($candidate->load([
-            'book.genre',
+            'book.genres',
             'proposer.user',
             'readingCycle',
             'responses.clubMember.user',
@@ -86,7 +86,7 @@ final class BookCandidateController extends Controller
         $candidate = $stateMachine->confirmCandidate($candidate);
 
         return new BookCandidateResource($candidate->load([
-            'book.genre',
+            'book.genres',
             'proposer.user',
             'readingCycle',
             'responses.clubMember.user',

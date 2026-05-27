@@ -346,7 +346,7 @@ final class MeetingController extends Controller
             'readingCycle.ratings',
             'readingCycle.reviews',
             'rsvps.clubMember.user',
-            'rsvps.clubMember.favoriteGenre',
+            'rsvps.clubMember.favoriteGenres',
             'reschedules.actor',
             'readingCycle.discussionMessages' => fn ($q) => $q->root()->with([
                 'replies.clubMember.user',

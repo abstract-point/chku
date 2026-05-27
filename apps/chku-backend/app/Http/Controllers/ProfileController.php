@@ -55,7 +55,8 @@ final class ProfileController extends Controller
         $payload = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'favorite_genre_id' => ['nullable', 'integer', Rule::exists('genres', 'id')],
+            'favorite_genre_ids' => ['nullable', 'array', 'max:5'],
+            'favorite_genre_ids.*' => ['integer', Rule::exists('genres', 'id')],
         ]);
 
         DB::transaction(function () use ($user, $member, $payload): void {
@@ -72,13 +73,11 @@ final class ProfileController extends Controller
 
             $user->save();
 
-            $member->forceFill([
-                'favorite_genre_id' => $payload['favorite_genre_id'] ?? null,
-            ])->save();
+            $member->favoriteGenres()->sync($payload['favorite_genre_ids'] ?? []);
         });
 
         return new MemberDetailResource(
-            $member->refresh()->load('user', 'favoriteGenre', 'readingProgress', 'proposedCycles', 'meetingRsvps')
+            $member->refresh()->load('user', 'favoriteGenres', 'readingProgress', 'proposedCycles', 'meetingRsvps')
         );
     }
 
@@ -108,7 +107,7 @@ final class ProfileController extends Controller
         ])->save();
 
         return new MemberDetailResource(
-            $member->refresh()->load('user', 'favoriteGenre', 'readingProgress', 'proposedCycles', 'meetingRsvps')
+            $member->refresh()->load('user', 'favoriteGenres', 'readingProgress', 'proposedCycles', 'meetingRsvps')
         );
     }
 

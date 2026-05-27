@@ -92,6 +92,6 @@ final class ReadingCycleController extends Controller
         $cycle->load('book', 'proposer.user');
         event(new CycleCompleted($cycle));
 
-        return new ReadingCycleResource($cycle->refresh()->load('book.genre', 'proposer.user'));
+        return new ReadingCycleResource($cycle->refresh()->load('book.genres', 'proposer.user'));
     }
 }

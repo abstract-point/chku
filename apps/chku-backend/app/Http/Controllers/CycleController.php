@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ReadingCycleStatusEnum;
 use App\Http\Resources\CycleResource;
+use App\Http\Resources\GenreResource;
 use App\Models\Book;
 use App\Models\Genre;
 use App\Models\ReadingCycle;
@@ -33,6 +34,21 @@ final class CycleController extends Controller
         );
     }
 
+    public function genres(CurrentMemberService $currentMember): AnonymousResourceCollection
+    {
+        $member = $currentMember->get();
+
+        return GenreResource::collection(
+            Genre::query()
+                ->whereHas('books.readingCycles', function ($q) use ($member): void {
+                    $q->where('club_id', $member->club_id)
+                        ->where('status', ReadingCycleStatusEnum::Completed);
+                })
+                ->orderBy('name')
+                ->get()
+        );
+    }
+
     public function show(CurrentMemberService $currentMember, int $cycleNumber): CycleResource
     {
         $member = $currentMember->get();
@@ -58,7 +74,8 @@ final class CycleController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
-            'genreId' => ['nullable', 'integer', Rule::exists('genres', 'id')],
+            'genre_ids' => ['nullable', 'array', 'max:5'],
+            'genre_ids.*' => ['integer', Rule::exists('genres', 'id')],
             'coverFile' => ['nullable', 'image', 'max:5120'],
         ];
 
@@ -73,6 +90,10 @@ final class CycleController extends Controller
         $book = $cycle->book;
         $book->update($this->bookPayload($payload, $book, $isAdmin));
 
+        if (array_key_exists('genre_ids', $payload)) {
+            $book->genres()->sync($payload['genre_ids'] ?? []);
+        }
+
         $this->attachCover($book, $payload);
 
         return new CycleResource(
@@ -85,12 +106,12 @@ final class CycleController extends Controller
     private function baseQuery(int $clubId)
     {
         return ReadingCycle::with([
-            'book.genre',
+            'book.genres',
             'book.primaryCover',
             'proposer.user',
             'meeting',
             'meeting.rsvps',
-            'bookCandidate.book.genre',
+            'bookCandidate.book.genres',
             'bookCandidate.proposer.user',
             'bookCandidate.responses.clubMember.user',
             'readingProgress.clubMember.user',
@@ -123,7 +144,6 @@ final class CycleController extends Controller
             'title' => $payload['title'],
             'author' => $payload['author'],
             'description' => $payload['description'] ?? null,
-            'genre_id' => $payload['genreId'] ?? Genre::where('slug', 'fiction')->value('id'),
             'slug' => $this->uniqueSlug($payload['title'], $book->id),
         ];
 
