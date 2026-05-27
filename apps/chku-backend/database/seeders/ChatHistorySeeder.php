@@ -287,7 +287,7 @@ class ChatHistorySeeder extends Seeder
             'place' => 'Онлайн',
             'link' => 'https://telemost.yandex.ru/',
             'is_online' => true,
-            'topics' => ['Обсуждение книги', 'Выводы и впечатления'],
+
             'started_at' => '2026-03-09 21:00:00',
             'finished_at' => '2026-03-09 22:00:00',
         ]);
@@ -349,14 +349,12 @@ class ChatHistorySeeder extends Seeder
             'reading_cycle_id' => $cycle->id,
             'club_member_id' => $this->members['ivan@chku.local']->id,
             'text' => 'Первое правило клуба: выбирай книгу, которая понравилась бы тебе и другим участникам клуба.',
-            'context_label' => 'правило клуба',
         ]);
 
         DiscussionMessage::create([
             'reading_cycle_id' => $cycle->id,
             'club_member_id' => $this->members['nastya@chku.local']->id,
             'text' => 'Второе правило клуба: запрещено перебивать члена клуба во время его выступления. Другие участники могут высказаться после завершения выступления.',
-            'context_label' => 'правило клуба',
         ]);
 
         app(TurnOrderService::class)->rotateAfterCompletedCycle($this->club->id);
@@ -386,7 +384,7 @@ class ChatHistorySeeder extends Seeder
             'place' => 'Онлайн',
             'link' => 'https://telemost.yandex.ru/',
             'is_online' => true,
-            'topics' => ['Обсуждение книги', 'Выводы и впечатления'],
+
             'started_at' => '2026-04-24 19:30:00',
             'finished_at' => '2026-04-24 21:00:00',
         ]);
@@ -451,14 +449,12 @@ class ChatHistorySeeder extends Seeder
             'reading_cycle_id' => $cycle->id,
             'club_member_id' => $this->members['nastya@chku.local']->id,
             'text' => 'Через системность и стабильность мы формируем опоры в нашем читальном клубе. Чтобы с каждой книгой мы открывали друг друга с новых сторон.',
-            'context_label' => 'размышление',
         ]);
 
         DiscussionMessage::create([
             'reading_cycle_id' => $cycle->id,
             'club_member_id' => $this->members['alexander@chku.local']->id,
             'text' => 'Чем больше людей — тем больше разных мнений! Клуб расширяется, это здорово.',
-            'context_label' => 'размышление',
         ]);
 
         app(TurnOrderService::class)->rotateAfterCompletedCycle($this->club->id);
@@ -486,7 +482,7 @@ class ChatHistorySeeder extends Seeder
             'time' => '19:00:00',
             'place' => 'Онлайн',
             'is_online' => true,
-            'topics' => ['Обсуждение книги', 'Выводы и впечатления'],
+
         ]);
 
         MeetingRsvp::create([

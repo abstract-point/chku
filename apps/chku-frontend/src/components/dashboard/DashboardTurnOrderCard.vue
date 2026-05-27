@@ -14,11 +14,13 @@ const props = defineProps<{
 const isCurrentTurn = (member: TurnOrderMember) => member.status === 'Текущий'
 const isNextTurn = (member: TurnOrderMember) => member.status === 'Выбирает следующую'
 
-const currentProcessMember = computed(() =>
-  props.members.find(
-    (m) => m.isCurrentCycleProposer || m.isChoosingNow || isCurrentTurn(m) || m.active,
-  ),
-)
+const currentProcessMember = computed(() => {
+  const proposer = props.members.find((m) => m.isCurrentCycleProposer)
+  if (proposer) return proposer
+  return props.members.find(
+    (m) => m.isChoosingNow || isCurrentTurn(m) || m.active,
+  )
+})
 
 const queueMembers = computed(() => props.members.filter((m) => m !== currentProcessMember.value))
 

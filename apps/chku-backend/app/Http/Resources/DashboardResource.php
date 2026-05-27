@@ -70,8 +70,13 @@ class DashboardResource extends JsonResource
                 return [
                 'name' => $to->clubMember?->user?->name,
                 'avatarUrl' => MemberAvatar::url($to->clubMember),
-                'status' => $isCurrentHead ? 'Текущий' : ($isUpcoming ? 'Выбирает следующую' : ''),
-                'active' => $currentCycle ? $isUpcoming : $isCurrentHead,
+                'status' => match (true) {
+                    $isCurrentHead && !$currentCycle => 'Текущий',
+                    $isCurrentHead && $currentCycle => 'Выбирает следующую',
+                    $isUpcoming && !$currentCycle => 'Выбирает следующую',
+                    default => '',
+                },
+                'active' => $isCurrentHead,
                 'isChoosingNow' => $activeCandidateProposerId !== null && $to->club_member_id === $activeCandidateProposerId,
                 'isCurrentCycleProposer' => $currentCycle !== null && $to->club_member_id === $currentCycle->proposer_id,
                 'cycleNumber' => $isCurrentHead ? ($currentCycle?->cycle_number) : null,

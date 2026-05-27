@@ -64,8 +64,7 @@ final class DashboardService
 
         $currentMember = $this->currentMember->get();
         $currentSelector = $this->turnOrderService->currentSelector($club->id);
-        $upcomingSelector = $this->turnOrderService->nextSelector($club->id);
-        $nextSelector = $currentCycle ? $upcomingSelector : $currentSelector;
+        $nextSelector = $currentSelector;
         $nextSelectorQueueEmpty = $nextSelector
             ? ! $nextSelector->bookQueueItems()->where('status', 'queued')->exists()
             : false;
