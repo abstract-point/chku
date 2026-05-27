@@ -34,8 +34,6 @@ const archiveBookFixtures = [
       attendingCount: 4,
       rsvpCount: 5,
     },
-    discussionPrompt:
-      'Где проходит граница между интеллектуальной игрой и ответственностью за поступок?',
     coverColor: '#3a405a',
     reviews: [
       {
@@ -81,7 +79,6 @@ const archiveBookFixtures = [
     synopsis:
       'Политика, экология и религиозный миф сталкиваются на пустынной планете Арракис, где власть зависит от единственного ресурса.',
     meetingLabel: '20 августа 2023, онлайн',
-    discussionPrompt: 'Можно ли читать историю Пола как предупреждение, а не героический путь?',
     coverColor: '#4a5d4e',
     reviews: [
       {
@@ -127,7 +124,6 @@ const archiveBookFixtures = [
     synopsis:
       'Популярный обзор истории Homo sapiens от когнитивной революции до современных институтов, технологий и мифов.',
     meetingLabel: '16 июля 2023, библиотека',
-    discussionPrompt: 'Какие обобщения книги помогают думать, а какие слишком упрощают историю?',
     coverColor: '#8c5e58',
     reviews: [
       {
@@ -173,7 +169,6 @@ const archiveBookFixtures = [
     synopsis:
       'Антиутопия о языке, страхе и государственном контроле, где частная мысль становится последним пространством сопротивления.',
     meetingLabel: '18 июня 2023, онлайн',
-    discussionPrompt: 'Что в романе сегодня читается политически, а что психологически?',
     coverColor: '#2c363f',
     reviews: [
       {
@@ -219,7 +214,6 @@ const archiveBookFixtures = [
     synopsis:
       'История создателя и созданного им существа, в которой научное дерзновение сталкивается с одиночеством и отказом от ответственности.',
     meetingLabel: '21 мая 2023, Дом культуры',
-    discussionPrompt: 'Кто в романе оказывается более человечным: Виктор или его создание?',
     coverColor: '#6b5b95',
     reviews: [
       {
@@ -265,7 +259,6 @@ const archiveBookFixtures = [
     synopsis:
       'Исследование двух режимов мышления и когнитивных искажений, которые влияют на решения в быту, работе и обществе.',
     meetingLabel: '23 апреля 2023, онлайн',
-    discussionPrompt: 'Какие когнитивные ошибки мы реально замечаем за собой после чтения?',
     coverColor: '#6f7f4b',
     reviews: [
       {
@@ -311,7 +304,6 @@ const archiveBookFixtures = [
     synopsis:
       'Роман о страннике Арсении, который проходит путь любви, вины и служения в мире, где время течёт не линейно.',
     meetingLabel: '19 марта 2023, библиотека',
-    discussionPrompt: 'Как язык романа меняет ощущение времени и вины?',
     coverColor: '#7b5f4a',
     reviews: [
       {
@@ -357,7 +349,6 @@ const archiveBookFixtures = [
     synopsis:
       'Контакт с внеземным океаном оказывается разговором не с другим разумом, а с собственными памятью, стыдом и любовью.',
     meetingLabel: '19 февраля 2023, онлайн',
-    discussionPrompt: 'Возможен ли контакт, если мы всё время встречаем собственные проекции?',
     coverColor: '#46656b',
     reviews: [
       {
@@ -423,7 +414,6 @@ export const archiveBooks = archiveBookFixtures.map((book, index) => ({
     : null,
   candidate: null,
   memberProgress: [],
-  discussionPrompt: book.discussionPrompt,
   reviews: book.reviews,
   discussion: book.discussion,
 })) satisfies ArchiveCycle[]

@@ -38,7 +38,6 @@ class CurrentTestCycleSeeder extends Seeder
             'proposer_id' => $proposer->id,
             'cycle_number' => 42,
             'status' => ReadingCycleStatusEnum::Active,
-            'discussion_prompt' => 'Что важнее: интеллект или способность чувствовать?',
         ]);
 
         Meeting::create([

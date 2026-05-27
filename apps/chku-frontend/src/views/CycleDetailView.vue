@@ -126,9 +126,6 @@ main.cycle-detail.container
           .section-header.cycle-detail__discussion-header
             h2 {{ $t('archiveBook.discussion') }}
             span.label-text {{ $t('archiveBook.clubMeeting') }}
-          .panel.cycle-detail__prompt(v-if="cycle.discussionPrompt")
-            span.label-text.cycle-detail__muted {{ $t('archiveBook.mainQuestion') }}
-            p.cycle-detail__prompt-text {{ cycle.discussionPrompt }}
           DiscussionBlock(
             :discussion="cycle.discussion ?? []"
             :readonly="true"

@@ -14,7 +14,6 @@ class ReadingCycleResource extends JsonResource
             'cycleNumber' => $this->cycle_number,
             'cycleLabel' => "Цикл #{$this->cycle_number}",
             'status' => $this->status->value,
-            'discussionPrompt' => $this->discussion_prompt,
             'completedAt' => $this->completed_at,
             'book' => new BookResource($this->whenLoaded('book')),
             'proposer' => new MemberResource($this->whenLoaded('proposer')),

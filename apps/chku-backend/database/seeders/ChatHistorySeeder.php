@@ -275,7 +275,6 @@ class ChatHistorySeeder extends Seeder
             'proposer_id' => $this->members['maxim@chku.local']->id,
             'cycle_number' => 1,
             'status' => ReadingCycleStatusEnum::Completed,
-            'discussion_prompt' => 'Что важнее в контакте с иным разумом: понять его или сохранить себя?',
             'completed_at' => '2026-03-09 22:00:00',
         ]);
 
@@ -372,7 +371,6 @@ class ChatHistorySeeder extends Seeder
             'proposer_id' => $this->members['nastya@chku.local']->id,
             'cycle_number' => 2,
             'status' => ReadingCycleStatusEnum::Completed,
-            'discussion_prompt' => 'Шахматы как метафора жизни или бегство от неё? Что Набоков говорит о гении и безумии?',
             'completed_at' => '2026-04-24 21:00:00',
         ]);
 
@@ -472,7 +470,6 @@ class ChatHistorySeeder extends Seeder
             'proposer_id' => $this->members['ivan@chku.local']->id,
             'cycle_number' => 3,
             'status' => ReadingCycleStatusEnum::Active,
-            'discussion_prompt' => 'Что скрывается в тени: тайны прошлого или тёмные стороны каждого из нас?',
         ]);
 
         $meeting = Meeting::create([

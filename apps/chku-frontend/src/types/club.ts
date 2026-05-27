@@ -177,7 +177,6 @@ export type ArchiveCycle = {
     currentPage: number | null
     notes: string | null
   }[]
-  discussionPrompt: string
   reviews: ArchiveBookReview[]
   discussion: ArchiveDiscussionMessage[]
 }

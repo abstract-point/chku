@@ -357,7 +357,7 @@ export default {
     empty: 'Пока никто не начал обсуждение. Добавьте первый вопрос или мысль к встрече.',
     newPlaceholder: 'Напишите вопрос, мысль или тезис для обсуждения…',
     replyPlaceholder: 'Ответить в эту ветку…',
-    addMessage: 'Добавить сообщение',
+    addMessage: 'Добавить тему',
     reply: 'Ответить',
     cancel: 'Отмена',
   },
@@ -405,7 +405,6 @@ export default {
     reviewN: '{n} отзыва',
     discussion: 'Обсуждение',
     clubMeeting: 'Встреча клуба',
-    mainQuestion: 'Главный вопрос',
     bookSummaryAria: 'Сводка книги',
     cycleSummary: 'Сводка цикла',
     genre: 'Жанр',
@@ -626,6 +625,8 @@ export default {
     unknownDay: 'день уточняется',
     fallbackCycle: 'Цикл',
     fallbackBook: 'Книга встречи',
+    yesterdayAt: 'вчера, {time}',
+    daysAgo: '{n} дн. назад',
   },
 
   router: {

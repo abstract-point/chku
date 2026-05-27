@@ -251,7 +251,6 @@ export type ApiCycle = {
   } | null
   candidate?: ApiBookCandidate | null
   memberProgress: ApiReadingProgress[]
-  discussionPrompt: string
   reviews: {
     memberName: string
     memberAvatarUrl?: string | null

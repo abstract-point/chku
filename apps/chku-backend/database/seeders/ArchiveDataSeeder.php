@@ -22,16 +22,16 @@ class ArchiveDataSeeder extends Seeder
         $members = $this->getMembers();
 
         $archiveCycles = [
-            ['cycle' => 1, 'book' => 'master-i-margarita', 'proposer' => 'igor@example.com', 'prompt' => 'Что в романе важнее: любовь, творчество или сатира на советское общество?', 'completed' => '2023-06-20'],
-            ['cycle' => 2, 'book' => 'my', 'proposer' => 'maria@example.com', 'prompt' => 'Насколько предсказания Замятина сбылись в реальности?', 'completed' => '2023-07-18'],
-            ['cycle' => 3, 'book' => 'sapiens', 'proposer' => 'pavel@example.com', 'prompt' => 'Какие обобщения книги помогают думать, а какие слишком упрощают историю?', 'completed' => '2023-08-22'],
-            ['cycle' => 4, 'book' => 'process', 'proposer' => 'marina@example.com', 'prompt' => 'В чём абсурд системы: в бюрократии или в бессмысленности обвинения?', 'completed' => '2023-09-19'],
-            ['cycle' => 5, 'book' => 'dumai-medlenno-reshai-bystro', 'proposer' => 'admin@example.com', 'prompt' => 'Какие когнитивные ошибки мы реально замечаем за собой после чтения?', 'completed' => '2023-10-17'],
-            ['cycle' => 6, 'book' => 'solyaris', 'proposer' => 'pavel@example.com', 'prompt' => 'Возможен ли контакт, если мы всё время встречаем собственные проекции?', 'completed' => '2023-11-21'],
-            ['cycle' => 7, 'book' => 'lavr', 'proposer' => 'marina@example.com', 'prompt' => 'Как язык романа меняет ощущение времени и вины?', 'completed' => '2023-12-19'],
-            ['cycle' => 8, 'book' => 'duna', 'proposer' => 'admin@example.com', 'prompt' => 'Можно ли читать историю Пола как предупреждение, а не героический путь?', 'completed' => '2024-01-16'],
-            ['cycle' => 9, 'book' => '1984', 'proposer' => 'pavel@example.com', 'prompt' => 'Что в романе сегодня читается политически, а что психологически?', 'completed' => '2024-02-20'],
-            ['cycle' => 10, 'book' => 'temnaya-bashnya', 'proposer' => 'marina@example.com', 'prompt' => 'Что делает эту книгу сильнее обычного фэнтези?', 'completed' => '2024-03-19'],
+            ['cycle' => 1, 'book' => 'master-i-margarita', 'proposer' => 'igor@example.com', 'completed' => '2023-06-20'],
+            ['cycle' => 2, 'book' => 'my', 'proposer' => 'maria@example.com', 'completed' => '2023-07-18'],
+            ['cycle' => 3, 'book' => 'sapiens', 'proposer' => 'pavel@example.com', 'completed' => '2023-08-22'],
+            ['cycle' => 4, 'book' => 'process', 'proposer' => 'marina@example.com', 'completed' => '2023-09-19'],
+            ['cycle' => 5, 'book' => 'dumai-medlenno-reshai-bystro', 'proposer' => 'admin@example.com', 'completed' => '2023-10-17'],
+            ['cycle' => 6, 'book' => 'solyaris', 'proposer' => 'pavel@example.com', 'completed' => '2023-11-21'],
+            ['cycle' => 7, 'book' => 'lavr', 'proposer' => 'marina@example.com', 'completed' => '2023-12-19'],
+            ['cycle' => 8, 'book' => 'duna', 'proposer' => 'admin@example.com', 'completed' => '2024-01-16'],
+            ['cycle' => 9, 'book' => '1984', 'proposer' => 'pavel@example.com', 'completed' => '2024-02-20'],
+            ['cycle' => 10, 'book' => 'temnaya-bashnya', 'proposer' => 'marina@example.com', 'completed' => '2024-03-19'],
         ];
 
         foreach ($archiveCycles as $cycleData) {
@@ -41,7 +41,6 @@ class ArchiveDataSeeder extends Seeder
                 'proposer_id' => $members[$cycleData['proposer']]->id,
                 'cycle_number' => $cycleData['cycle'],
                 'status' => ReadingCycleStatusEnum::Completed,
-                'discussion_prompt' => $cycleData['prompt'],
                 'completed_at' => $cycleData['completed'],
             ]);
 

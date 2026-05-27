@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MessageSquare } from '@lucide/vue'
+import { Plus } from '@lucide/vue'
 import DiscussionComposer from '@/components/discussion/DiscussionComposer.vue'
 import DiscussionMessageItem from '@/components/discussion/DiscussionMessageItem.vue'
 import type { DiscussionMessage } from '@/types/dashboard'
@@ -50,6 +50,7 @@ section.discussion-block(aria-labelledby="discussion-title")
       type="button"
       @click="showNewComposer = true"
     )
+      Plus(:size="14")
       | {{ $t('discussion.addMessage') }}
 
   .discussion-block__composer(v-if="showNewComposer")
@@ -78,13 +79,25 @@ section.discussion-block(aria-labelledby="discussion-title")
 
 .discussion-block__list {
   display: grid;
-  gap: var(--space-lg);
+  gap: var(--space-md);
 }
 
 .discussion-block__add-btn {
   justify-self: start;
-  font-size: 0.85rem;
-  color: var(--text-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.15s ease;
 }
 
 .discussion-block__add-btn:hover {

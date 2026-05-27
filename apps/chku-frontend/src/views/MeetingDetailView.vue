@@ -351,15 +351,6 @@ main.meeting-detail.container
                 h3.meeting-detail__book-title {{ meeting.book.title }}
                 p.subtitle-italic {{ meeting.book.author }}
 
-        DiscussionBlock(
-          :discussion="meeting.discussion ?? []"
-          :readonly="isArchived"
-          :is-submitting="discussionMutation.isPending.value"
-          @create="handleDiscussionCreate"
-          @reply="handleDiscussionReply"
-        )
-
-      aside.meeting-detail__sidebar(:aria-label="t('meetings.sidebarAria')")
         section.panel.meeting-detail__participants(aria-labelledby="meeting-participants-title")
           .section-header.section-header--compact
             h2#meeting-participants-title {{ $t('meetings.participants') }}
@@ -395,6 +386,14 @@ main.meeting-detail.container
               )
                 UserMinus(:size="15" aria-hidden="true")
           p.body-text(v-if="!meeting.attendees.length") {{ $t('meetings.noParticipants') }}
+
+        DiscussionBlock(
+          :discussion="meeting.discussion ?? []"
+          :readonly="isArchived"
+          :is-submitting="discussionMutation.isPending.value"
+          @create="handleDiscussionCreate"
+          @reply="handleDiscussionReply"
+        )
 
     MeetingFinishModal(
       v-if="!isArchived"
@@ -453,6 +452,10 @@ main.meeting-detail.container
 .meeting-detail__main {
   display: grid;
   gap: var(--space-lg);
+
+  @include desktop {
+    display: contents;
+  }
 }
 
 .meeting-detail__info {
@@ -852,15 +855,14 @@ main.meeting-detail.container
   padding: 0.75rem 0.9rem;
 }
 
-.meeting-detail__sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
-}
-
 .meeting-detail__participants {
   display: grid;
   gap: var(--space-md);
+
+  @include desktop {
+    grid-column: 2;
+    grid-row: 1;
+  }
 }
 
 .meeting-detail__participant-count {

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['club_id', 'book_id', 'proposer_id', 'cycle_number', 'status', 'discussion_prompt', 'completed_at'])]
+#[Fillable(['club_id', 'book_id', 'proposer_id', 'cycle_number', 'status', 'completed_at'])]
 class ReadingCycle extends Model
 {
     use HasFactory;

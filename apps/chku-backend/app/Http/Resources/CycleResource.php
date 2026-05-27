@@ -60,7 +60,6 @@ class CycleResource extends JsonResource
             ] : null,
             'candidate' => $candidate ? new BookCandidateResource($candidate) : null,
             'memberProgress' => ReadingProgressResource::collection($this->whenLoaded('readingProgress')),
-            'discussionPrompt' => $this->discussion_prompt,
             'reviews' => ReviewResource::collection($this->whenLoaded('reviews')),
             'discussion' => DiscussionMessageResource::collection(
                 $this->whenLoaded('discussionMessages', fn () => $this->discussionMessages->whereNull('parent_id'))
