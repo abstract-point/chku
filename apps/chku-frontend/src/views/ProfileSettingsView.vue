@@ -27,6 +27,7 @@ const currentMember = computed(() => currentUserQuery.data.value)
 
 const profileForm = reactive({
   name: '',
+  email: '',
   favoriteGenreId: null as number | null,
 })
 
@@ -53,6 +54,7 @@ watch(
     if (!member) return
 
     profileForm.name = member.name
+    profileForm.email = member.email
     profileForm.favoriteGenreId = member.favoriteGenreId ?? null
   },
   { immediate: true },
@@ -65,6 +67,7 @@ async function saveProfile() {
   try {
     await updateProfileMutation.mutateAsync({
       name: profileForm.name,
+      email: profileForm.email,
       favorite_genre_id: profileForm.favoriteGenreId,
     })
 
@@ -128,6 +131,14 @@ main.profile-settings.container
           required
           autocomplete="name"
           :aria-invalid="profileErrors.hasError('name')"
+        )
+      AppFormField(:label="t('settings.email')" label-for="settings-email" required :error="profileErrors.getError('email')")
+        AppInput#settings-email(
+          type="email"
+          v-model="profileForm.email"
+          required
+          autocomplete="email"
+          :aria-invalid="profileErrors.hasError('email')"
         )
       AppFormField(:label="t('settings.favGenre')" label-for="settings-genre" :error="profileErrors.getError('favorite_genre_id')")
         AppSelect#settings-genre(

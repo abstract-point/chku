@@ -81,6 +81,7 @@ class AuthApiTest extends TestCase
 
         $response = $this->actingAs($user)->patchJson('/api/me/profile', [
             'name' => 'Елена Новая',
+            'email' => $user->email,
             'favorite_genre_id' => $genreId,
         ]);
 

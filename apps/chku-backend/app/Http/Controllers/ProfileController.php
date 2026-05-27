@@ -54,13 +54,23 @@ final class ProfileController extends Controller
 
         $payload = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'favorite_genre_id' => ['nullable', 'integer', Rule::exists('genres', 'id')],
         ]);
 
         DB::transaction(function () use ($user, $member, $payload): void {
+            $emailChanged = $payload['email'] !== $user->email;
+
             $user->forceFill([
                 'name' => $payload['name'],
-            ])->save();
+                'email' => $payload['email'],
+            ]);
+
+            if ($emailChanged) {
+                $user->email_verified_at = null;
+            }
+
+            $user->save();
 
             $member->forceFill([
                 'favorite_genre_id' => $payload['favorite_genre_id'] ?? null,
