@@ -62,17 +62,19 @@ footer.app-footer
 }
 
 .app-footer__stats {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-sm);
+  display: grid;
+  grid-template-columns: max-content max-content;
+  justify-content: center;
+  gap: var(--space-md) var(--space-md);
   flex: 1;
   min-width: 0;
   padding-bottom: var(--space-sm);
   border-bottom: var(--border-width) solid var(--border);
 
   @include desktop {
+    display: flex;
     flex-direction: row;
+    justify-content: flex-start;
     gap: var(--space-lg);
     padding-bottom: 0;
     border-bottom: 0;
@@ -80,9 +82,14 @@ footer.app-footer
 }
 
 .app-footer__stat {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
+  display: contents;
+
+  @include desktop {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--space-xs);
+  }
 }
 
 .app-footer__stat-icon {
