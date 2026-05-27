@@ -16,6 +16,8 @@ RUN apt-get update \
     && docker-php-ext-install gd intl pdo_pgsql pgsql zip \
     && rm -rf /var/lib/apt/lists/*
 
+COPY infra/docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
 COPY --from=composer:2.9 /usr/bin/composer /usr/bin/composer
 
 COPY apps/chku-backend/composer.json apps/chku-backend/composer.lock ./

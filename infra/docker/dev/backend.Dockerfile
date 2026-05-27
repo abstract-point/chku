@@ -24,6 +24,8 @@ RUN groupadd --gid ${APP_GID} app \
     && sed -i 's/user = www-data/user = app/' /usr/local/etc/php-fpm.d/www.conf \
     && sed -i 's/group = www-data/group = app/' /usr/local/etc/php-fpm.d/www.conf
 
+COPY infra/docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
 COPY --from=composer:2.9 /usr/bin/composer /usr/bin/composer
 
 COPY apps/chku-backend/composer.json apps/chku-backend/composer.lock ./
