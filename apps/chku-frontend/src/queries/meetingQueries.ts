@@ -46,17 +46,6 @@ export function useRemoveMeetingRsvpMutation(id: MaybeRefOrGetter<string>) {
   })
 }
 
-export function useAddMeetingTopicMutation(id: MaybeRefOrGetter<string>) {
-  const client = useQueryClient()
-
-  return useMutation({
-    mutationFn: (topic: string) => meetingsApi.addTopic(toValue(id), topic),
-    onSuccess: () => {
-      client.invalidateQueries({ queryKey: queryKeys.meeting(toValue(id)) })
-    },
-  })
-}
-
 export function useCreateMeetingMutation() {
   const client = useQueryClient()
 

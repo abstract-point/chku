@@ -14,8 +14,11 @@ class DiscussionMessageResource extends JsonResource
             'id' => $this->id,
             'memberName' => $this->whenLoaded('clubMember', fn () => $this->clubMember->user?->name),
             'memberAvatarUrl' => $this->whenLoaded('clubMember', fn () => MemberAvatar::url($this->clubMember)),
-            'dateLabel' => $this->context_label,
             'text' => $this->text,
+            'createdAt' => $this->created_at?->toISOString(),
+            'parentId' => $this->parent_id,
+            'canReply' => $this->can_reply,
+            'replies' => DiscussionMessageResource::collection($this->whenLoaded('replies')),
         ];
     }
 }

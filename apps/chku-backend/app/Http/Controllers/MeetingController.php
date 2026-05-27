@@ -45,8 +45,7 @@ final class MeetingController extends Controller
         $this->authorize('view', $meeting);
 
         return new MeetingResource(
-            $meeting->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
-                ->load('reschedules.actor')
+            $meeting->load($this->meetingRelations())
         );
     }
 
@@ -79,8 +78,6 @@ final class MeetingController extends Controller
             'address' => ['nullable', 'string', 'max:255'],
             'reservation' => ['nullable', 'string', 'max:255'],
             'link' => ['required_if:is_online,true', 'nullable', 'string', 'max:255'],
-            'topics' => ['nullable', 'array'],
-            'topics.*' => ['string'],
             'notes' => ['nullable', 'string'],
         ]);
 
@@ -103,8 +100,7 @@ final class MeetingController extends Controller
         event(new MeetingScheduled($meeting));
 
         return new MeetingResource(
-            $meeting->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
-                ->load('reschedules.actor')
+            $meeting->load($this->meetingRelations())
         );
     }
 
@@ -121,8 +117,6 @@ final class MeetingController extends Controller
             'address' => ['nullable', 'string', 'max:255'],
             'reservation' => ['nullable', 'string', 'max:255'],
             'link' => ['nullable', 'string', 'max:255'],
-            'topics' => ['nullable', 'array'],
-            'topics.*' => ['string'],
             'notes' => ['nullable', 'string'],
             'rescheduleReason' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -157,8 +151,7 @@ final class MeetingController extends Controller
         }
 
         return new MeetingResource(
-            $meeting->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre')
-                ->load('reschedules.actor')
+            $meeting->load($this->meetingRelations())
         );
     }
 
@@ -180,22 +173,7 @@ final class MeetingController extends Controller
         );
 
         return new MeetingResource(
-            $meeting->refresh()->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
-        );
-    }
-
-    public function storeTopic(Request $request, Meeting $meeting): MeetingResource
-    {
-        $payload = $request->validate([
-            'topic' => ['required', 'string', 'max:500'],
-        ]);
-
-        $topics = $meeting->topics ?? [];
-        $topics[] = $payload['topic'];
-        $meeting->update(['topics' => $topics]);
-
-        return new MeetingResource(
-            $meeting->refresh()->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
+            $meeting->refresh()->load($this->meetingRelations())
         );
     }
 
@@ -245,7 +223,7 @@ final class MeetingController extends Controller
         event(new MeetingStarted($meeting));
 
         return new MeetingResource(
-            $meeting->refresh()->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
+            $meeting->refresh()->load($this->meetingRelations())
         );
     }
 
@@ -321,7 +299,7 @@ final class MeetingController extends Controller
         }
 
         return new MeetingResource(
-            $meeting->refresh()->load('readingCycle.book', 'readingCycle.ratings', 'readingCycle.reviews', 'rsvps.clubMember.user', 'rsvps.clubMember.favoriteGenre', 'reschedules.actor')
+            $meeting->refresh()->load($this->meetingRelations())
         );
     }
 
@@ -359,5 +337,21 @@ final class MeetingController extends Controller
         $rsvp->delete();
 
         return response()->json(['message' => 'Участник удалён из встречи.']);
+    }
+
+    private function meetingRelations(): array
+    {
+        return [
+            'readingCycle.book',
+            'readingCycle.ratings',
+            'readingCycle.reviews',
+            'rsvps.clubMember.user',
+            'rsvps.clubMember.favoriteGenre',
+            'reschedules.actor',
+            'readingCycle.discussionMessages' => fn ($q) => $q->root()->with([
+                'replies.clubMember.user',
+                'clubMember.user',
+            ]),
+        ];
     }
 }

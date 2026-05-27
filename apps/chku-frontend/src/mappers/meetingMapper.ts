@@ -27,7 +27,7 @@ export function mapMeetingDetail(meeting: ApiMeeting, currentUserId?: number): M
     placeAddress: meeting.address,
     placeReservation: meeting.reservation,
     meetingLink: meeting.link,
-    topics: meeting.topics ?? [],
+    discussion: meeting.discussion ?? [],
     status: meeting.status ?? 'scheduled',
     canStart: meeting.canStart ?? false,
     canFinish: meeting.canFinish ?? false,

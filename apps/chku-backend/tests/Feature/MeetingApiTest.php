@@ -39,7 +39,6 @@ class MeetingApiTest extends TestCase
             'is_online' => false,
             'place' => 'Главное здание библиотеки',
             'address' => 'ул. Ленина, 1',
-            'topics' => ['Обсуждение'],
         ]);
 
         $response->assertCreated();
@@ -64,7 +63,6 @@ class MeetingApiTest extends TestCase
             'time' => '20:00',
             'is_online' => true,
             'link' => 'https://zoom.us/j/12345',
-            'topics' => ['Обсуждение в онлайне'],
         ]);
 
         $response->assertCreated();
@@ -213,20 +211,47 @@ class MeetingApiTest extends TestCase
         $response->assertJsonPath('data.title', $meeting->title);
     }
 
-    public function test_authenticated_user_can_add_topic(): void
+    public function test_authenticated_user_can_add_discussion_message(): void
     {
         $this->seed(DatabaseSeeder::class);
 
         $member = User::where('email', 'anna@example.com')->firstOrFail();
-
         $cycle = ReadingCycle::where('status', 'active')->first();
-        $meeting = $cycle->meeting()->first();
 
-        $response = $this->actingAs($member)->postJson("/api/meetings/{$meeting->id}/topics", [
-            'topic' => 'Новая тема от Анны',
+        $response = $this->actingAs($member)->postJson("/api/cycles/{$cycle->cycle_number}/discussion-messages", [
+            'text' => 'Интересная мысль про книгу.',
         ]);
 
-        $response->assertOk();
+        $response->assertCreated();
+        $response->assertJsonPath('data.text', 'Интересная мысль про книгу.');
+        $response->assertJsonPath('data.parentId', null);
+        $response->assertJsonPath('data.canReply', true);
+    }
+
+    public function test_cannot_reply_to_a_reply(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $member = User::where('email', 'anna@example.com')->firstOrFail();
+        $cycle = ReadingCycle::where('status', 'active')->first();
+
+        $root = $this->actingAs($member)->postJson("/api/cycles/{$cycle->cycle_number}/discussion-messages", [
+            'text' => 'Корневое сообщение.',
+        ]);
+
+        $reply = $this->actingAs($member)->postJson("/api/cycles/{$cycle->cycle_number}/discussion-messages", [
+            'text' => 'Ответ на корневое сообщение.',
+            'parentId' => $root->json('data.id'),
+        ]);
+
+        $reply->assertCreated();
+
+        $nestedReply = $this->actingAs($member)->postJson("/api/cycles/{$cycle->cycle_number}/discussion-messages", [
+            'text' => 'Ответ на ответ (недопустимо).',
+            'parentId' => $reply->json('data.id'),
+        ]);
+
+        $nestedReply->assertUnprocessable();
     }
 
     public function test_meeting_show_returns_is_online_and_rsvps(): void

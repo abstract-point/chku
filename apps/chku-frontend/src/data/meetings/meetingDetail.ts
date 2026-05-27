@@ -19,12 +19,7 @@ export const meetingDetail = {
   missingReadingMemberIds: [],
   date: '2023-10-18',
   time: '19:00',
-  topics: [
-    'Значение Кладбища забытых книг.',
-    'Прогрессия характера Даниэля и параллели с Хулианом Караксом.',
-    'Изображение послевоенной Барселоны как самостоятельного персонажа.',
-    'Темы памяти, одержимости и силы литературы.',
-  ],
+  discussion: [],
   rsvpStatus: 'pending' as const,
   attendees: [
     { id: 1, name: 'Екатерина Л.', status: 'attending' as const, isAdmin: false },

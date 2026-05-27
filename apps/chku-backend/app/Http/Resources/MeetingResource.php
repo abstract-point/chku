@@ -63,7 +63,6 @@ class MeetingResource extends JsonResource
             'reservation' => $this->reservation,
             'link' => $this->link,
             'isOnline' => (bool) $this->is_online,
-            'topics' => $this->topics,
             'notes' => $this->notes,
             'startedAt' => $this->started_at,
             'finishedAt' => $this->finished_at,
@@ -81,6 +80,11 @@ class MeetingResource extends JsonResource
                 'memberId' => $rating->club_member_id,
                 'value' => $rating->rating,
             ])),
+            'discussion' => $this->whenLoaded('readingCycle', fn () => $this->readingCycle->relationLoaded('discussionMessages')
+                ? DiscussionMessageResource::collection(
+                    $this->readingCycle->discussionMessages->whereNull('parent_id')
+                )
+                : null),
             'reviews' => $this->whenLoaded('readingCycle', fn () => $this->readingCycle->reviews->map(fn ($review) => [
                 'memberId' => $review->club_member_id,
                 'text' => $review->text,

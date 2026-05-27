@@ -11,7 +11,6 @@ export type CreateMeetingPayload = {
   address?: string
   reservation?: string
   link?: string
-  topics?: string[]
   notes?: string
 }
 
@@ -46,9 +45,5 @@ export const meetingsApi = {
 
   async removeRsvp(meetingId: string | number, memberId: number) {
     return http.delete<unknown, { message: string }>(`/meetings/${meetingId}/rsvps/${memberId}`)
-  },
-
-  async addTopic(id: string | number, topic: string) {
-    return http.post<unknown, ApiMeeting>(`/meetings/${id}/topics`, { topic })
   },
 }

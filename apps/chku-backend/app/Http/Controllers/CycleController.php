@@ -95,7 +95,9 @@ final class CycleController extends Controller
             'bookCandidate.responses.clubMember.user',
             'readingProgress.clubMember.user',
             'reviews.clubMember.user',
-            'discussionMessages.clubMember.user',
+            'discussionMessages' => function ($q): void {
+                $q->root()->with('replies.clubMember.user', 'clubMember.user');
+            },
             'ratings',
         ])->where('club_id', $clubId);
     }

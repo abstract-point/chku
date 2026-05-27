@@ -8,6 +8,7 @@ use App\Http\Controllers\BookCoverController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\ClubMemberController;
 use App\Http\Controllers\CycleController;
+use App\Http\Controllers\DiscussionMessageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MeetingController;
@@ -78,7 +79,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('meetings/{meeting}/finish', [MeetingController::class, 'finish']);
     Route::patch('meetings/{meeting}/rsvps/me', [MeetingController::class, 'updateMyRsvp']);
     Route::delete('meetings/{meeting}/rsvps/{member}', [MeetingController::class, 'destroyRsvp']);
-    Route::post('meetings/{meeting}/topics', [MeetingController::class, 'storeTopic']);
+    Route::post('cycles/{cycle}/discussion-messages', [DiscussionMessageController::class, 'store']);
 
     Route::get('candidates/active', [BookCandidateController::class, 'active']);
     Route::patch('candidates/{candidate}/responses/me', [BookCandidateController::class, 'respond']);

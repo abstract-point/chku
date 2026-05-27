@@ -2,8 +2,9 @@
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeft, CalendarDays, MapPin, MessageSquare, Monitor, Pencil, Star } from '@lucide/vue'
+import { ArrowLeft, CalendarDays, MapPin, Monitor, Pencil, Star } from '@lucide/vue'
 import CycleBookForm from '@/components/books/CycleBookForm.vue'
+import DiscussionBlock from '@/components/discussion/DiscussionBlock.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { formatDateLabel, formatTimeLabel } from '@/mappers/date'
 import { useCycleQuery } from '@/queries/cycleQueries'
@@ -125,18 +126,13 @@ main.cycle-detail.container
           .section-header.cycle-detail__discussion-header
             h2 {{ $t('archiveBook.discussion') }}
             span.label-text {{ $t('archiveBook.clubMeeting') }}
-          .panel.cycle-detail__prompt
+          .panel.cycle-detail__prompt(v-if="cycle.discussionPrompt")
             span.label-text.cycle-detail__muted {{ $t('archiveBook.mainQuestion') }}
             p.cycle-detail__prompt-text {{ cycle.discussionPrompt }}
-          .cycle-detail__discussion
-            article.cycle-detail__message(v-for="message in cycle.discussion" :key="`${message.memberName}-${message.dateLabel}`")
-              .cycle-detail__message-header
-                .cycle-detail__member
-                  MessageSquare.cycle-detail__icon
-                  UserAvatar(:name="message.memberName" :avatar-url="message.memberAvatarUrl" size="sm")
-                  span.label-text {{ message.memberName }}
-                span.label-text.cycle-detail__muted {{ message.dateLabel }}
-              p.body-text {{ message.text }}
+          DiscussionBlock(
+            :discussion="cycle.discussion ?? []"
+            :readonly="true"
+          )
 
       aside.cycle-detail__sidebar(:aria-label="t('archiveBook.bookSummaryAria')")
         section.panel

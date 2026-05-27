@@ -87,7 +87,7 @@ export type MeetingDetail = {
   placeAddress?: string
   placeReservation?: string
   meetingLink?: string
-  topics: string[]
+  discussion?: DiscussionMessage[]
   status: 'scheduled' | 'started' | 'finished'
   canStart: boolean
   canFinish: boolean
@@ -98,4 +98,15 @@ export type MeetingDetail = {
   book: MeetingBook
   ratings: { memberId: number; value: number }[]
   reviews: { memberId: number; text: string }[]
+}
+
+export type DiscussionMessage = {
+  id: number
+  memberName: string
+  memberAvatarUrl?: string | null
+  text: string
+  createdAt: string
+  parentId: number | null
+  canReply: boolean
+  replies: DiscussionMessage[]
 }

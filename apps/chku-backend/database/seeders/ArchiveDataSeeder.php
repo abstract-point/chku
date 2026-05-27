@@ -51,7 +51,7 @@ class ArchiveDataSeeder extends Seeder
                 'date' => $cycleData['completed'],
                 'time' => '19:00:00',
                 'place' => $cycleData['cycle'] % 2 === 0 ? 'Онлайн' : 'Библиотека',
-                'topics' => ['Обсуждение книги', 'Выводы и впечатления'],
+
                 'started_at' => $cycleData['completed'].' 19:00:00',
                 'finished_at' => $cycleData['completed'].' 21:00:00',
             ]);
@@ -197,7 +197,6 @@ class ArchiveDataSeeder extends Seeder
                     'reading_cycle_id' => $cycle->id,
                     'club_member_id' => $members[$memberEmail]->id,
                     'text' => $text,
-                    'context_label' => $label,
                 ]);
             }
         }

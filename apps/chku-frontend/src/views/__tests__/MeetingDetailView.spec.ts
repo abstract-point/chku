@@ -45,7 +45,7 @@ describe('MeetingDetailView', () => {
     resetMeetingDetail()
   })
 
-  it('renders meeting details, topics and attendees', () => {
+  it('renders meeting details, discussion and attendees', () => {
     const wrapper = mountMeetingDetail()
 
     expect(wrapper.text()).toContain('Октябрьская встреча')
@@ -54,8 +54,7 @@ describe('MeetingDetailView', () => {
     expect(wrapper.text()).toContain('18 октября')
     expect(wrapper.text()).toContain('19:00 — 21:00')
     expect(wrapper.text()).toContain('Библиотека имени Некрасова, зал «Сад»')
-    expect(wrapper.text()).toContain('Темы для обсуждения')
-    expect(wrapper.text()).toContain('Значение Кладбища забытых книг.')
+    expect(wrapper.text()).toContain('Дискуссия')
     expect(wrapper.text()).toContain('Участники встречи')
     expect(wrapper.text()).toContain('Екатерина Л.')
     expect(wrapper.text()).toContain('Тень ветра')

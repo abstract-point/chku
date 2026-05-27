@@ -91,10 +91,15 @@ export type ArchiveBookReview = {
 }
 
 export type ArchiveDiscussionMessage = {
+  id?: number
   memberName: string
   memberAvatarUrl?: string | null
-  dateLabel: string
+  dateLabel?: string
   text: string
+  createdAt?: string
+  parentId?: number | null
+  canReply?: boolean
+  replies?: ArchiveDiscussionMessage[]
 }
 
 export type ArchiveMeeting = {

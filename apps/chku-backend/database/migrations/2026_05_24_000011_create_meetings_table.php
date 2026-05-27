@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->string('reservation')->nullable();
             $table->string('link')->nullable();
-            $table->json('topics')->nullable();
             $table->text('notes')->nullable();
             $table->boolean('is_online')->default(false);
             $table->timestamp('started_at')->nullable();

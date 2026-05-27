@@ -62,7 +62,9 @@ class CycleResource extends JsonResource
             'memberProgress' => ReadingProgressResource::collection($this->whenLoaded('readingProgress')),
             'discussionPrompt' => $this->discussion_prompt,
             'reviews' => ReviewResource::collection($this->whenLoaded('reviews')),
-            'discussion' => DiscussionMessageResource::collection($this->whenLoaded('discussionMessages')),
+            'discussion' => DiscussionMessageResource::collection(
+                $this->whenLoaded('discussionMessages', fn () => $this->discussionMessages->whereNull('parent_id'))
+            ),
         ];
     }
 

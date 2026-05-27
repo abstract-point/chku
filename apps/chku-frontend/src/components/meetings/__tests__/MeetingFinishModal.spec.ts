@@ -21,7 +21,7 @@ const meeting = {
   missingRatingMemberIds: [],
   missingReadingMemberIds: [],
   rsvpStatus: 'attending',
-  topics: [],
+  discussion: [],
   attendees: [
     { id: 1, name: 'Елена', status: 'attending' },
     { id: 2, name: 'Михаил', status: 'attending' },

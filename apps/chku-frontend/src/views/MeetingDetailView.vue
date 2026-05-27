@@ -9,27 +9,26 @@ import {
   CheckCircle,
   Link as LinkIcon,
   MapPin,
-  MessageSquare,
   Monitor,
   Pencil,
   Play,
-  Send,
   Star,
   UserMinus,
   Users,
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import MeetingFinishModal from '@/components/meetings/MeetingFinishModal.vue'
+import DiscussionBlock from '@/components/discussion/DiscussionBlock.vue'
 import AppRangeInput from '@/components/ui/AppRangeInput.vue'
 import SecondaryButton from '@/components/ui/SecondaryButton.vue'
 import {
-  useAddMeetingTopicMutation,
   useFinishMeetingMutation,
   useMeetingQuery,
   useRemoveMeetingRsvpMutation,
   useStartMeetingMutation,
   useUpdateMeetingRsvpMutation,
 } from '@/queries/meetingQueries'
+import { useCreateDiscussionMessageMutation } from '@/queries/discussionQueries'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
 import { useSaveRatingReviewMutation } from '@/queries/readingCycleQueries'
@@ -45,77 +44,25 @@ const meetingQuery = useMeetingQuery(
 const dashboardQuery = useDashboardQuery()
 const updateRsvpMutation = useUpdateMeetingRsvpMutation(meetingId)
 const removeRsvpMutation = useRemoveMeetingRsvpMutation(meetingId)
-const addTopicMutation = useAddMeetingTopicMutation(meetingId)
 const startMeetingMutation = useStartMeetingMutation(meetingId)
 const finishMeetingMutation = useFinishMeetingMutation(meetingId)
 const saveRatingReviewMutation = useSaveRatingReviewMutation()
-const meeting = computed(() => meetingQuery.data.value)
-const isArchived = computed(() => meeting.value?.status === 'finished')
-const memberProgress = computed(() => dashboardQuery.data.value?.memberProgress ?? [])
-const newTopic = ref('')
-const rsvpStatus = ref<'attending' | 'not_attending' | 'pending'>('pending')
-const localTopics = ref<string[]>([])
-const rating = ref<number | null>(null)
-const review = ref('')
-const ratingSubmitted = ref(false)
-const isFinishModalOpen = ref(false)
-const isEditingRating = ref(false)
-const minMeetingAttendees = 2
+const discussionMutation = useCreateDiscussionMessageMutation()
 
-const currentUserRating = computed(() => {
-  if (!meeting.value || !user.value) return undefined
-  return meeting.value.ratings.find((r) => r.memberId === user.value!.id)?.value
-})
-
-const currentUserReview = computed(() => {
-  if (!meeting.value || !user.value) return undefined
-  return meeting.value.reviews.find((r) => r.memberId === user.value!.id)?.text
-})
-
-const hasSubmittedRating = computed(() => currentUserRating.value !== undefined)
-
-const missingRatingAttendees = computed(() => {
-  if (!meeting.value) return []
-  return meeting.value.attendees.filter((attendee) =>
-    meeting.value!.missingRatingMemberIds.includes(attendee.id),
+function handleDiscussionCreate(text: string) {
+  if (!meeting.value?.cycleId) return
+  discussionMutation.mutate(
+    { cycleNumber: meeting.value.cycleId, text },
+    { onSuccess: () => meetingQuery.refetch() },
   )
-})
+}
 
-const missingReadingAttendees = computed(() => {
-  if (!meeting.value) return []
-  return meeting.value.attendees.filter((attendee) =>
-    meeting.value!.missingReadingMemberIds.includes(attendee.id),
+function handleDiscussionReply(parentId: number, text: string) {
+  if (!meeting.value?.cycleId) return
+  discussionMutation.mutate(
+    { cycleNumber: meeting.value.cycleId, text, parentId },
+    { onSuccess: () => meetingQuery.refetch() },
   )
-})
-
-const hasMeetingQuorum = computed(
-  () => (meeting.value?.attendees.length ?? 0) >= minMeetingAttendees,
-)
-
-const isMeetingTime = computed(() => {
-  const m = meeting.value
-  if (!m?.date || !m?.time) return false
-  const now = new Date()
-  const [hours, minutes] = m.time.split(':').map(Number)
-  const meetingDate = new Date(m.date)
-  meetingDate.setHours(hours!, minutes!, 0, 0)
-  return now >= meetingDate
-})
-const isCurrentUserAttending = computed(() => rsvpStatus.value === 'attending')
-const currentUserId = computed(() => user.value?.id)
-const shouldShowRatingForm = computed(
-  () => meeting.value?.status === 'started' && rsvpStatus.value === 'attending',
-)
-const adminAttendeesCount = computed(
-  () => meeting.value?.attendees.filter((a) => a.isAdmin).length ?? 0,
-)
-
-function canRemoveAttendee(attendee: { id: number; isAdmin?: boolean }) {
-  if (attendee.isAdmin) return false
-  if (attendee.id === currentUserId.value) {
-    return adminAttendeesCount.value > 1
-  }
-  return true
 }
 
 function removeAttendee(memberId: number) {
@@ -124,25 +71,12 @@ function removeAttendee(memberId: number) {
 
 watchEffect(() => {
   rsvpStatus.value = meeting.value?.rsvpStatus ?? 'pending'
-  localTopics.value = meeting.value?.topics ?? []
 })
 
 function setRsvp(status: 'attending' | 'not_attending') {
   updateRsvpMutation.mutate(status, {
     onSuccess: () => {
       rsvpStatus.value = status
-    },
-  })
-}
-
-function submitTopic() {
-  const topic = newTopic.value.trim()
-  if (!topic || !meeting.value) return
-
-  addTopicMutation.mutate(topic, {
-    onSuccess: () => {
-      localTopics.value = [...localTopics.value, topic]
-      newTopic.value = ''
     },
   })
 }
@@ -370,27 +304,13 @@ main.meeting-detail.container
                 h3.meeting-detail__book-title {{ meeting.book.title }}
                 p.subtitle-italic {{ meeting.book.author }}
 
-        section.meeting-detail__topics-section(aria-labelledby="meeting-topics-title")
-          .section-header.section-header--compact
-            h2#meeting-topics-title {{ $t('meetings.topics') }}
-          ul.meeting-detail__topics(v-if="localTopics.length")
-            li.meeting-detail__topic(v-for="(topic, index) in localTopics" :key="`${topic}-${index}`")
-              MessageSquare.meeting-detail__topic-icon(:size="16" aria-hidden="true")
-              span {{ topic }}
-          p.body-text(v-else) {{ $t('meetings.noTopics') }}
-          .meeting-detail__add-topic(v-if="!isArchived")
-            span.label-text {{ $t('meetings.addTopic') }}
-            .meeting-detail__add-topic-row
-              input.meeting-detail__input(
-                class="field-control"
-                v-model="newTopic"
-                type="text"
-                :placeholder="t('meetings.topicPlaceholder')"
-                @keydown.enter.prevent="submitTopic"
-              )
-              button.button.button--secondary.label-text(type="button" @click="submitTopic")
-                Send.meeting-detail__button-icon
-                | {{ $t('meetings.submitTopic') }}
+        DiscussionBlock(
+          :discussion="meeting.discussion ?? []"
+          :readonly="isArchived"
+          :is-submitting="discussionMutation.isPending.value"
+          @create="handleDiscussionCreate"
+          @reply="handleDiscussionReply"
+        )
 
       aside.meeting-detail__sidebar(:aria-label="t('meetings.sidebarAria')")
         section.panel.meeting-detail__participants(aria-labelledby="meeting-participants-title")

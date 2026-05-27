@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('reading_cycle_id')->constrained()->cascadeOnDelete();
             $table->foreignId('club_member_id')->constrained()->cascadeOnDelete();
             $table->text('text');
-            $table->string('context_label')->nullable();
+            $table->foreignId('parent_id')->nullable()->constrained('discussion_messages')->cascadeOnDelete();
             $table->timestamps();
         });
     }

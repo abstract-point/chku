@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Plus, Trash2 } from '@lucide/vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
@@ -32,8 +31,6 @@ const place = ref('')
 const address = ref('')
 const reservation = ref('')
 const link = ref('')
-const topics = ref<string[]>([])
-const newTopic = ref('')
 const notes = ref('')
 
 const dayOptions = computed(() => [
@@ -77,21 +74,9 @@ watch(
     address.value = meeting.placeAddress ?? ''
     reservation.value = meeting.placeReservation ?? ''
     link.value = meeting.meetingLink ?? ''
-    topics.value = [...meeting.topics]
   },
   { immediate: true },
 )
-
-function addTopic() {
-  const topic = newTopic.value.trim()
-  if (!topic) return
-  topics.value = [...topics.value, topic]
-  newTopic.value = ''
-}
-
-function removeTopic(index: number) {
-  topics.value = topics.value.filter((_, i) => i !== index)
-}
 
 function onSubmit() {
   const payload: Record<string, unknown> = {
@@ -100,7 +85,6 @@ function onSubmit() {
     date: dateString.value,
     time: time.value,
     is_online: isOnline.value,
-    topics: topics.value.length ? topics.value : undefined,
     notes: notes.value || undefined,
   }
 
@@ -190,18 +174,6 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
         :aria-invalid="isInvalid('link')"
       )
 
-    AppFormField(:label="t('meetings.formTopics')")
-      .meeting-form__topics-list(v-if="topics.length")
-        .meeting-form__topic(v-for="(topic, index) in topics" :key="index")
-          span.meeting-form__topic-text {{ topic }}
-          button.meeting-form__topic-remove(type="button" @click="removeTopic(index)" :title="t('meetings.formRemoveTopic')")
-            Trash2(:size="14")
-      .meeting-form__add-topic
-        AppInput(v-model="newTopic" :placeholder="t('meetings.formTopicPlaceholder')" @keydown.enter.prevent="addTopic")
-        button.button.button--secondary.label-text(type="button" @click="addTopic")
-          Plus(:size="16")
-          | {{ $t('meetings.formAddTopic') }}
-
     AppFormField(:label="t('meetings.formNotes')" label-for="meeting-notes" :error="fieldError('notes')")
       AppTextarea#meeting-notes(
         v-model="notes"
@@ -244,51 +216,6 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
   @include tablet {
     grid-template-columns: auto 1fr auto;
   }
-}
-
-.meeting-form__topics-list {
-  display: grid;
-  gap: var(--space-sm);
-}
-
-.meeting-form__topic {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-inner);
-  background: var(--bg-surface);
-}
-
-.meeting-form__topic-text {
-  flex: 1;
-  font-size: 0.9rem;
-  color: var(--text-main);
-}
-
-.meeting-form__topic-remove {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem;
-  border-radius: 4px;
-  color: var(--text-subtle);
-}
-
-.meeting-form__topic-remove:hover {
-  color: var(--danger);
-  background: var(--danger-bg);
-}
-
-.meeting-form__add-topic {
-  display: flex;
-  gap: var(--space-sm);
-  margin-top: var(--space-md);
-}
-
-.meeting-form__add-topic .app-input {
-  flex: 1;
 }
 
 .meeting-form__submit {

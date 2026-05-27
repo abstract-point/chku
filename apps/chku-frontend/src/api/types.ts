@@ -91,7 +91,7 @@ export type ApiMeeting = {
   reservation?: string
   link?: string
   isOnline?: boolean
-  topics?: string[]
+  discussion?: ApiDiscussionMessage[]
   notes?: string
   startedAt?: string | null
   finishedAt?: string | null
@@ -258,10 +258,16 @@ export type ApiCycle = {
     rating: number
     text: string
   }[]
-  discussion: {
-    memberName: string
-    memberAvatarUrl?: string | null
-    dateLabel: string
-    text: string
-  }[]
+  discussion: ApiDiscussionMessage[]
+}
+
+export type ApiDiscussionMessage = {
+  id: number
+  memberName: string
+  memberAvatarUrl?: string | null
+  text: string
+  createdAt: string
+  parentId: number | null
+  canReply: boolean
+  replies: ApiDiscussionMessage[]
 }
