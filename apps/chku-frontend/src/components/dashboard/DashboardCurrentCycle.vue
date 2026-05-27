@@ -312,6 +312,16 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   }
 }
 
+.current-book--editing {
+  @media (min-width: 768px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 1280px) {
+    grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
+  }
+}
+
 .current-book__edit-panel {
   margin-top: var(--space-sm);
 }
