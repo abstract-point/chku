@@ -127,14 +127,14 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
           br
 
     .current-book__details
-      CycleBookForm(
-        v-if="isBookFormOpen"
-        :cycle-number="book.cycleNumber"
-        :book="book"
-        id-prefix="dashboard-book"
-        @cancel="isBookFormOpen = false"
-        @saved="isBookFormOpen = false"
-      )
+      .panel.panel--filled.current-book__edit-panel(v-if="isBookFormOpen")
+        CycleBookForm(
+          :cycle-number="book.cycleNumber"
+          :book="book"
+          id-prefix="dashboard-book"
+          @cancel="isBookFormOpen = false"
+          @saved="isBookFormOpen = false"
+        )
       template(v-else)
         .current-book__meta
           h1 {{ book.title }}
@@ -302,6 +302,10 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.4;
+}
+
+.current-book__edit-panel {
+  margin-top: var(--space-sm);
 }
 
 .current-book__genres {
