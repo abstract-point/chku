@@ -6,7 +6,6 @@ import { ArrowUpDown, CalendarCheck, MessageSquare, Search, Star, Tags, User } f
 import FilterDropdown from '@/components/ui/FilterDropdown.vue'
 import type { FilterOption } from '@/components/ui/FilterDropdown.vue'
 import { useCyclesQuery } from '@/queries/cycleQueries'
-import { useGenresQuery } from '@/queries/genreQueries'
 import type { ArchiveCycle } from '@/types/club'
 
 type SortMode = 'newest' | 'oldest' | 'rating'
@@ -20,14 +19,19 @@ const currentPage = ref(1)
 const pageSize = 6
 const cyclesQuery = useCyclesQuery()
 const archiveCycles = computed(() => cyclesQuery.data.value ?? [])
-const archiveGenresQuery = useGenresQuery()
 
 const genreOptions = computed<FilterOption[]>(() => {
-  const genres = (archiveGenresQuery.data.value ?? [])
-    .map((g) => ({ value: g.slug, label: g.name }))
-    .sort((a, b) => a.label.localeCompare(b.label, 'ru'))
+  const genres = new Map<string, string>()
 
-  return genres
+  for (const cycle of archiveCycles.value) {
+    for (const g of cycle.book.genres ?? []) {
+      genres.set(g.slug, g.name)
+    }
+  }
+
+  return [...genres.entries()]
+    .map(([value, label]) => ({ value, label }))
+    .sort((a, b) => a.label.localeCompare(b.label, 'ru'))
 })
 
 const memberOptions = computed<FilterOption[]>(() => {
