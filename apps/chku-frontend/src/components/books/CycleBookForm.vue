@@ -117,12 +117,12 @@ form.cycle-book-form(@submit.prevent="saveBook" novalidate)
       accept="image/*"
     )
   .cycle-book-form__actions
-    button.button.button--primary.label-text(type="submit" :disabled="updateBook.isPending.value")
-      Save.cycle-book-form__icon
-      | {{ updateBook.isPending.value ? $t('books.saving') : $t('books.save') }}
     button.button.button--secondary.label-text(type="button" :disabled="updateBook.isPending.value" @click="cancel")
       X.cycle-book-form__icon
       | {{ $t('books.cancel') }}
+    button.button.button--primary.label-text(type="submit" :disabled="updateBook.isPending.value")
+      Save.cycle-book-form__icon
+      | {{ updateBook.isPending.value ? $t('books.saving') : $t('books.save') }}
   p.cycle-book-form__error(v-if="updateBook.error.value && !Object.keys(formErrors.fieldErrors.value).length")
     | {{ updateBook.error.value.message }}
 </template>
@@ -140,6 +140,7 @@ form.cycle-book-form(@submit.prevent="saveBook" novalidate)
 
 .cycle-book-form__actions {
   display: flex;
+  justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-sm);
 }

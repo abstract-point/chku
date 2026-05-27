@@ -66,6 +66,6 @@ import { ref } from 'vue'
 .discussion-composer__actions {
   display: flex;
   gap: var(--space-sm);
-  justify-content: flex-end;
+  justify-content: space-between;
 }
 </style>

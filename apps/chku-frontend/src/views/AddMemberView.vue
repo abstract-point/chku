@@ -194,6 +194,7 @@ main.add-member.container
 
   @include tablet {
     flex-direction: row;
+    justify-content: space-between;
   }
 }
 </style>
