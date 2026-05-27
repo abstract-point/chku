@@ -19,6 +19,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   submit: [payload: Record<string, unknown>]
+  cancel: []
 }>()
 
 const title = ref('')
@@ -74,6 +75,12 @@ watch(
     address.value = meeting.placeAddress ?? ''
     reservation.value = meeting.placeReservation ?? ''
     link.value = meeting.meetingLink ?? ''
+    if (meeting.date) {
+      const [y, m, d] = meeting.date.split('-').map(Number)
+      year.value = y
+      month.value = m
+      day.value = d
+    }
   },
   { immediate: true },
 )
@@ -181,8 +188,10 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
         :aria-invalid="isInvalid('notes')"
       )
 
-  button.button.button--primary.label-text.meeting-form__submit(type="submit" :disabled="isSubmitting")
-    | {{ isSubmitting ? $t('meetings.formSaving') : (isEdit ? $t('meetings.formSaveChanges') : $t('meetings.formCreate')) }}
+  .meeting-form__actions
+    button.button.button--secondary.label-text(type="button" @click="$emit('cancel')") {{ $t('common.cancel') }}
+    button.button.button--primary.label-text(type="submit" :disabled="isSubmitting")
+      | {{ isSubmitting ? $t('meetings.formSaving') : (isEdit ? $t('meetings.formSaveChanges') : $t('meetings.formCreate')) }}
 </template>
 
 <style scoped lang="scss">
@@ -218,7 +227,9 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
   }
 }
 
-.meeting-form__submit {
-  justify-self: start;
+.meeting-form__actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
 }
 </style>
