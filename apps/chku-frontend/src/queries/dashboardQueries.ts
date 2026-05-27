@@ -19,6 +19,7 @@ export function useUpdateReadingProgressMutation() {
     mutationFn: (payload: ReadingProgressPayload) => readingProgressApi.updateCurrent(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
+      queryClient.invalidateQueries({ queryKey: ['meetings'] })
     },
   })
 }
