@@ -5,7 +5,8 @@ import { useI18n } from 'vue-i18n'
 import { ArrowUpDown, CalendarCheck, MessageSquare, Search, Star, Tags, User } from '@lucide/vue'
 import FilterDropdown from '@/components/ui/FilterDropdown.vue'
 import type { FilterOption } from '@/components/ui/FilterDropdown.vue'
-import { useArchiveGenresQuery, useCyclesQuery } from '@/queries/cycleQueries'
+import { useCyclesQuery } from '@/queries/cycleQueries'
+import { useGenresQuery } from '@/queries/genreQueries'
 import type { ArchiveCycle } from '@/types/club'
 
 type SortMode = 'newest' | 'oldest' | 'rating'
@@ -19,7 +20,7 @@ const currentPage = ref(1)
 const pageSize = 6
 const cyclesQuery = useCyclesQuery()
 const archiveCycles = computed(() => cyclesQuery.data.value ?? [])
-const archiveGenresQuery = useArchiveGenresQuery()
+const archiveGenresQuery = useGenresQuery()
 
 const genreOptions = computed<FilterOption[]>(() => {
   const genres = (archiveGenresQuery.data.value ?? [])
