@@ -5,20 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable(['slug', 'name'])]
 class Genre extends Model
 {
     use HasFactory;
 
-    public function books(): HasMany
+    public function books(): BelongsToMany
     {
-        return $this->hasMany(Book::class);
+        return $this->belongsToMany(Book::class);
     }
 
-    public function favoriteMembers(): HasMany
+    public function favoriteMembers(): BelongsToMany
     {
-        return $this->hasMany(ClubMember::class, 'favorite_genre_id');
+        return $this->belongsToMany(ClubMember::class, 'club_member_genre');
     }
 }

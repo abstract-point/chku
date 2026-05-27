@@ -20,8 +20,7 @@ class MemberDetailResource extends JsonResource
             'email' => $this->user?->email,
             'isActive' => $this->is_active,
             'memberSince' => $this->joined_at?->format('Y'),
-            'favoriteGenreId' => $this->favorite_genre_id,
-            'favoriteGenre' => $this->favoriteGenre?->name,
+            'favoriteGenres' => GenreResource::collection($this->whenLoaded('favoriteGenres')),
             'stats' => [
                 'read' => $readingHistory->count(),
                 'proposed' => $this->proposedCycles()->count(),

@@ -39,7 +39,7 @@ class DashboardResource extends JsonResource
                 'description' => $book->description,
                 'coverUrl' => $book->cover_url,
                 'coverColor' => $book->cover_color,
-                'genre' => $book->genre ? new GenreResource($book->genre) : null,
+                'genres' => GenreResource::collection($book->genres ?? collect()),
                 'progress' => $progress?->progress_percent ?? 0,
                 'progressLabel' => $this->formatProgressLabel($progress),
                 'cycleNumber' => $currentCycle->cycle_number,

@@ -16,7 +16,7 @@ final class MemberCycleHistoryService
     {
         return ReadingCycle::query()
             ->with([
-                'book.genre',
+                'book.genres',
                 'proposer.user',
                 'ratings',
                 'reviews',
@@ -42,10 +42,13 @@ final class MemberCycleHistoryService
         $memberRsvp = $cycle->meeting?->rsvps->firstWhere('club_member_id', $member->id);
         $averageRating = $cycle->ratings->avg('rating');
 
+        $genres = $cycle->book?->genres->map(fn ($g) => ['id' => $g->id, 'slug' => $g->slug, 'name' => $g->name])->values();
+
         return [
             'title' => $cycle->book?->title,
             'coverTitle' => $cycle->book?->title,
             'author' => $cycle->book?->author,
+            'genres' => $genres ?? [],
             'coverColor' => $cycle->book?->cover_color,
             'cycleNumber' => $cycle->cycle_number,
             'cycleLabel' => "Цикл #{$cycle->cycle_number}",

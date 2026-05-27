@@ -5,12 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
-    'genre_id',
     'title',
     'author',
     'slug',
@@ -21,9 +20,9 @@ class Book extends Model
 {
     use HasFactory;
 
-    public function genre(): BelongsTo
+    public function genres(): BelongsToMany
     {
-        return $this->belongsTo(Genre::class);
+        return $this->belongsToMany(Genre::class);
     }
 
     public function covers(): HasMany

@@ -17,7 +17,7 @@ class MemberResource extends JsonResource
             'email' => $this->user?->email,
             'isActive' => $this->is_active,
             'memberSince' => $this->joined_at?->format('Y'),
-            'favoriteGenre' => $this->favoriteGenre?->name,
+            'favoriteGenres' => GenreResource::collection($this->whenLoaded('favoriteGenres')),
             'isAdmin' => $this->user?->hasRole('admin') ?? false,
             'stats' => [
                 'read' => $this->readingProgress()->where('status', 'finished')->count(),

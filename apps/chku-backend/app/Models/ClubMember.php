@@ -6,9 +6,10 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['club_id', 'user_id', 'is_active', 'joined_at', 'favorite_genre_id', 'gold_owls_count', 'silver_owls_count', 'bronze_owls_count'])]
+#[Fillable(['club_id', 'user_id', 'is_active', 'joined_at', 'gold_owls_count', 'silver_owls_count', 'bronze_owls_count'])]
 class ClubMember extends Model
 {
     use HasFactory;
@@ -32,9 +33,9 @@ class ClubMember extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function favoriteGenre(): BelongsTo
+    public function favoriteGenres(): BelongsToMany
     {
-        return $this->belongsTo(Genre::class, 'favorite_genre_id');
+        return $this->belongsToMany(Genre::class, 'club_member_genre');
     }
 
     public function readingProgress(): HasMany

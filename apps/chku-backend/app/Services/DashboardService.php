@@ -29,7 +29,7 @@ final class DashboardService
         ])->first();
 
         $currentCycle = ReadingCycle::with([
-            'book.genre',
+            'book.genres',
             'book.primaryCover',
             'proposer.user',
             'readingProgress' => function ($query) {
@@ -43,7 +43,7 @@ final class DashboardService
         $nextMeeting = Meeting::with([
             'readingCycle',
             'rsvps.clubMember.user',
-            'rsvps.clubMember.favoriteGenre',
+            'rsvps.clubMember.favoriteGenres',
         ])
             ->whereHas('readingCycle', fn ($q) => $q->where('status', 'active'))
             ->orderBy('date')
@@ -52,7 +52,7 @@ final class DashboardService
         $turnOrder = $this->turnOrderService->orderedTurnOrders($club->id);
 
         $activeCandidate = BookCandidate::with([
-            'book.genre',
+            'book.genres',
             'book.primaryCover',
             'proposer.user',
             'readingCycle',

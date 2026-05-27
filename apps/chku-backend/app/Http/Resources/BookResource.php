@@ -17,7 +17,7 @@ class BookResource extends JsonResource
             'description' => $this->description,
             'coverColor' => $this->cover_color,
             'coverUrl' => $this->cover_url,
-            'genre' => new GenreResource($this->whenLoaded('genre')),
+            'genres' => GenreResource::collection($this->whenLoaded('genres')),
         ];
     }
 }

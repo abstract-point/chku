@@ -14,7 +14,7 @@ class CycleResource extends JsonResource
     public function toArray(Request $request): array
     {
         $book = $this->book;
-        $genre = $book?->genre;
+        $firstGenre = $book?->genres?->first();
         $avgRating = $this->ratings->avg('rating') ?? 0;
         $meeting = $this->relationLoaded('meeting') ? $this->meeting : null;
         $rsvps = $meeting?->rsvps;
@@ -33,8 +33,8 @@ class CycleResource extends JsonResource
             'canEditBook' => $this->canEditBook($request),
             'book' => new BookResource($this->whenLoaded('book')),
             'coverTitle' => $book?->title,
-            'genre' => $genre?->slug,
-            'genreLabel' => $genre?->name,
+            'genre' => $firstGenre?->slug,
+            'genreLabel' => $firstGenre?->name,
             'proposedBy' => $this->whenLoaded('proposer', fn () => $this->proposer->user?->name),
             'proposerAvatarUrl' => $this->whenLoaded('proposer', fn () => MemberAvatar::url($this->proposer)),
             'rating' => round($avgRating, 1),
