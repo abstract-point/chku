@@ -52,7 +52,8 @@ class AuthApiTest extends TestCase
         $response->assertJsonPath('user.email', 'elena@example.com');
         $response->assertJsonPath('user.avatarUrl', null);
         $response->assertJsonPath('twoFactorEnabled', false);
-        $response->assertJsonPath('user.favoriteGenreId', $user->clubMember?->favorite_genre_id);
+        $response->assertJsonCount(1, 'user.favoriteGenres');
+        $response->assertJsonPath('user.favoriteGenres.0.slug', 'classic');
     }
 
     public function test_guest_cannot_access_protected_routes(): void
@@ -77,23 +78,23 @@ class AuthApiTest extends TestCase
         $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
 
-        $genreId = \App\Models\Genre::where('slug', 'scifi')->value('id');
+        $genreId = \App\Models\Genre::where('slug', 'science_fiction')->value('id');
 
         $response = $this->actingAs($user)->patchJson('/api/me/profile', [
             'name' => 'Елена Новая',
             'email' => $user->email,
-            'favorite_genre_id' => $genreId,
+            'favorite_genre_ids' => [$genreId],
         ]);
 
         $response->assertOk();
         $response->assertJsonPath('data.name', 'Елена Новая');
         $response->assertJsonPath('data.avatarUrl', null);
-        $response->assertJsonPath('data.favoriteGenreId', $genreId);
+        $response->assertJsonCount(1, 'data.favoriteGenres');
 
         $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Елена Новая']);
-        $this->assertDatabaseHas('club_members', [
-            'user_id' => $user->id,
-            'favorite_genre_id' => $genreId,
+        $this->assertDatabaseHas('club_member_genre', [
+            'club_member_id' => $user->clubMember?->id,
+            'genre_id' => $genreId,
         ]);
     }
 

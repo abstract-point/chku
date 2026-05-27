@@ -69,7 +69,7 @@ class EventDispatchTest extends TestCase
             'password' => 'password123',
             'joined_at' => now()->format('Y-m-d'),
             'role' => 'member',
-            'favorite_genre_id' => $genre->id,
+            'favorite_genre_ids' => [$genre->id],
         ]);
 
         $response->assertSuccessful();

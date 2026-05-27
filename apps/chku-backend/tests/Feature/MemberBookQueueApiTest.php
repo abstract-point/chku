@@ -75,7 +75,6 @@ class MemberBookQueueApiTest extends TestCase
             'title' => 'Тестовая отклонённая книга',
             'author' => 'Тестовый автор',
             'slug' => 'test-rejected-book',
-            'genre_id' => 1,
             'cover_color' => '#3a405a',
         ]);
 
@@ -130,7 +129,6 @@ class MemberBookQueueApiTest extends TestCase
             'title' => 'Чужая отклонённая книга',
             'author' => 'Чужой автор',
             'slug' => 'other-rejected-book',
-            'genre_id' => 1,
             'cover_color' => '#3a405a',
         ]);
 
