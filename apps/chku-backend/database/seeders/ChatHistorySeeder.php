@@ -43,11 +43,6 @@ class ChatHistorySeeder extends Seeder
         $this->seedCycle3Ten();
     }
 
-    private function memberPassword(): string
-    {
-        return Hash::make(env('CHKU_DEVELOPER_PASSWORD', 'password'));
-    }
-
     private function seedPermissions(): void
     {
         $permissions = [
@@ -151,7 +146,11 @@ class ChatHistorySeeder extends Seeder
                 ['email' => $data['email']],
                 [
                     'name' => $data['name'],
-                    'password' => $this->memberPassword(),
+                    'password' => Hash::make(
+                        $data['role'] === 'admin'
+                            ? env('CHKU_DEVELOPER_PASSWORD', 'password')
+                            : 'password'
+                    ),
                 ],
             );
 
