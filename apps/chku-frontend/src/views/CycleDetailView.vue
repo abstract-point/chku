@@ -123,9 +123,6 @@ main.cycle-detail.container
               span.cycle-detail__rating.label-text {{ review.rating }}/10
             p.body-text {{ review.text }}
 
-          .section-header.cycle-detail__discussion-header
-            h2 {{ $t('archiveBook.discussion') }}
-            span.label-text {{ $t('archiveBook.clubMeeting') }}
           DiscussionBlock(
             :discussion="cycle.discussion ?? []"
             :readonly="true"

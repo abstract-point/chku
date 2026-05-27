@@ -68,6 +68,14 @@ const hasSubmittedRating = computed(() => currentUserRating.value !== null)
 const shouldShowRatingForm = computed(
   () => meeting.value?.status === 'started' && rsvpStatus.value === 'attending',
 )
+const gridLayoutClass = computed(() => {
+  const hasAdmin = isAdmin.value && !isArchived.value
+  const hasRating = shouldShowRatingForm.value
+  if (hasAdmin && hasRating) return 'meeting-detail__grid--layout-full'
+  if (hasAdmin) return 'meeting-detail__grid--layout-no-rating'
+  if (hasRating) return 'meeting-detail__grid--layout-no-admin'
+  return 'meeting-detail__grid--layout-info-only'
+})
 const missingRatingAttendees = computed(() =>
   meeting.value
     ? meeting.value.attendees.filter((attendee) =>
@@ -190,7 +198,7 @@ main.meeting-detail.container
         h1.meeting-detail__title {{ meeting.title }}
       span.label-text {{ meeting.cycleLabel }}
 
-    .meeting-detail__grid
+    .meeting-detail__grid(:class="gridLayoutClass")
       .meeting-detail__main
         section.panel.meeting-detail__admin-panel(v-if="isAdmin && !isArchived")
           .meeting-detail__admin-head
@@ -387,13 +395,59 @@ main.meeting-detail.container
                 UserMinus(:size="15" aria-hidden="true")
           p.body-text(v-if="!meeting.attendees.length") {{ $t('meetings.noParticipants') }}
 
-        DiscussionBlock(
-          :discussion="meeting.discussion ?? []"
-          :readonly="isArchived"
-          :is-submitting="discussionMutation.isPending.value"
-          @create="handleDiscussionCreate"
-          @reply="handleDiscussionReply"
-        )
+        .meeting-detail__discussion
+          DiscussionBlock(
+            :discussion="meeting.discussion ?? []"
+            :readonly="isArchived"
+            :is-submitting="discussionMutation.isPending.value"
+            @create="handleDiscussionCreate"
+            @reply="handleDiscussionReply"
+          )
+
+    MeetingFinishModal(
+      v-if="!isArchived"
+      :is-open="isFinishModalOpen"
+      :meeting="meeting"
+      :member-progress="memberProgress"
+      @close="isFinishModalOpen = false"
+      @confirm="handleFinishConfirm"
+    )
+
+      section.panel.meeting-detail__participants(aria-labelledby="meeting-participants-title")
+        .section-header.section-header--compact
+          h2#meeting-participants-title {{ $t('meetings.participants') }}
+          .meeting-detail__participant-count
+            span.label-text {{ meeting.attendees.length }}
+            Users(:size="15" aria-hidden="true")
+        .meeting-detail__rsvp-status(v-if="!isArchived")
+          .inline-alert.inline-alert--success(v-if="rsvpStatus === 'attending'")
+            CheckCircle(:size="14" aria-hidden="true")
+            span {{ $t('meetings.youAttending') }}
+            button.meeting-detail__decline-text(type="button" :disabled="updateRsvpMutation.isPending.value" @click="setRsvp('not_attending')")
+              | {{ $t('meetings.notAttending') }}
+          .inline-alert(v-else-if="rsvpStatus === 'not_attending'")
+            span {{ $t('meetings.youNotAttending') }}
+          button.button.button--primary.label-text(
+            v-if="!isCurrentUserAttending"
+            type="button"
+            :disabled="updateRsvpMutation.isPending.value"
+            @click="setRsvp('attending')"
+          ) {{ $t('meetings.willAttend') }}
+        ul.data-list
+          li.data-list__item(v-for="attendee in meeting.attendees" :key="attendee.id")
+            RouterLink.meeting-detail__attendee(:to="`/members/${attendee.id}`")
+              UserAvatar(:name="attendee.name" :avatar-url="attendee.avatarUrl" size="sm")
+              span.body-text {{ attendee.name }}
+            button.meeting-detail__remove-button(
+              v-if="isAdmin && !isArchived && canRemoveAttendee(attendee)"
+              type="button"
+              :title="t('meetings.removeAttendee')"
+              :aria-label="t('meetings.removeAttendee')"
+              :disabled="removeRsvpMutation.isPending.value"
+              @click="removeAttendee(attendee.id)"
+            )
+              UserMinus(:size="15" aria-hidden="true")
+        p.body-text(v-if="!meeting.attendees.length") {{ $t('meetings.noParticipants') }}
 
     MeetingFinishModal(
       v-if="!isArchived"
@@ -441,26 +495,79 @@ main.meeting-detail.container
 .meeting-detail__grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-xl);
+  gap: var(--space-lg);
   align-items: start;
+
+  grid-template-areas:
+    "admin"
+    "rating"
+    "info"
+    "participants"
+    "discussion";
+
+  &--layout-no-admin {
+    grid-template-areas:
+      "rating"
+      "info"
+      "participants"
+      "discussion";
+  }
+
+  &--layout-no-rating {
+    grid-template-areas:
+      "admin"
+      "info"
+      "participants"
+      "discussion";
+  }
+
+  &--layout-info-only {
+    grid-template-areas:
+      "info"
+      "participants"
+      "discussion";
+  }
 
   @include desktop {
     grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+    gap: var(--space-xl);
+
+    grid-template-areas:
+      "admin       participants"
+      "rating      participants"
+      "info        participants"
+      "discussion  participants";
+
+    &--layout-no-admin {
+      grid-template-areas:
+        "rating      participants"
+        "info        participants"
+        "discussion  participants";
+    }
+
+    &--layout-no-rating {
+      grid-template-areas:
+        "admin       participants"
+        "info        participants"
+        "discussion  participants";
+    }
+
+    &--layout-info-only {
+      grid-template-areas:
+        "info        participants"
+        "discussion  participants";
+    }
   }
 }
 
 .meeting-detail__main {
-  display: grid;
-  gap: var(--space-lg);
-
-  @include desktop {
-    display: contents;
-  }
+  display: contents;
 }
 
 .meeting-detail__info {
   display: grid;
   gap: var(--space-lg);
+  grid-area: info;
 }
 
 .meeting-detail__status-row {
@@ -497,6 +604,7 @@ main.meeting-detail.container
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
   background: var(--bg-surface);
+  grid-area: admin;
 }
 
 .meeting-detail__admin-head {
@@ -641,6 +749,7 @@ main.meeting-detail.container
 .meeting-detail__rating {
   display: grid;
   gap: var(--space-md);
+  grid-area: rating;
 }
 
 .meeting-detail__rating-row {
@@ -858,11 +967,11 @@ main.meeting-detail.container
 .meeting-detail__participants {
   display: grid;
   gap: var(--space-md);
+  grid-area: participants;
+}
 
-  @include desktop {
-    grid-column: 2;
-    grid-row: 1;
-  }
+.meeting-detail__discussion {
+  grid-area: discussion;
 }
 
 .meeting-detail__participant-count {
