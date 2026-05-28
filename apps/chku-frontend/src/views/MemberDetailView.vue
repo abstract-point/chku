@@ -78,10 +78,11 @@ main.member-detail.container(v-else-if="member")
             span.status-dot(:class="{ 'status-dot--active': member.isActive }")
             span.label-text {{ member.isActive ? $t('memberDetail.active') : $t('memberDetail.inactive') }}
         .member-detail__info-row
-          span.label-text {{ $t('memberDetail.favGenre') }}
-          span.member-detail__info-value
-            Star.member-detail__icon
-            span.body-text(v-if="member.favoriteGenres?.length") {{ member.favoriteGenres.map((g) => g.name).join(', ') }}
+          span.label-text {{ $t('genrePicker.favGenres') }}
+          span.member-detail__info-value.member-detail__genres
+            template(v-if="member.favoriteGenres?.length")
+              span.badge(v-for="g in member.favoriteGenres" :key="g.id") {{ g.name }}
+            span.body-text(v-else) —
         .member-detail__info-row
           span.label-text Email
           span.member-detail__info-value
@@ -250,6 +251,11 @@ section.panel.container(v-else aria-live="polite")
   width: 1rem;
   height: 1rem;
   color: var(--text-subtle);
+}
+
+.member-detail__genres {
+  flex-wrap: wrap;
+  gap: var(--space-xs);
 }
 
 .member-detail__book-list {

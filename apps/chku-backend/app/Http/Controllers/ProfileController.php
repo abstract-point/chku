@@ -73,7 +73,9 @@ final class ProfileController extends Controller
 
             $user->save();
 
-            $member->favoriteGenres()->sync($payload['favorite_genre_ids'] ?? []);
+            if (array_key_exists('favorite_genre_ids', $payload)) {
+                $member->favoriteGenres()->sync($payload['favorite_genre_ids']);
+            }
         });
 
         return new MemberDetailResource(
