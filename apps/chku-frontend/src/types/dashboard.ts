@@ -31,6 +31,7 @@ export type BookProgressMember = {
 }
 
 export type TurnOrderMember = {
+  memberId: number
   name: string
   avatarUrl?: string | null
   status?: string

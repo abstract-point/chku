@@ -54,3 +54,14 @@ export function useDeactivateMemberMutation() {
     },
   })
 }
+
+export function useReorderTurnOrderMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (memberIds: number[]) => membersApi.reorderTurnOrder(memberIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
+    },
+  })
+}

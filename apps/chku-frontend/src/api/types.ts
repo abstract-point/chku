@@ -161,6 +161,7 @@ export type ApiDashboard = {
   }[]
   nextMeeting: ApiMeeting | null
   turnOrder: {
+    memberId: number
     name: string
     avatarUrl?: string | null
     status?: string
