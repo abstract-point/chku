@@ -32,12 +32,18 @@ final class TelegramService
             $payload['message_thread_id'] = (int) $threadId;
         }
 
-        $response = Http::timeout(config('telegram.timeout', 10))
+        $request = Http::timeout(config('telegram.timeout', 10))
             ->retry(
                 config('telegram.retry_times', 3),
                 config('telegram.retry_sleep', 100),
-            )
-            ->post(self::API_BASE . $token . '/sendMessage', $payload);
+            );
+
+        $proxy = config('telegram.proxy');
+        if (! empty($proxy)) {
+            $request = $request->withOptions(['proxy' => $proxy]);
+        }
+
+        $response = $request->post(self::API_BASE . $token . '/sendMessage', $payload);
 
         if (! $response->successful()) {
             Log::error('Telegram API error', [
