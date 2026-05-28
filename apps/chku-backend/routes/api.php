@@ -66,6 +66,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('members/{member}/avatar', [ClubMemberController::class, 'avatar'])->name('members.avatar');
     Route::get('members/{member}', [ClubMemberController::class, 'show']);
     Route::post('members', [ClubMemberController::class, 'store']);
+    Route::post('members/turn-order', [ClubMemberController::class, 'reorderTurnOrder']);
     Route::post('members/{member}/deactivate', [ClubMemberController::class, 'deactivate']);
 
     Route::get('cycles', [CycleController::class, 'index']);

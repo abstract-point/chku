@@ -131,6 +131,52 @@ final class TurnOrderService
         });
     }
 
+    public function reorder(int $clubId, array $memberIds): void
+    {
+        DB::transaction(function () use ($clubId, $memberIds): void {
+            $orders = TurnOrder::query()
+                ->where('club_id', $clubId)
+                ->whereHas('clubMember', fn ($query) => $query->where('is_active', true))
+                ->lockForUpdate()
+                ->get();
+
+            if ($orders->isEmpty()) {
+                return;
+            }
+
+            $ordered = $this->buildOrderedList($orders);
+
+            $currentHead = $ordered->first();
+            if (! $currentHead || $currentHead->club_member_id !== (int) $memberIds[0]) {
+                abort(422, 'Нельзя перемещать участника, который сейчас выбирает книгу.');
+            }
+
+            if (count($memberIds) !== $orders->count()) {
+                abort(422, 'Некорректный список участников.');
+            }
+
+            $byMemberId = $orders->keyBy('club_member_id');
+
+            foreach ($memberIds as $id) {
+                if (! $byMemberId->has((int) $id)) {
+                    abort(422, 'Участник с ID ' . $id . ' не найден в очереди.');
+                }
+            }
+
+            $changeIds = $orders->pluck('id')->all();
+            TurnOrder::whereIn('id', $changeIds)->update(['next_turn_order_id' => null]);
+
+            for ($i = 0; $i < count($memberIds); $i++) {
+                $item = $byMemberId->get((int) $memberIds[$i]);
+                $nextId = $i < count($memberIds) - 1
+                    ? $byMemberId->get((int) $memberIds[$i + 1])->id
+                    : null;
+
+                TurnOrder::where('id', $item->id)->update(['next_turn_order_id' => $nextId]);
+            }
+        });
+    }
+
     private function buildOrderedList(EloquentCollection|Collection $orders): Collection
     {
         if ($orders->isEmpty()) {

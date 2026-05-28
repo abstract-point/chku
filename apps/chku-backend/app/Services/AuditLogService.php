@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\AuditLog;
+use App\Models\Club;
 use App\Models\ClubMember;
 use App\Models\Meeting;
 use App\Models\User;
@@ -60,6 +61,19 @@ final class AuditLogService
                 'meeting_id' => $meeting->id,
                 'title' => $meeting->title,
                 'changes' => $changes,
+            ],
+        ]);
+    }
+
+    public function logTurnOrderReordered(Club $club, User $actor, array $previousOrder, array $newOrder): void
+    {
+        AuditLog::create([
+            'actor_id' => $actor->id,
+            'action' => 'turn_order_reordered',
+            'metadata' => [
+                'club_id' => $club->id,
+                'previous_order' => $previousOrder,
+                'new_order' => $newOrder,
             ],
         ]);
     }

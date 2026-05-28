@@ -126,6 +126,48 @@ final class ClubMemberController extends Controller
         );
     }
 
+    public function reorderTurnOrder(Request $request, TurnOrderService $turnOrder): JsonResponse
+    {
+        abort_unless($request->user()?->hasAnyRole(['admin', 'developer']), 403);
+
+        $payload = $request->validate([
+            'memberIds' => ['required', 'array', 'min:1'],
+            'memberIds.*' => ['required', 'integer', 'exists:club_members,id'],
+        ]);
+
+        $club = Club::first();
+        if (! $club) {
+            abort(422, 'Клуб не найден.');
+        }
+
+        $ordered = $turnOrder->orderedTurnOrders($club->id);
+        $previousOrder = $ordered->map(fn ($to) => [
+            'id' => $to->club_member_id,
+            'name' => $to->clubMember?->user?->name,
+        ])->values()->toArray();
+
+        $memberIds = array_map('intval', $payload['memberIds']);
+        $turnOrder->reorder($club->id, $memberIds);
+
+        $newOrdered = $turnOrder->orderedTurnOrders($club->id);
+        $newOrder = $newOrdered->map(fn ($to) => [
+            'id' => $to->club_member_id,
+            'name' => $to->clubMember?->user?->name,
+        ])->values()->toArray();
+
+        $actor = $request->user();
+        if ($actor) {
+            $this->auditLog->logTurnOrderReordered($club, $actor, $previousOrder, $newOrder);
+        }
+
+        return response()->json([
+            'turnOrder' => array_map(fn ($to) => [
+                'memberId' => $to->club_member_id,
+                'name' => $to->clubMember?->user?->name,
+            ], $newOrdered->all()),
+        ]);
+    }
+
     public function deactivate(Request $request, ClubMember $member, TurnOrderService $turnOrder): JsonResponse
     {
         $this->authorize('deactivate', $member);
