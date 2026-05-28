@@ -10,4 +10,5 @@ return [
     'timeout' => (int) env('TELEGRAM_TIMEOUT', 10),
     'retry_times' => (int) env('TELEGRAM_RETRY_TIMES', 3),
     'retry_sleep' => (int) env('TELEGRAM_RETRY_SLEEP', 100),
+    'frontend_url' => rtrim(env('FRONTEND_URL', env('APP_URL', 'http://localhost')), '/'),
 ];

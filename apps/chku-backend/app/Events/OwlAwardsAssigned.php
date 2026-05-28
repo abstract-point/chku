@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Events;
 
+use App\Models\ReadingCycle;
+
 final class OwlAwardsAssigned
 {
     /**
@@ -11,6 +13,7 @@ final class OwlAwardsAssigned
      */
     public function __construct(
         public readonly array $awards,
+        public readonly ?ReadingCycle $cycle = null,
     ) {
     }
 }

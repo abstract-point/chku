@@ -16,6 +16,7 @@ use App\Events\MeetingStarted;
 use App\Events\MemberDeactivated;
 use App\Events\MemberFinishedReading;
 use App\Events\MemberJoinedClub;
+use App\Events\OwlAwardsAssigned;
 use App\Events\ReadingProgressUpdated;
 use App\Models\BookCandidate;
 use App\Models\Club;
@@ -40,6 +41,7 @@ class TelegramMessageFormatterTest extends TestCase
         parent::setUp();
         $this->seed(TestDatabaseSeeder::class);
         $this->formatter = new TelegramMessageFormatter();
+        config()->set('telegram.frontend_url', 'https://example.com');
     }
 
     public function test_formats_member_joined(): void
@@ -50,6 +52,7 @@ class TelegramMessageFormatterTest extends TestCase
         $message = $this->formatter->format(new MemberJoinedClub($member));
 
         $this->assertStringContainsString('Елена', $message);
+        $this->assertStringContainsString('https://example.com/members/' . $member->id, $message);
     }
 
     public function test_formats_member_deactivated(): void
@@ -69,6 +72,7 @@ class TelegramMessageFormatterTest extends TestCase
         $message = $this->formatter->format(new BookCandidateProposed($candidate));
 
         $this->assertStringContainsString($candidate->book->title, $message);
+        $this->assertStringContainsString('https://example.com/', $message);
     }
 
     public function test_formats_candidate_rejected(): void
@@ -87,6 +91,7 @@ class TelegramMessageFormatterTest extends TestCase
         $message = $this->formatter->format(new BookCandidateConfirmed($candidate));
 
         $this->assertStringContainsString('начался', $message);
+        $this->assertStringContainsString('https://example.com/', $message);
     }
 
     public function test_formats_candidate_replaced(): void
@@ -105,6 +110,7 @@ class TelegramMessageFormatterTest extends TestCase
         $message = $this->formatter->format(new ReadingProgressUpdated($progress));
 
         $this->assertStringContainsString((string) $progress->progress_percent, $message);
+        $this->assertStringContainsString('https://example.com/', $message);
     }
 
     public function test_formats_member_finished_reading(): void
@@ -123,6 +129,7 @@ class TelegramMessageFormatterTest extends TestCase
         $message = $this->formatter->format(new MeetingScheduled($meeting));
 
         $this->assertStringContainsString('Назначена встреча', $message);
+        $this->assertStringContainsString('https://example.com/meetings/' . $meeting->id, $message);
     }
 
     public function test_formats_meeting_started(): void
@@ -132,6 +139,7 @@ class TelegramMessageFormatterTest extends TestCase
         $message = $this->formatter->format(new MeetingStarted($meeting));
 
         $this->assertStringContainsString('началась', $message);
+        $this->assertStringContainsString('https://example.com/meetings/' . $meeting->id, $message);
     }
 
     public function test_formats_meeting_finished(): void
@@ -141,6 +149,7 @@ class TelegramMessageFormatterTest extends TestCase
         $message = $this->formatter->format(new MeetingFinished($meeting));
 
         $this->assertStringContainsString('завершена', $message);
+        $this->assertStringContainsString('https://example.com/archive', $message);
     }
 
     public function test_formats_cycle_completed(): void
@@ -150,6 +159,29 @@ class TelegramMessageFormatterTest extends TestCase
         $message = $this->formatter->format(new CycleCompleted($cycle));
 
         $this->assertStringContainsString('завершён', $message);
+        $this->assertStringContainsString('https://example.com/cycles/' . $cycle->cycle_number, $message);
+        $this->assertStringContainsString('https://example.com/archive', $message);
+    }
+
+    public function test_formats_owl_awards_with_cycle_link(): void
+    {
+        $cycle = \App\Models\ReadingCycle::firstOrFail();
+        $awards = [
+            ['memberId' => 1, 'memberName' => 'Анна', 'medal' => 'gold'],
+        ];
+
+        $message = $this->formatter->format(new OwlAwardsAssigned($awards, $cycle));
+
+        $this->assertStringContainsString('Награды', $message);
+        $this->assertStringContainsString('Анна', $message);
+        $this->assertStringContainsString('https://example.com/cycles/' . $cycle->cycle_number, $message);
+    }
+
+    public function test_formats_owl_awards_without_cycle(): void
+    {
+        $message = $this->formatter->format(new OwlAwardsAssigned([]));
+
+        $this->assertStringContainsString('Совы не назначены', $message);
     }
 
     public function test_event_name_mapping(): void
@@ -180,6 +212,26 @@ class TelegramMessageFormatterTest extends TestCase
         // Message should be non-empty and not contain unescaped markdown
         $this->assertNotEmpty($message);
         $this->assertStringContainsString('Елена', $message);
+    }
+
+    public function test_link_generates_valid_markdown(): void
+    {
+        $formatter = new TelegramMessageFormatter();
+        $reflection = new \ReflectionMethod($formatter, 'link');
+        $reflection->setAccessible(true);
+
+        $link = $reflection->invoke($formatter, 'Test Title', 'https://example.com/path');
+        $this->assertSame('[Test Title](https://example.com/path)', $link);
+    }
+
+    public function test_link_escapes_text_but_not_url(): void
+    {
+        $formatter = new TelegramMessageFormatter();
+        $reflection = new \ReflectionMethod($formatter, 'link');
+        $reflection->setAccessible(true);
+
+        $link = $reflection->invoke($formatter, 'Title with [brackets]', 'https://example.com/path');
+        $this->assertSame('[Title with \[brackets\]](https://example.com/path)', $link);
     }
 
     private function createProposedCandidate(): BookCandidate

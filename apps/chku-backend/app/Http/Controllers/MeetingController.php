@@ -295,7 +295,7 @@ final class MeetingController extends Controller
         event(new MeetingFinished($meeting));
         event(new CycleCompleted($meeting->readingCycle));
         if ($awards !== []) {
-            event(new OwlAwardsAssigned($awards));
+            event(new OwlAwardsAssigned($awards, $meeting->readingCycle));
         }
 
         return new MeetingResource(

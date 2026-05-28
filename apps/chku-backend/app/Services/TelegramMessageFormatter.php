@@ -69,183 +69,176 @@ final class TelegramMessageFormatter
 
     private function formatMemberJoined(MemberJoinedClub $event): string
     {
-        $name = $this->escape($event->member->user->name);
+        $member = $event->member;
+        $member->loadMissing('user');
 
-        return sprintf('%s *%s*', $this->escape('К нам присоединился новый участник:'), $name);
+        return implode("\n", [
+            '👤 ' . $this->escape('К нам присоединился новый участник!'),
+            '',
+            $this->escape('Имя: ') . $this->memberLink($member),
+        ]);
     }
 
     private function formatMemberDeactivated(MemberDeactivated $event): string
     {
         $name = $this->escape($event->member->user->name);
 
-        return sprintf('%s *%s*', $this->escape('Участник покинул клуб:'), $name);
+        return implode("\n", [
+            '🚪 ' . $this->escape('Участник покинул клуб.'),
+            '',
+            $this->escape('Имя: ') . '*' . $name . '*',
+        ]);
     }
 
     private function formatCandidateProposed(BookCandidateProposed $event): string
     {
         $candidate = $event->candidate;
         $candidate->loadMissing(['book', 'proposer.user']);
-        $proposer = $this->escape($candidate->proposer->user->name);
+        $proposer = $this->memberLink($candidate->proposer);
         $book = $this->escape($candidate->book->title);
         $author = $candidate->book->author ? $this->escape($candidate->book->author) : null;
-        $reason = $candidate->reason ? "\n" . $this->escape('Почему: ') . $this->escape($candidate->reason) : '';
+        $reason = $candidate->reason ? "\n" . $this->escape('Почему: ') . '*' . $this->escape($candidate->reason) . '*' : '';
 
-        $line = sprintf(
-            '%s',
-            $this->escape('Новая книга на проверку!')
-        );
-        $line .= sprintf(
-            "\n%s *%s*",
-            $this->escape('Предложил:'),
-            $proposer
-        );
-        $line .= sprintf(
-            "\n%s *%s*",
-            $this->escape('Книга:'),
-            $book
-        );
+        $lines = [
+            '📚 ' . $this->escape('Новая книга на проверку!'),
+            '',
+            $this->escape('Книга: ') . '*' . $book . '*',
+        ];
+
         if ($author) {
-            $line .= sprintf(
-                "\n%s *%s*",
-                $this->escape('Автор:'),
-                $author
-            );
-        }
-        $line .= "\n" . $this->escape('Ответьте, читали ли вы её — проверьте раздел кандидатов.');
-        if ($reason) {
-            $line .= $reason;
+            $lines[] = $this->escape('Автор: ') . '*' . $author . '*';
         }
 
-        return $line;
+        $lines[] = $this->escape('Предложил: ') . $proposer;
+        $lines[] = '';
+        $lines[] = $this->escape('Ответьте, читали ли вы её — проверьте раздел кандидатов.');
+        $lines[] = $this->escape('👉 Открыть на сайте: ') . $this->link($this->frontendUrl('/'), $this->frontendUrl('/'));
+
+        if ($reason) {
+            $lines[] = $reason;
+        }
+
+        return implode("\n", $lines);
     }
 
     private function formatCandidateRejected(BookCandidateRejected $event): string
     {
         $candidate = $event->candidate;
         $candidate->loadMissing(['book', 'proposer.user']);
-        $proposer = $this->escape($candidate->proposer->user->name);
+        $proposer = $this->memberLink($candidate->proposer);
         $book = $this->escape($candidate->book->title);
 
-        return sprintf(
-            "%s\n%s *%s*\n%s *%s*",
-            $this->escape('Кандидат отклонён — кто-то уже читал эту книгу.'),
-            $this->escape('Предложил:'),
-            $proposer,
-            $this->escape('Книга:'),
-            $book
-        );
+        return implode("\n", [
+            '❌ ' . $this->escape('Кандидат отклонён — кто-то уже читал эту книгу.'),
+            '',
+            $this->escape('Книга: ') . '*' . $book . '*',
+            $this->escape('Предложил: ') . $proposer,
+        ]);
     }
 
     private function formatCandidateAwaiting(BookCandidateAwaitingConfirmation $event): string
     {
         $candidate = $event->candidate;
         $candidate->loadMissing(['book', 'proposer.user']);
-        $proposer = $this->escape($candidate->proposer->user->name);
+        $proposer = $this->memberLink($candidate->proposer);
         $book = $this->escape($candidate->book->title);
 
-        return sprintf(
-            "%s\n%s *%s*\n%s *%s*\n%s",
-            $this->escape('Все подтвердили — книгу никто не читал!'),
-            $this->escape('Предложил:'),
-            $proposer,
-            $this->escape('Книга:'),
-            $book,
-            $this->escape('Теперь автор может подтвердить книгу и начать цикл чтения.')
-        );
+        return implode("\n", [
+            '✅ ' . $this->escape('Все подтвердили — книгу никто не читал!'),
+            '',
+            $this->escape('Книга: ') . '*' . $book . '*',
+            $this->escape('Предложил: ') . $proposer,
+            '',
+            $this->escape('Теперь автор может подтвердить книгу и начать цикл чтения.'),
+            $this->escape('👉 Открыть на сайте: ') . $this->link($this->frontendUrl('/'), $this->frontendUrl('/')),
+        ]);
     }
 
     private function formatCandidateConfirmed(BookCandidateConfirmed $event): string
     {
         $candidate = $event->candidate;
         $candidate->loadMissing(['book', 'proposer.user', 'readingCycle']);
-        $proposer = $this->escape($candidate->proposer->user->name);
+        $proposer = $this->memberLink($candidate->proposer);
         $book = $this->escape($candidate->book->title);
         $author = $candidate->book->author ? $this->escape($candidate->book->author) : null;
         $cycleNumber = $candidate->readingCycle?->cycle_number;
 
-        $line = sprintf(
-            '%s',
-            $this->escape('Цикл чтения начался! Приятного чтения.')
-        );
-        $line .= sprintf(
-            "\n%s *%s*",
-            $this->escape('Книга:'),
-            $book
-        );
-        if ($author) {
-            $line .= sprintf(
-                "\n%s *%s*",
-                $this->escape('Автор:'),
-                $author
-            );
-        }
-        if ($cycleNumber) {
-            $line .= sprintf(
-                "\n%s %s",
-                $this->escape('Цикл'),
-                $this->escape('#' . (string) $cycleNumber)
-            );
-        }
-        $line .= sprintf(
-            "\n%s *%s*",
-            $this->escape('Выбрал:'),
-            $proposer
-        );
+        $lines = [
+            '🎉 ' . $this->escape('Цикл чтения начался! Приятного чтения.'),
+            '',
+            $this->escape('Книга: ') . '*' . $book . '*',
+        ];
 
-        return $line;
+        if ($author) {
+            $lines[] = $this->escape('Автор: ') . '*' . $author . '*';
+        }
+
+        if ($cycleNumber) {
+            $lines[] = $this->escape('Цикл: ') . '*' . $this->escape('#' . (string) $cycleNumber) . '*';
+        }
+
+        $lines[] = $this->escape('Выбрал: ') . $proposer;
+        $lines[] = '';
+        $lines[] = $this->escape('👉 Открыть на сайте: ') . $this->link($this->frontendUrl('/'), $this->frontendUrl('/'));
+
+        return implode("\n", $lines);
     }
 
     private function formatCandidateReplaced(BookCandidateReplaced $event): string
     {
         $candidate = $event->candidate;
         $candidate->loadMissing(['book', 'proposer.user']);
-        $proposer = $this->escape($candidate->proposer->user->name);
+        $proposer = $this->memberLink($candidate->proposer);
         $book = $this->escape($candidate->book->title);
 
-        return sprintf(
-            "%s\n%s *%s*\n%s *%s*",
-            $this->escape('Кандидат заменён на новую книгу.'),
-            $this->escape('Предложил:'),
-            $proposer,
-            $this->escape('Новая книга:'),
-            $book
-        );
+        return implode("\n", [
+            '🔄 ' . $this->escape('Кандидат заменён на новую книгу.'),
+            '',
+            $this->escape('Новая книга: ') . '*' . $book . '*',
+            $this->escape('Предложил: ') . $proposer,
+        ]);
     }
 
     private function formatProgressUpdated(ReadingProgressUpdated $event): string
     {
         $progress = $event->progress;
         $progress->loadMissing(['clubMember.user', 'readingCycle.book']);
-        $name = $this->escape($progress->clubMember->user->name);
+        $member = $this->memberLink($progress->clubMember);
         $book = $this->escape($progress->readingCycle->book->title);
         $percent = $progress->progress_percent;
 
-        return sprintf(
-            "%s *%s*\n%s *%s* — %s%d%%",
-            $this->escape('Прогресс чтения обновлён:'),
-            $name,
-            $this->escape('Книга:'),
-            $book,
-            $this->escape(''),
-            $percent
-        );
+        return implode("\n", [
+            '📈 ' . $this->escape('Прогресс чтения обновлён'),
+            '',
+            $this->escape('Участник: ') . $member,
+            $this->escape('Книга: ') . '*' . $book . '*',
+            $this->escape('Прогресс: ') . '*' . $percent . '%' . '*',
+            '',
+            $this->escape('👉 Открыть на сайте: ') . $this->link($this->frontendUrl('/'), $this->frontendUrl('/')),
+        ]);
     }
 
     private function formatMemberFinished(MemberFinishedReading $event): string
     {
         $progress = $event->progress;
         $progress->loadMissing(['clubMember.user', 'readingCycle.book']);
-        $name = $this->escape($progress->clubMember->user->name);
+        $member = $this->memberLink($progress->clubMember);
         $book = $this->escape($progress->readingCycle->book->title);
+        $cycle = $progress->readingCycle;
 
-        return sprintf(
-            "%s\n%s *%s*\n%s *%s*",
-            $this->escape('Участник дочитал книгу!'),
-            $this->escape('Кто:'),
-            $name,
-            $this->escape('Книга:'),
-            $book
-        );
+        $lines = [
+            '🏁 ' . $this->escape('Участник дочитал книгу!'),
+            '',
+            $this->escape('Кто: ') . $member,
+            $this->escape('Книга: ') . '*' . $book . '*',
+        ];
+
+        if ($cycle->cycle_number) {
+            $lines[] = '';
+            $lines[] = $this->escape('👉 Открыть цикл: ') . $this->cycleLink($cycle);
+        }
+
+        return implode("\n", $lines);
     }
 
     private function formatMeetingScheduled(MeetingScheduled $event): string
@@ -258,18 +251,16 @@ final class TelegramMessageFormatter
         $place = $meeting->place ? $this->escape($meeting->place) : $this->escape('Онлайн');
         $title = $this->escape($meeting->title);
 
-        return sprintf(
-            "%s *%s*\n%s *%s*\n%s %s, %s\n%s %s",
-            $this->escape('Назначена встреча по книге:'),
-            $book,
-            $this->escape('Тема:'),
-            $title,
-            $this->escape('Когда:'),
-            $date,
-            $time,
-            $this->escape('Где:'),
-            $place
-        );
+        return implode("\n", [
+            '📅 ' . $this->escape('Назначена встреча'),
+            '',
+            $this->escape('Книга: ') . '*' . $book . '*',
+            $this->escape('Тема: ') . '*' . $title . '*',
+            $this->escape('Когда: ') . '*' . $date . ', ' . $time . '*',
+            $this->escape('Где: ') . '*' . $place . '*',
+            '',
+            $this->escape('👉 Открыть встречу: ') . $this->meetingLink($meeting),
+        ]);
     }
 
     private function formatMeetingRescheduled(MeetingRescheduled $event): string
@@ -282,16 +273,15 @@ final class TelegramMessageFormatter
         $newDate = $event->newDate ? $this->escape($event->newDate) : '—';
         $newTime = $event->newTime ? $this->escape($event->newTime) : '—';
 
-        return sprintf(
-            "%s *%s*\n%s %s %s → %s %s",
-            $this->escape('Встреча перенесена:'),
-            $book,
-            $this->escape('Новое время:'),
-            $oldDate,
-            $oldTime,
-            $newDate,
-            $newTime
-        );
+        return implode("\n", [
+            '🕒 ' . $this->escape('Встреча перенесена'),
+            '',
+            $this->escape('Книга: ') . '*' . $book . '*',
+            $this->escape('Было: ') . '*' . $oldDate . ' ' . $oldTime . '*',
+            $this->escape('Стало: ') . '*' . $newDate . ' ' . $newTime . '*',
+            '',
+            $this->escape('👉 Открыть встречу: ') . $this->meetingLink($meeting),
+        ]);
     }
 
     private function formatMeetingStarted(MeetingStarted $event): string
@@ -300,11 +290,13 @@ final class TelegramMessageFormatter
         $meeting->loadMissing(['readingCycle.book']);
         $book = $this->escape($meeting->readingCycle->book->title);
 
-        return sprintf(
-            "%s *%s*",
-            $this->escape('Встреча началась! Обсуждаем книгу:'),
-            $book
-        );
+        return implode("\n", [
+            '▶️ ' . $this->escape('Встреча началась!'),
+            '',
+            $this->escape('Обсуждаем книгу: ') . '*' . $book . '*',
+            '',
+            $this->escape('👉 Открыть встречу: ') . $this->meetingLink($meeting),
+        ]);
     }
 
     private function formatMeetingFinished(MeetingFinished $event): string
@@ -312,16 +304,23 @@ final class TelegramMessageFormatter
         $meeting = $event->meeting;
         $meeting->loadMissing(['readingCycle.book', 'readingCycle.proposer.user']);
         $book = $this->escape($meeting->readingCycle->book->title);
-        $proposer = $this->escape($meeting->readingCycle->proposer->user->name);
+        $proposer = $this->memberLink($meeting->readingCycle->proposer);
+        $cycle = $meeting->readingCycle;
 
-        return sprintf(
-            "%s\n%s *%s*\n%s *%s*",
-            $this->escape('Встреча завершена! Книга уходит в архив.'),
-            $this->escape('Книга:'),
-            $book,
-            $this->escape('Выбрал:'),
-            $proposer
-        );
+        $lines = [
+            '🏆 ' . $this->escape('Встреча завершена! Книга уходит в архив.'),
+            '',
+            $this->escape('Книга: ') . '*' . $book . '*',
+            $this->escape('Выбрал: ') . $proposer,
+        ];
+
+        if ($cycle->cycle_number) {
+            $lines[] = '';
+            $lines[] = $this->escape('👉 Открыть архив: ') . $this->link($this->frontendUrl('/archive'), $this->frontendUrl('/archive'));
+            $lines[] = $this->escape('👉 Открыть цикл: ') . $this->cycleLink($cycle);
+        }
+
+        return implode("\n", $lines);
     }
 
     private function formatCycleCompleted(CycleCompleted $event): string
@@ -329,44 +328,86 @@ final class TelegramMessageFormatter
         $cycle = $event->cycle;
         $cycle->loadMissing(['book', 'proposer.user']);
         $book = $this->escape($cycle->book->title);
-        $proposer = $this->escape($cycle->proposer->user->name);
+        $proposer = $this->memberLink($cycle->proposer);
         $cycleNumber = $cycle->cycle_number;
 
-        return sprintf(
-            "%s %s\n%s *%s*\n%s *%s*",
-            $this->escape('Цикл'),
-            $this->escape('#' . (string) $cycleNumber . ' завершён.'),
-            $this->escape('Книга:'),
-            $book,
-            $this->escape('Выбрал:'),
-            $proposer
-        );
+        return implode("\n", [
+            '🎊 ' . $this->escape('Цикл ') . '*' . $this->escape('#' . (string) $cycleNumber) . '* ' . $this->escape('завершён!'),
+            '',
+            $this->escape('Книга: ') . '*' . $book . '*',
+            $this->escape('Выбрал: ') . $proposer,
+            '',
+            $this->escape('👉 Открыть в архиве: ') . $this->cycleLink($cycle),
+            $this->escape('👉 Все циклы: ') . $this->link($this->frontendUrl('/archive'), $this->frontendUrl('/archive')),
+        ]);
     }
 
     private function formatOwlAwards(OwlAwardsAssigned $event): string
     {
         if (empty($event->awards)) {
-            return $this->escape('Совы не назначены — никто из присутствовавших не дочитал.');
+            return $this->escape('🦉 Совы не назначены — никто из присутствовавших не дочитал.');
         }
 
         $medals = [
-            'gold' => 'Золотая сова',
-            'silver' => 'Серебряная сова',
-            'bronze' => 'Бронзовая сова',
+            'gold' => ['🥇', 'Золотая сова'],
+            'silver' => ['🥈', 'Серебряная сова'],
+            'bronze' => ['🥉', 'Бронзовая сова'],
         ];
 
-        $lines = [$this->escape('Награды за этот цикл:')];
+        $lines = ['🦉 ' . $this->escape('Награды за этот цикл:'), ''];
+
         foreach ($event->awards as $award) {
-            $medalLabel = $medals[$award['medal']] ?? $award['medal'];
-            $lines[] = sprintf(
-                '%s *%s* — %s',
-                $this->escape($medalLabel . ':'),
-                $this->escape($award['memberName']),
-                ''
-            );
+            $medal = $medals[$award['medal']] ?? [null, $award['medal']];
+            $label = $medal[1];
+            $emoji = $medal[0] ?? '';
+            $memberUrl = $this->frontendUrl('/members/' . $award['memberId']);
+            $memberLink = $this->link($award['memberName'], $memberUrl);
+            $lines[] = $emoji . ' ' . $this->escape($label . ': ') . $memberLink;
+        }
+
+        if ($event->cycle !== null) {
+            $lines[] = '';
+            $lines[] = $this->escape('👉 Открыть цикл: ') . $this->cycleLink($event->cycle);
         }
 
         return implode("\n", $lines);
+    }
+
+    private function frontendUrl(string $path): string
+    {
+        $base = rtrim((string) config('telegram.frontend_url', config('app.url', 'http://localhost')), '/');
+
+        return $base . '/' . ltrim($path, '/');
+    }
+
+    private function link(string $text, string $url): string
+    {
+        return '[' . $this->escape($text) . '](' . $url . ')';
+    }
+
+    private function memberLink($member): string
+    {
+        $member->loadMissing('user');
+        $name = $member->user?->name ?? 'Участник';
+        $url = $this->frontendUrl('/members/' . $member->id);
+
+        return $this->link($name, $url);
+    }
+
+    private function cycleLink($cycle, ?string $text = null): string
+    {
+        $label = $text ?? ($cycle->book?->title ?? ('Цикл #' . $cycle->cycle_number));
+        $url = $this->frontendUrl('/cycles/' . $cycle->cycle_number);
+
+        return $this->link($label, $url);
+    }
+
+    private function meetingLink($meeting): string
+    {
+        $bookTitle = $meeting->readingCycle?->book?->title ?? ('Встреча #' . $meeting->id);
+        $url = $this->frontendUrl('/meetings/' . $meeting->id);
+
+        return $this->link($bookTitle, $url);
     }
 
     private function escape(string $text): string
