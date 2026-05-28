@@ -211,6 +211,15 @@ vi.mock('@/queries/clubQueries', () => ({
     }),
 }))
 
+vi.mock('@/queries/genreQueries', () => ({
+  useGenresQuery: () =>
+    queryResult([
+      { id: 1, slug: 'classic', name: 'Классика' },
+      { id: 2, slug: 'science_fiction', name: 'Научная фантастика' },
+      { id: 3, slug: 'history', name: 'История' },
+    ]),
+}))
+
 vi.mock('@/queries/memberQueries', () => ({
   useCurrentUserQuery: () => queryResult(members[0]),
   useMembersQuery: () => queryResult(members),

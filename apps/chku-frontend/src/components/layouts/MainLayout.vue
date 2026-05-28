@@ -12,7 +12,6 @@ import BannerSection from '@/components/layouts/BannerSection.vue'
   BannerSection
   main.app-main
     RouterView
-  #modal-portal
   AppFooter
 </template>
 
