@@ -225,6 +225,7 @@ vi.mock('@/queries/memberQueries', () => ({
   useMembersQuery: () => queryResult(members),
   useCreateMemberMutation: () => mutationResult(),
   useDeactivateMemberMutation: () => mutationResult(),
+  useReorderTurnOrderMutation: () => mutationResult(),
   useMemberQuery: (id: unknown) => {
     const data = computed(() => members.find((member) => member.id === Number(toValue(id))))
     const error = computed(() => (data.value ? null : new Error('Not found')))
