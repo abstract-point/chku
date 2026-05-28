@@ -1,15 +1,52 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Users } from '@lucide/vue'
+import { computed, ref, watch } from 'vue'
+import { ArrowUpDown, Users, ArrowUp, ArrowDown, Lock } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
 import UserAvatar from '@/components/UserAvatar.vue'
+import { useReorderTurnOrderMutation } from '@/queries/memberQueries'
 import type { TurnOrderMember } from '@/types/dashboard'
 
 const { t } = useI18n()
 const props = defineProps<{
   members: TurnOrderMember[]
   cycleStatus?: string | null
+  isAdmin?: boolean
 }>()
+
+const isEditing = ref(false)
+const editOrder = ref<TurnOrderMember[]>([])
+const { mutate: saveOrder, isPending: isSaving } = useReorderTurnOrderMutation()
+
+function startEdit() {
+  editOrder.value = props.members.map((m) => ({ ...m }))
+  isEditing.value = true
+}
+
+function cancelEdit() {
+  isEditing.value = false
+  editOrder.value = []
+}
+
+function moveUp(index: number) {
+  const arr = editOrder.value
+  ;[arr[index - 1], arr[index]] = [arr[index], arr[index - 1]]
+}
+
+function moveDown(index: number) {
+  const arr = editOrder.value
+  ;[arr[index], arr[index + 1]] = [arr[index + 1], arr[index]]
+}
+
+const canMoveUp = (index: number) => index > 1
+const canMoveDown = (index: number) => index < editOrder.value.length - 1
+
+function handleSave() {
+  saveOrder(editOrder.value.map((m) => m.memberId), {
+    onSuccess: () => {
+      isEditing.value = false
+    },
+  })
+}
 
 const isCurrentTurn = (member: TurnOrderMember) => member.status === 'Текущий'
 const isNextTurn = (member: TurnOrderMember) => member.status === 'Выбирает следующую'
@@ -45,6 +82,15 @@ const allMembers = computed(() => {
   })
   return result
 })
+
+watch(
+  () => props.members,
+  () => {
+    if (isEditing.value) {
+      cancelEdit()
+    }
+  },
+)
 </script>
 
 <template lang="pug">
@@ -55,33 +101,84 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
     .section-header__content
       span#turn-order-title.label-text.section-header__title {{ $t('dash.turnOrder') }}
       p.section-header__description {{ $t('dash.turnOrderDesc') }}
-
-  .turn-order__list
-    .turn-order__card(
-      v-for="item in allMembers"
-      :key="item.member.name"
-      :class=`{
-        'turn-order__card--active': item.isActive,
-        'turn-order__card--next': item.isNext
-      }`
+    button.section-header__action.icon-button(
+      v-if="isAdmin"
+      @click="startEdit"
+      :title="$t('common.edit')"
+      aria-label="$t('common.edit')"
     )
-      template(v-if="item.isActive")
-        .turn-order__card-header {{ $t('dash.turnOrderCurrent') }}
-      .turn-order__card-body
-        .turn-order__person
-          UserAvatar.turn-order__avatar(
-            :name="item.member.name"
-            :avatar-url="item.member.avatarUrl"
-            size="md"
-          )
-          .turn-order__info
-            span.turn-order__name {{ item.member.name }}
-            template(v-if="item.isActive")
-              span.turn-order__badge-text {{ currentProcessBadge }}
-            span.turn-order__badge-text.turn-order__badge-text--muted(v-else-if="item.isNext") {{ $t('dash.choosingNext') }}
+      ArrowUpDown(:size="16")
 
-  .turn-order__empty(v-if="!allMembers.length")
-    p.body-text {{ $t('dash.turnOrderError') }}
+  template(v-if="isEditing")
+    .turn-order__list
+      .turn-order__card.turn-order__card--editable(
+        v-for="(item, index) in editOrder"
+        :key="item.memberId"
+        :class="{ 'turn-order__card--head': index === 0 }"
+      )
+        .turn-order__card-body
+          .turn-order__person
+            UserAvatar.turn-order__avatar(
+              :name="item.name"
+              :avatar-url="item.avatarUrl"
+              size="sm"
+            )
+            .turn-order__info
+              span.turn-order__name {{ item.name }}
+              span.turn-order__badge-text.turn-order__badge-text--head(v-if="index === 0") {{ $t('dash.turnOrderCurrent') }}
+          .turn-order__actions
+            template(v-if="index === 0")
+              Lock.turn-order__lock-icon(:size="14")
+            template(v-else)
+              button.turn-order__move-btn(
+                @click="moveUp(index)"
+                :disabled="!canMoveUp(index)"
+                :aria-label="$t('common.moveUp')"
+              )
+                ArrowUp(:size="14")
+              button.turn-order__move-btn(
+                @click="moveDown(index)"
+                :disabled="!canMoveDown(index)"
+                :aria-label="$t('common.moveDown')"
+              )
+                ArrowDown(:size="14")
+    .turn-order__actions-bar
+      button.button.button--primary(
+        @click="handleSave"
+        :disabled="isSaving"
+      ) {{ $t('common.save') }}
+      button.button(
+        @click="cancelEdit"
+        :disabled="isSaving"
+      ) {{ $t('common.cancel') }}
+
+  template(v-else)
+    .turn-order__list
+      .turn-order__card(
+        v-for="item in allMembers"
+        :key="item.member.memberId"
+        :class=`{
+          'turn-order__card--active': item.isActive,
+          'turn-order__card--next': item.isNext
+        }`
+      )
+        template(v-if="item.isActive")
+          .turn-order__card-header {{ $t('dash.turnOrderCurrent') }}
+        .turn-order__card-body
+          .turn-order__person
+            UserAvatar.turn-order__avatar(
+              :name="item.member.name"
+              :avatar-url="item.member.avatarUrl"
+              size="md"
+            )
+            .turn-order__info
+              span.turn-order__name {{ item.member.name }}
+              template(v-if="item.isActive")
+                span.turn-order__badge-text {{ currentProcessBadge }}
+              span.turn-order__badge-text.turn-order__badge-text--muted(v-else-if="item.isNext") {{ $t('dash.choosingNext') }}
+
+    .turn-order__empty(v-if="!allMembers.length")
+      p.body-text {{ $t('dash.turnOrderError') }}
 </template>
 
 <style scoped>
@@ -107,6 +204,10 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
 .turn-order__card--next {
   border-color: var(--border-strong);
   background: var(--bg-hover);
+}
+
+.turn-order__card--head {
+  opacity: 0.7;
 }
 
 .turn-order__card-header {
@@ -159,10 +260,59 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
   color: var(--text-muted);
 }
 
+.turn-order__badge-text--head {
+  color: var(--text-muted);
+}
+
 .turn-order__empty {
   padding: var(--space-md) var(--space-lg);
   text-align: center;
   color: var(--text-muted);
+}
+
+.turn-order__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.turn-order__move-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-inner);
+  border: var(--border-width) solid var(--border-strong);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.turn-order__move-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-main);
+  border-color: var(--text-muted);
+}
+
+.turn-order__move-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.turn-order__lock-icon {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.turn-order__actions-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  justify-content: flex-end;
 }
 
 .section-header {
@@ -202,5 +352,27 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
   color: var(--text-muted);
   line-height: 1.5;
   margin: 0;
+}
+
+.section-header__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-inner);
+  border: var(--border-width) solid var(--border-strong);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.section-header__action:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+  border-color: var(--text-muted);
 }
 </style>

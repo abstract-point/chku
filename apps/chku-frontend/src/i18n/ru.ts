@@ -15,6 +15,8 @@ export default {
     cancel: 'Отмена',
     close: 'Закрыть',
     edit: 'Редактировать',
+    moveUp: 'Переместить выше',
+    moveDown: 'Переместить ниже',
     delete: 'Удалить',
     back: 'Назад',
     forward: 'Вперёд',

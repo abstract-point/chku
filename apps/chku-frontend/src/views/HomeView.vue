@@ -41,6 +41,7 @@ main.dashboard.container
         DashboardTurnOrderCard(
           :members="dashboardQuery.data.value.turnOrder"
           :cycle-status="dashboardQuery.data.value.lifecycle?.currentCycleStatus"
+          :is-admin="isAdmin"
         )
 </template>
 
