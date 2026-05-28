@@ -6,6 +6,8 @@ services:
     expose:
       - "80"
     restart: unless-stopped
+    networks:
+      - chku_prod
 
   backend:
     build:
@@ -22,6 +24,8 @@ services:
     expose:
       - "9000"
     restart: unless-stopped
+    networks:
+      - chku_prod
 
   queue:
     build:
@@ -37,6 +41,8 @@ services:
       - "host.docker.internal:host-gateway"
     command: php artisan queue:work --tries=3 --sleep=3 --timeout=60 --rest=0
     restart: unless-stopped
+    networks:
+      - chku_prod
 
   db:
     image: postgres:18.3-alpine
@@ -47,6 +53,8 @@ services:
     volumes:
       - postgres_cluster_data:/var/lib/postgresql
     restart: unless-stopped
+    networks:
+      - chku_prod
 
   nginx:
     image: nginx:1.31-alpine
@@ -58,7 +66,17 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
+    networks:
+      - chku_prod
 
 volumes:
   postgres_cluster_data:
   backend_storage_public:
+
+networks:
+  chku_prod:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.10.0/24
+          gateway: 172.30.10.1
