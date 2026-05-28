@@ -70,6 +70,7 @@ class DashboardResource extends JsonResource
                 $isNextSelector = $nextSelector !== null && $to->club_member_id === $nextSelector->id;
 
                 return [
+                'memberId' => $to->club_member_id,
                 'name' => $to->clubMember?->user?->name,
                 'avatarUrl' => MemberAvatar::url($to->clubMember),
                 'status' => match (true) {
