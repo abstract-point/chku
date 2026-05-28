@@ -29,12 +29,16 @@ function cancelEdit() {
 
 function moveUp(index: number) {
   const arr = editOrder.value
-  ;[arr[index - 1], arr[index]] = [arr[index], arr[index - 1]]
+  const temp = arr[index]
+  arr[index] = arr[index - 1]
+  arr[index - 1] = temp
 }
 
 function moveDown(index: number) {
   const arr = editOrder.value
-  ;[arr[index], arr[index + 1]] = [arr[index + 1], arr[index]]
+  const temp = arr[index + 1]
+  arr[index + 1] = arr[index]
+  arr[index] = temp
 }
 
 const canMoveUp = (index: number) => index > 1
