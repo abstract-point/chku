@@ -352,6 +352,21 @@ select:focus-visible {
   box-shadow: 0 0 0 3px var(--danger-bg);
 }
 
+[data-theme='dark'] .field-control {
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.025);
+}
+
+[data-theme='dark'] .field-control:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+[data-theme='dark'] .field-control[aria-invalid='true'] {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-bg);
+}
+
 .inline-alert {
   display: flex;
   align-items: flex-start;
@@ -419,6 +434,20 @@ select:focus-visible {
   position: relative;
   z-index: 1;
   white-space: pre-line;
+}
+
+/* Member name link */
+.member-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.member-link:hover {
+  color: var(--accent-dim);
 }
 
 /* List transitions */
