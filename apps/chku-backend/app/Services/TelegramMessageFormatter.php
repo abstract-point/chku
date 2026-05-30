@@ -318,7 +318,7 @@ final class TelegramMessageFormatter
     private function formatCycleCompleted(CycleCompleted $event): string
     {
         $cycle = $event->cycle;
-        $cycle->loadMissing(['book', 'proposer.user', 'meeting.rsvps', 'ratings', 'readingProgress.clubMember.user']);
+        $cycle->loadMissing(['book', 'proposer.user', 'meeting.rsvps', 'ratings.clubMember.user', 'readingProgress.clubMember.user']);
         $book = $this->escape($cycle->book->title);
         $proposer = $this->memberLink($cycle->proposer);
         $cycleNumber = $cycle->cycle_number;
@@ -341,6 +341,20 @@ final class TelegramMessageFormatter
                 $lines[] = '';
                 $lines[] = '📊 ' . $this->escape('Оценки клуба:');
                 $lines[] = $this->escape('Средняя: ') . '*' . $this->escape((string) $avg) . '/10*';
+
+                $memberRatings = $cycle->ratings
+                    ->filter(fn ($r) => $attendingIds->contains($r->club_member_id))
+                    ->sortByDesc('rating')
+                    ->values();
+
+                if ($memberRatings->isNotEmpty()) {
+                    foreach ($memberRatings as $rating) {
+                        $name = $rating->clubMember?->user?->name ?? 'Участник';
+                        $memberUrl = $this->frontendUrl('/members/' . $rating->club_member_id);
+                        $memberLink = $this->link($name, $memberUrl);
+                        $lines[] = $memberLink . $this->escape(' — ') . '*' . $this->escape((string) $rating->rating) . $this->escape('/10') . '*';
+                    }
+                }
 
                 $finished = $cycle->readingProgress
                     ->filter(fn ($p) => $p->status === ReadingProgressStatusEnum::Finished && $p->finished_at !== null && $attendingIds->contains($p->club_member_id))
