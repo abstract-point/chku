@@ -2,8 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Enums\BookCandidateResponseEnum;
+use App\Enums\BookCandidateStatusEnum;
 use App\Enums\MeetingRsvpStatusEnum;
 use App\Enums\ReadingProgressStatusEnum;
+use App\Models\Book;
+use App\Models\BookCandidate;
+use App\Models\BookCandidateResponse;
+use App\Models\ClubMember;
 use App\Models\Meeting;
 use App\Models\MeetingRsvp;
 use App\Models\ReadingCycle;
@@ -115,5 +121,179 @@ class DashboardApiTest extends TestCase
         $this->assertFalse($items['Алексей Дмитриев']['isNextSelector']);
         $this->assertTrue($items['Елена Воронцова']['isNextSelector']);
         $this->assertFalse($items['Елена Воронцова']['isCurrentCycleProposer']);
+    }
+
+    public function test_next_action_prompts_member_to_answer_pending_candidate(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+        $member = $user->clubMember;
+        $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
+
+        $candidate = BookCandidate::create([
+            'book_id' => Book::where('slug', 'shum-vremeni')->firstOrFail()->id,
+            'proposer_id' => ClubMember::whereHas('user', fn ($query) => $query->where('email', 'mikhail@example.com'))->firstOrFail()->id,
+            'reading_cycle_id' => $cycle->id,
+            'status' => BookCandidateStatusEnum::Pending,
+        ]);
+
+        BookCandidateResponse::create([
+            'book_candidate_id' => $candidate->id,
+            'club_member_id' => $member->id,
+            'response' => BookCandidateResponseEnum::Pending,
+        ]);
+
+        $response = $this->actingAs($user)->getJson('/api/dashboard');
+
+        $response->assertOk()
+            ->assertJsonPath('data.nextAction.type', 'respond_candidate')
+            ->assertJsonPath('data.nextAction.priority', 100)
+            ->assertJsonPath('data.nextAction.actionUrl', '/');
+    }
+
+    public function test_next_action_prompts_attendee_to_rate_started_meeting(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+        $member = $user->clubMember;
+        $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
+        $meeting = Meeting::where('reading_cycle_id', $cycle->id)->firstOrFail();
+        $meeting->update(['started_at' => now()]);
+
+        MeetingRsvp::updateOrCreate(
+            ['meeting_id' => $meeting->id, 'club_member_id' => $member->id],
+            ['status' => MeetingRsvpStatusEnum::Attending],
+        );
+
+        $response = $this->actingAs($user)->getJson('/api/dashboard');
+
+        $response->assertOk()
+            ->assertJsonPath('data.nextAction.type', 'rate_book')
+            ->assertJsonPath('data.nextAction.actionUrl', "/meetings/{$meeting->id}");
+    }
+
+    public function test_next_action_prompts_member_to_rsvp_before_progress_update(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+        $meeting = Meeting::whereHas('readingCycle', fn ($query) => $query->where('status', 'active'))->firstOrFail();
+
+        $response = $this->actingAs($user)->getJson('/api/dashboard');
+
+        $response->assertOk()
+            ->assertJsonPath('data.nextAction.type', 'rsvp_meeting')
+            ->assertJsonPath('data.nextAction.actionUrl', "/meetings/{$meeting->id}");
+    }
+
+    public function test_next_action_prompts_member_to_update_missing_progress(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+        $member = $user->clubMember;
+        $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
+        $meeting = Meeting::where('reading_cycle_id', $cycle->id)->firstOrFail();
+
+        MeetingRsvp::updateOrCreate(
+            ['meeting_id' => $meeting->id, 'club_member_id' => $member->id],
+            ['status' => MeetingRsvpStatusEnum::NotAttending],
+        );
+
+        $cycle->readingProgress()
+            ->where('club_member_id', $member->id)
+            ->delete();
+
+        $response = $this->actingAs($user)->getJson('/api/dashboard');
+
+        $response->assertOk()
+            ->assertJsonPath('data.nextAction.type', 'update_progress')
+            ->assertJsonPath('data.nextAction.actionUrl', '/?action=update-progress#reading-progress');
+    }
+
+    public function test_next_action_prompts_member_to_update_stale_progress(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+        $member = $user->clubMember;
+        $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
+        $meeting = Meeting::where('reading_cycle_id', $cycle->id)->firstOrFail();
+
+        MeetingRsvp::updateOrCreate(
+            ['meeting_id' => $meeting->id, 'club_member_id' => $member->id],
+            ['status' => MeetingRsvpStatusEnum::NotAttending],
+        );
+
+        $cycle->readingProgress()
+            ->where('club_member_id', $member->id)
+            ->firstOrFail()
+            ->forceFill(['updated_at' => now()->subDays(8)])
+            ->save();
+
+        $response = $this->actingAs($user)->getJson('/api/dashboard');
+
+        $response->assertOk()
+            ->assertJsonPath('data.nextAction.type', 'update_progress')
+            ->assertJsonPath('data.nextAction.actionUrl', '/?action=update-progress#reading-progress');
+    }
+
+    public function test_next_action_skips_recent_progress_update(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+        $member = $user->clubMember;
+        $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
+        $meeting = Meeting::where('reading_cycle_id', $cycle->id)->firstOrFail();
+
+        MeetingRsvp::updateOrCreate(
+            ['meeting_id' => $meeting->id, 'club_member_id' => $member->id],
+            ['status' => MeetingRsvpStatusEnum::NotAttending],
+        );
+
+        $cycle->readingProgress()
+            ->where('club_member_id', $member->id)
+            ->firstOrFail()
+            ->forceFill(['updated_at' => now()->subDays(3)])
+            ->save();
+
+        $response = $this->actingAs($user)->getJson('/api/dashboard');
+
+        $response->assertOk()
+            ->assertJsonPath('data.nextAction.type', 'none');
+    }
+
+    public function test_next_action_skips_finished_progress(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+        $member = $user->clubMember;
+        $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
+        $meeting = Meeting::where('reading_cycle_id', $cycle->id)->firstOrFail();
+
+        MeetingRsvp::updateOrCreate(
+            ['meeting_id' => $meeting->id, 'club_member_id' => $member->id],
+            ['status' => MeetingRsvpStatusEnum::NotAttending],
+        );
+
+        $cycle->readingProgress()
+            ->where('club_member_id', $member->id)
+            ->firstOrFail()
+            ->forceFill([
+                'status' => ReadingProgressStatusEnum::Finished,
+                'progress_percent' => 100,
+                'finished_at' => now()->subDays(8),
+                'updated_at' => now()->subDays(8),
+            ])
+            ->save();
+
+        $response = $this->actingAs($user)->getJson('/api/dashboard');
+
+        $response->assertOk()
+            ->assertJsonPath('data.nextAction.type', 'none');
     }
 }

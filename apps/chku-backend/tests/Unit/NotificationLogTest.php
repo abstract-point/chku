@@ -14,14 +14,26 @@ class NotificationLogTest extends TestCase
 
     public function test_log_event_creates_pending_record(): void
     {
-        $log = NotificationLog::logEvent('test_event', 'Test message', ['key' => 'value']);
+        $log = NotificationLog::logEvent('test_event', 'Test message', ['key' => 'value'], 'hash');
 
         $this->assertNotNull($log->id);
         $this->assertSame('test_event', $log->event);
         $this->assertSame('pending', $log->status);
         $this->assertSame('Test message', $log->message);
         $this->assertSame(['key' => 'value'], $log->payload);
+        $this->assertSame('hash', $log->payload_hash);
         $this->assertNull($log->sent_at);
+    }
+
+    public function test_log_skipped_creates_skipped_record_with_reason(): void
+    {
+        $log = NotificationLog::logSkipped('test_event', 'recent_duplicate', ['key' => 'value'], 'hash');
+
+        $this->assertSame('test_event', $log->event);
+        $this->assertSame('skipped', $log->status);
+        $this->assertSame('recent_duplicate', $log->error);
+        $this->assertSame(['key' => 'value'], $log->payload);
+        $this->assertSame('hash', $log->payload_hash);
     }
 
     public function test_mark_sent_updates_status(): void
