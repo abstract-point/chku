@@ -18,8 +18,10 @@ const meeting = {
   status: 'started',
   canStart: false,
   canFinish: true,
+  isMeetingTime: true,
   missingRatingMemberIds: [],
   missingReadingMemberIds: [],
+  deactivatedAttendeeCount: 0,
   rsvpStatus: 'attending',
   discussion: [],
   attendees: [

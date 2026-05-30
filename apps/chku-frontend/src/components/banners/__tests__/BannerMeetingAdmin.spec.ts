@@ -17,6 +17,7 @@ function createMeeting(status: MeetingSummary['status']): MeetingSummary {
     status,
     canStart: status === 'scheduled',
     canFinish: status === 'started',
+    isMeetingTime: true,
     attendees: [],
   }
 }
