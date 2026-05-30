@@ -35,6 +35,7 @@ class CycleResource extends JsonResource
             'coverTitle' => $book?->title,
             'genre' => $firstGenre?->slug,
             'genreLabel' => $firstGenre?->name,
+            'proposedById' => $this->proposer_id,
             'proposedBy' => $this->whenLoaded('proposer', fn () => $this->proposer->user?->name),
             'proposerAvatarUrl' => $this->whenLoaded('proposer', fn () => MemberAvatar::url($this->proposer)),
             'rating' => round($avgRating, 1),

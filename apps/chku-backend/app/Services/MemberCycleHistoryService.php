@@ -48,8 +48,10 @@ final class MemberCycleHistoryService
             'title' => $cycle->book?->title,
             'coverTitle' => $cycle->book?->title,
             'author' => $cycle->book?->author,
+            'description' => $cycle->book?->description,
             'genres' => $genres ?? [],
             'coverColor' => $cycle->book?->cover_color,
+            'coverUrl' => $cycle->book?->cover_url,
             'cycleNumber' => $cycle->cycle_number,
             'cycleLabel' => "Цикл #{$cycle->cycle_number}",
             'completedLabel' => $cycle->completed_at?->translatedFormat('F Y')

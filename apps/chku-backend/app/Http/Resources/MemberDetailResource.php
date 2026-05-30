@@ -19,7 +19,7 @@ class MemberDetailResource extends JsonResource
             'avatarUrl' => MemberAvatar::url($this->resource),
             'email' => $this->user?->email,
             'isActive' => $this->is_active,
-            'memberSince' => $this->joined_at?->format('Y'),
+            'memberSince' => $this->joined_at?->translatedFormat('F Y'),
             'favoriteGenres' => GenreResource::collection($this->whenLoaded('favoriteGenres')),
             'stats' => [
                 'read' => $readingHistory->count(),

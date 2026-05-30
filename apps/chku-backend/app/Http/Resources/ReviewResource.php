@@ -12,6 +12,7 @@ class ReviewResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'memberId' => $this->club_member_id,
             'memberName' => $this->whenLoaded('clubMember', fn () => $this->clubMember->user?->name),
             'memberAvatarUrl' => $this->whenLoaded('clubMember', fn () => MemberAvatar::url($this->clubMember)),
             'rating' => $this->whenLoaded('clubMember', fn () => $this->readingCycle?->ratings->firstWhere('club_member_id', $this->club_member_id)?->rating),

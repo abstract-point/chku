@@ -12,6 +12,7 @@ class DiscussionMessageResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'memberId' => $this->club_member_id,
             'memberName' => $this->whenLoaded('clubMember', fn () => $this->clubMember->user?->name),
             'memberAvatarUrl' => $this->whenLoaded('clubMember', fn () => MemberAvatar::url($this->clubMember)),
             'text' => $this->text,

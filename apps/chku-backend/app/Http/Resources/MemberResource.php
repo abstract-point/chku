@@ -16,7 +16,8 @@ class MemberResource extends JsonResource
             'avatarUrl' => MemberAvatar::url($this->resource),
             'email' => $this->user?->email,
             'isActive' => $this->is_active,
-            'memberSince' => $this->joined_at?->format('Y'),
+            'memberSince' => $this->joined_at?->translatedFormat('F Y'),
+            'createdAt' => $this->created_at?->toISOString(),
             'favoriteGenres' => GenreResource::collection($this->whenLoaded('favoriteGenres')),
             'isAdmin' => $this->user?->hasRole('admin') ?? false,
             'stats' => [
