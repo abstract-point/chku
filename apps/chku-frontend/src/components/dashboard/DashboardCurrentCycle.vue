@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Pencil } from '@lucide/vue'
 import CycleBookForm from '@/components/books/CycleBookForm.vue'
@@ -11,13 +11,16 @@ import { useUpdateReadingProgressMutation } from '@/queries/dashboardQueries'
 import type { BookProgressMember, CurrentBook } from '@/types/dashboard'
 
 const { t } = useI18n()
+const route = useRoute()
 const props = defineProps<{
   book: CurrentBook
   members: BookProgressMember[]
 }>()
 
 const coverTitleLines = computed(() => props.book.coverTitle.split('\n'))
+const progressPanel = ref<HTMLElement | null>(null)
 const isProgressFormOpen = ref(false)
+const hasHandledProgressActionRoute = ref(false)
 const isBookFormOpen = ref(false)
 const isConfirmModalOpen = ref(false)
 const pendingProgressPercent = ref(0)
@@ -66,6 +69,17 @@ function openProgressForm() {
   isProgressFormOpen.value = true
 }
 
+async function openProgressFormFromRoute() {
+  if (props.book.progress === 100) return
+  if (route?.query.action !== 'update-progress' || route?.hash !== '#reading-progress') return
+  if (hasHandledProgressActionRoute.value) return
+
+  hasHandledProgressActionRoute.value = true
+  openProgressForm()
+  await nextTick()
+  progressPanel.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
 function closeProgressForm() {
   updateProgressMutation.reset()
   isProgressFormOpen.value = false
@@ -102,6 +116,18 @@ function medalLabel(medal: BookProgressMember['medal']) {
   if (medal === 'bronze') return t('dash.medalBronze')
   return ''
 }
+
+onMounted(openProgressFormFromRoute)
+
+watch(
+  () => [route?.query.action, route?.hash, props.book.progress],
+  () => {
+    if (route?.query.action !== 'update-progress' || route?.hash !== '#reading-progress') {
+      hasHandledProgressActionRoute.value = false
+    }
+    void openProgressFormFromRoute()
+  },
+)
 </script>
 
 <template lang="pug">
@@ -144,7 +170,11 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
         p.body-text.current-book__description
           | {{ book.description }}
 
-      .panel.panel--filled.current-book__progress(v-if="!isBookFormOpen")
+      .panel.panel--filled.current-book__progress(
+        v-if="!isBookFormOpen"
+        id="reading-progress"
+        ref="progressPanel"
+      )
         template(v-if="book.progress === 100")
           .current-book__progress-header
             span.label-text {{ $t('dash.myProgress') }}
@@ -356,11 +386,6 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   display: flex;
   justify-content: space-between;
   gap: var(--space-md);
-  flex-direction: column;
-
-  @include tablet {
-    flex-direction: row;
-  }
 }
 
 .current-book__progress > .button {
