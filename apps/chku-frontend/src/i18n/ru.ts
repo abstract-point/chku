@@ -214,6 +214,7 @@ export default {
     sectionSchedule: 'Назначить встречу',
 
     bannerAction: 'Требуется действие',
+    bannerSystem: 'Системное уведомление',
     bannerChooseBook: 'Выберите книгу',
     bannerChooseBookText: 'Твоя очередь подошла, но в личной очереди нет книг для проверки.',
     bannerManageQueue: 'Управлять очередью',

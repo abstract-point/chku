@@ -87,6 +87,13 @@ const baseDashboard = {
   nextMeeting,
   turnOrder,
   activeCandidate,
+  nextAction: {
+    type: 'respond_candidate' as const,
+    priority: 100,
+    title: 'Ответь по книге-кандидату',
+    description: 'Клуб ждёт твой ответ: читал ли ты эту книгу раньше.',
+    actionUrl: '/',
+  },
   clubStats: [
     { value: '41', label: 'Прочитано книг' },
     { value: '4.8', label: 'Средний рейтинг' },

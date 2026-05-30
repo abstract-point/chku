@@ -176,6 +176,7 @@ export type ApiDashboard = {
     cycleNumber?: number | null
   }[]
   activeCandidate: ApiBookCandidate | null
+  nextAction: ApiNextAction
   lifecycle?: {
     state: string
     currentCycleStatus?: string | null
@@ -192,6 +193,22 @@ export type ApiDashboard = {
     value: string
     label: string
   }[]
+}
+
+export type ApiNextAction = {
+  type:
+    | 'respond_candidate'
+    | 'confirm_candidate'
+    | 'add_book_to_queue'
+    | 'update_progress'
+    | 'rsvp_meeting'
+    | 'rate_book'
+    | 'write_review'
+    | 'none'
+  priority: number
+  title: string
+  description: string
+  actionUrl: string
 }
 
 export type ApiReadingProgress = {
