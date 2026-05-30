@@ -88,6 +88,7 @@ class DashboardResource extends JsonResource
             'activeCandidate' => $this->resource->activeCandidate
                 ? new BookCandidateResource($this->resource->activeCandidate)
                 : null,
+            'nextAction' => $this->resource->nextAction->toArray(),
             'lifecycle' => [
                 'state' => $this->resource->activeCandidate
                     ? $this->resource->activeCandidate->status->value

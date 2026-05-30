@@ -26,6 +26,7 @@ final readonly class DashboardData
         public ?ClubMember $nextSelector,
         public bool $nextSelectorQueueEmpty,
         public Collection $missingRatings,
+        public NextAction $nextAction,
         public int $completedCyclesCount,
         public float $averageRating,
         public int $activeMembersCount,

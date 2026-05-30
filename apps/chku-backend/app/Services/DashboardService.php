@@ -17,6 +17,7 @@ final class DashboardService
     public function __construct(
         private readonly CurrentMemberService $currentMember,
         private readonly TurnOrderService $turnOrderService,
+        private readonly UserNextActionService $nextActionService,
     ) {
     }
 
@@ -86,13 +87,26 @@ final class DashboardService
                 ->get();
         }
 
+        $currentUserProgress = $currentCycle?->readingProgress->firstWhere(
+            'club_member_id',
+            $currentMember->id,
+        );
+
+        $nextAction = $this->nextActionService->resolve(
+            member: $currentMember,
+            currentCycle: $currentCycle,
+            currentUserProgress: $currentUserProgress,
+            nextMeeting: $nextMeeting,
+            activeCandidate: $activeCandidate,
+            nextSelector: $nextSelector,
+            nextSelectorQueueEmpty: $nextSelectorQueueEmpty,
+            missingRatings: $missingRatings,
+        );
+
         return new DashboardData(
             club: $club,
             currentCycle: $currentCycle,
-            currentUserProgress: $currentCycle?->readingProgress->firstWhere(
-                'club_member_id',
-                $currentMember->id,
-            ),
+            currentUserProgress: $currentUserProgress,
             memberProgress: $currentCycle?->readingProgress,
             nextMeeting: $nextMeeting,
             turnOrder: $turnOrder,
@@ -101,6 +115,7 @@ final class DashboardService
             nextSelector: $nextSelector,
             nextSelectorQueueEmpty: $nextSelectorQueueEmpty,
             missingRatings: $missingRatings,
+            nextAction: $nextAction,
             completedCyclesCount: ReadingCycle::where('status', 'completed')->count(),
             averageRating: (float) (Rating::avg('rating') ?? 0),
             activeMembersCount: ClubMember::where('is_active', true)->count(),

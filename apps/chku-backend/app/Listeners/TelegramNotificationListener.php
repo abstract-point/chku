@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Listeners;
 
 use App\Models\NotificationLog;
+use App\Services\NotificationDecisionService;
 use App\Services\TelegramMessageFormatter;
 use App\Services\TelegramService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,27 +16,32 @@ final class TelegramNotificationListener implements ShouldQueue
     public function __construct(
         private readonly TelegramService $telegram,
         private readonly TelegramMessageFormatter $formatter,
+        private readonly NotificationDecisionService $decisions,
     ) {
     }
 
     public function handle(object $event): void
     {
         $eventName = $this->formatter->eventName($event);
+        $payload = $this->eventPayload($event);
 
         if (! $this->telegram->isEnabled()) {
-            NotificationLog::create([
-                'event' => $eventName,
-                'message' => null,
-                'status' => 'skipped',
-                'payload' => $this->eventPayload($event),
-            ]);
+            NotificationLog::logSkipped($eventName, 'telegram_disabled', $payload);
+
+            return;
+        }
+
+        $decision = $this->decisions->decide($eventName, $payload);
+
+        if (! $decision->shouldSend) {
+            NotificationLog::logSkipped($eventName, $decision->reason, $payload, $decision->payloadHash);
 
             return;
         }
 
         $message = $this->formatter->format($event);
 
-        $log = NotificationLog::logEvent($eventName, $message, $this->eventPayload($event));
+        $log = NotificationLog::logEvent($eventName, $message, $payload, $decision->payloadHash);
 
         try {
             $result = $this->telegram->sendMessage(
