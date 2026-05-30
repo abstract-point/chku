@@ -2,21 +2,14 @@
 import { computed, type Component } from 'vue'
 import { useRoute, type RouteRecordName } from 'vue-router'
 import { useAuthSession } from '@/queries/authQueries'
-import { useActiveCandidateQuery } from '@/queries/candidateQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
-import { mapCandidateToChoice } from '@/mappers/candidateMapper'
-import BannerChooseBook from '@/components/banners/BannerChooseBook.vue'
 import BannerMeetingAdmin from '@/components/banners/BannerMeetingAdmin.vue'
-import BookCandidateVerificationBanner from '@/components/dashboard/BookCandidateVerificationBanner.vue'
 import TwoFactorRequiredBanner from '@/components/TwoFactorRequiredBanner.vue'
-import BannerMeetingRating from '@/components/banners/BannerMeetingRating.vue'
+import BannerNextAction from '@/components/banners/BannerNextAction.vue'
 
 const route = useRoute()
-const { isAdmin, isAuthenticated, twoFactorEnabled, user } = useAuthSession()
+const { isAdmin, isAuthenticated, twoFactorEnabled } = useAuthSession()
 const dashboardQuery = useDashboardQuery()
-const activeCandidateQuery = useActiveCandidateQuery({
-  enabled: computed(() => isAuthenticated.value),
-})
 
 function isMeetingTimeReached(date?: string, time?: string): boolean {
   if (!date || !time) return false
@@ -24,29 +17,22 @@ function isMeetingTimeReached(date?: string, time?: string): boolean {
   return !isNaN(meetingDate.getTime()) && meetingDate <= new Date()
 }
 
-const activeBookChoice = computed(() => {
-  const candidate = activeCandidateQuery.data.value
-  if (!candidate || !Array.isArray(candidate.responses) || !user.value) return null
-
-  if (candidate.canConfirm) {
-    return mapCandidateToChoice(candidate)
-  }
-
-  const currentResponse = candidate.responses.find(
-    (response) => response.member.id === user.value?.id,
-  )
-
-  if (
-    candidate.status === 'pending' &&
-    (!currentResponse || currentResponse.response === 'pending')
-  ) {
-    return mapCandidateToChoice(candidate)
-  }
-
-  return null
-})
-
 const nextMeeting = computed(() => dashboardQuery.data.value?.nextMeeting)
+const nextAction = computed(() => dashboardQuery.data.value?.nextAction)
+
+function actionHideOn(): RouteRecordName[] | undefined {
+  if (!nextAction.value) return undefined
+
+  if (['respond_candidate', 'confirm_candidate'].includes(nextAction.value.type)) {
+    return ['home']
+  }
+
+  if (['rsvp_meeting', 'rate_book', 'write_review'].includes(nextAction.value.type)) {
+    return ['meeting-detail']
+  }
+
+  return undefined
+}
 
 interface BannerConfig {
   id: string
@@ -59,9 +45,11 @@ interface BannerConfig {
 
 const bannerConfigs: BannerConfig[] = [
   {
-    id: 'choose_book',
-    component: BannerChooseBook,
-    condition: () => !!dashboardQuery.data.value?.lifecycle?.shouldShowChooseBookBanner,
+    id: 'next_action',
+    component: BannerNextAction,
+    condition: () =>
+      isAuthenticated.value && !!nextAction.value && nextAction.value.type !== 'none',
+    props: () => ({ action: nextAction.value }),
   },
   {
     id: 'meeting_admin',
@@ -76,30 +64,6 @@ const bannerConfigs: BannerConfig[] = [
     props: () => ({ meeting: nextMeeting.value }),
   },
   {
-    id: 'book_candidate',
-    component: BookCandidateVerificationBanner,
-    condition: () => !!activeBookChoice.value,
-    hideOn: ['home'],
-    props: () => ({ choice: activeBookChoice.value }),
-  },
-  {
-    id: 'meeting_rating',
-    component: BannerMeetingRating,
-    condition: () => {
-      const data = dashboardQuery.data.value
-      const meeting = nextMeeting.value
-      const missingRatings = data?.lifecycle?.missingRatings ?? []
-      return (
-        !!meeting &&
-        meeting.status === 'started' &&
-        !!user.value &&
-        missingRatings.some((m) => m.id === user.value!.id)
-      )
-    },
-    hideOn: ['meeting-detail'],
-    props: () => ({ meetingId: nextMeeting.value?.id }),
-  },
-  {
     id: 'two_factor',
     component: TwoFactorRequiredBanner,
     condition: () => isAdmin.value && !twoFactorEnabled.value,
@@ -111,6 +75,11 @@ const visibleBanners = computed(() => {
 
   return bannerConfigs.filter((config) => {
     if (!config.condition()) return false
+
+    if (config.id === 'next_action' && currentRouteName) {
+      const hiddenRoutes = actionHideOn()
+      if (hiddenRoutes?.includes(currentRouteName)) return false
+    }
 
     if (config.showOn && currentRouteName) {
       if (!config.showOn.includes(currentRouteName)) return false

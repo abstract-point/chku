@@ -5,13 +5,13 @@ import AppBanner from '@/components/ui/AppBanner.vue'
 </script>
 
 <template lang="pug">
-AppBanner
+AppBanner(variant="system")
   template(#icon)
     ShieldAlert(:size="22" aria-hidden="true")
   template(#content)
-    span.label-text {{ $t('dash.bannerAction') }}
+    span.label-text {{ $t('dash.bannerSystem') }}
     h2 {{ $t('dash.bannerEnable2fa') }}
     p.body-text {{ $t('dash.bannerEnable2faText') }}
   template(#actions)
-    RouterLink.button.button--primary.label-text(to="/profile/settings") {{ $t('dash.bannerSetup2fa') }}
+    RouterLink.button.button--secondary.label-text(to="/profile/settings") {{ $t('dash.bannerSetup2fa') }}
 </template>

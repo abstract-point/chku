@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-  variant?: 'warn' | 'info'
+  variant?: 'action' | 'system' | 'warn' | 'info'
 }>()
 </script>
 
@@ -34,16 +34,21 @@ section.app-banner(:class="`app-banner--${variant ?? 'warn'}`" aria-labelledby="
   }
 }
 
-.app-banner--info {
-  border: var(--border-width) solid var(--border);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)), var(--bg-panel);
-  box-shadow: var(--shadow-panel);
-  color: var(--text-main);
-}
-
+.app-banner--action,
 .app-banner--warn {
   border: var(--border-width) solid var(--warn-border);
+  background:
+    linear-gradient(180deg, rgba(216, 137, 43, 0.12), rgba(216, 137, 43, 0.03)), var(--bg-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.app-banner--system,
+.app-banner--info {
+  border: var(--border-width) solid var(--accent-border);
+  background:
+    linear-gradient(180deg, rgba(67, 224, 125, 0.09), rgba(67, 224, 125, 0.025)), var(--bg-panel);
+  box-shadow: var(--shadow-panel);
+  color: var(--text-main);
 }
 
 .app-banner__status {
@@ -51,6 +56,20 @@ section.app-banner(:class="`app-banner--${variant ?? 'warn'}`" aria-labelledby="
   color: var(--warn);
 }
 
+.app-banner--action .app-banner__status,
+.app-banner--warn .app-banner__status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.1rem;
+  height: 3.1rem;
+  border: 1px solid var(--warn-border);
+  border-radius: 50%;
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.app-banner--system .app-banner__status,
 .app-banner--info .app-banner__status {
   display: inline-flex;
   align-items: center;

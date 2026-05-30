@@ -12,16 +12,16 @@ const isStarted = computed(() => props.meeting.status === 'started')
 </script>
 
 <template lang="pug">
-AppBanner(:variant="isStarted ? 'info' : 'warn'")
+AppBanner(variant="system")
   template(#icon)
     Play(:size="22" aria-hidden="true" v-if="isStarted")
     CalendarDays(:size="22" aria-hidden="true" v-else)
   template(#content)
-    span.label-text {{ $t('dash.bannerAction') }}
+    span.label-text {{ $t('dash.bannerSystem') }}
     h2(v-if="isStarted") {{ $t('dash.bannerMeetingStarted') }}
     h2(v-else) {{ $t('dash.bannerMeetingScheduled', { title: meeting.title }) }}
     p.body-text(v-if="isStarted") {{ $t('dash.bannerMeetingStartedText') }}
     p.body-text(v-else) {{ $t('dash.bannerMeetingScheduledText') }}
   template(#actions)
-    RouterLink.button.button--primary.label-text(:to="`/meetings/${meeting.id}`") {{ $t('dash.bannerGoToMeeting') }}
+    RouterLink.button.button--secondary.label-text(:to="`/meetings/${meeting.id}`") {{ $t('dash.bannerGoToMeeting') }}
 </template>
