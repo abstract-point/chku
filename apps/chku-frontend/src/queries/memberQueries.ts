@@ -55,6 +55,30 @@ export function useDeactivateMemberMutation() {
   })
 }
 
+export function useActivateMemberMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: number) => membersApi.activate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.members })
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
+    },
+  })
+}
+
+export function useInitReadingProgressMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: number) => membersApi.initReadingProgress(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.members })
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
+    },
+  })
+}
+
 export function useReorderTurnOrderMutation() {
   const queryClient = useQueryClient()
 

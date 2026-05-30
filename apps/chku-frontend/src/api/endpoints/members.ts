@@ -44,6 +44,14 @@ export const membersApi = {
     return http.post<unknown, ApiMember>(`/members/${id}/deactivate`)
   },
 
+  async activate(id: number) {
+    return http.post<unknown, { message: string }>(`/members/${id}/activate`)
+  },
+
+  async initReadingProgress(id: number) {
+    return http.post<unknown, { message: string }>(`/members/${id}/init-reading-progress`)
+  },
+
   async reorderTurnOrder(memberIds: number[]) {
     return http.post<unknown, { turnOrder: { memberId: number; name: string }[] }>(
       '/members/turn-order',
