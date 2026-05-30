@@ -65,6 +65,19 @@ final class AuditLogService
         ]);
     }
 
+    public function log(User $actor, string $action, string $subject = '', string $description = ''): void
+    {
+        AuditLog::create([
+            'actor_id' => $actor->id,
+            'action' => $action,
+            'metadata' => [
+                'subject' => $subject,
+                'description' => $description,
+                'occurred_at' => now()->toDateTimeString(),
+            ],
+        ]);
+    }
+
     public function logTurnOrderReordered(Club $club, User $actor, array $previousOrder, array $newOrder): void
     {
         AuditLog::create([
