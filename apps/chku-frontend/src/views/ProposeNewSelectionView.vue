@@ -484,6 +484,7 @@ main.proposal.container
 }
 
 .proposal__textarea {
+  padding: 0.75rem 0.9rem;
   min-height: 6.5rem;
 }
 

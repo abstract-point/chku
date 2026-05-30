@@ -174,7 +174,7 @@ main.profile.container
         p.body-text {{ $t('profile.historyLoading') }}
       section.panel(v-else-if="readingHistoryQuery.error.value" aria-live="polite")
         p.body-text {{ $t('profile.historyError') }}
-      .panel.profile__book-list(v-else-if="readingHistory.length")
+      .profile__book-list(v-else-if="readingHistory.length")
         TransitionGroup(name="list" tag="div")
           component.profile__book(
             v-for="book in readingHistory"
@@ -182,8 +182,9 @@ main.profile.container
             :is="RouterLink"
             :to="`/cycles/${book.cycleNumber}`"
           )
-            .book-cover.profile__book-cover(:style="{ '--cover-color': book.coverColor ?? undefined }")
-              span.book-cover__content {{ book.coverTitle }}
+            .book-cover.profile__book-cover(:style="{ '--cover-color': book.coverColor ?? undefined }" :aria-label="$t('archive.coverAria', { title: book.title })")
+              img.profile__book-cover-image(v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title")
+              span.book-cover__content(v-else) {{ book.coverTitle }}
             .profile__book-details
               .profile__book-meta
                 span.label-text {{ book.cycleLabel }}
@@ -192,19 +193,20 @@ main.profile.container
               p.body-text.profile__book-author {{ book.author }}
               .profile__book-genres(v-if="book.genres?.length")
                 span.badge(v-for="g in book.genres" :key="g.id") {{ g.name }}
-              .profile__book-stats(:aria-label="t('profile.cycleStatsAria')")
-                span.profile__book-stat.label-text
-                  Star.profile__archive-icon
-                  | {{ $t('profile.myRating', { rating: ratingLabel(book.myRating) }) }}
-                span.profile__book-stat.label-text
-                  Star.profile__archive-icon
-                  | {{ $t('profile.avgRating', { rating: ratingLabel(book.clubAverageRating) }) }}
-                span.profile__book-stat.label-text
-                  MessageSquare.profile__archive-icon
-                  | {{ $t('profile.reviewLabel', { has: book.hasReview ? $t('profile.reviewYes') : $t('profile.reviewNo') }) }}
-                span.profile__book-stat.label-text
-                  CalendarCheck.profile__archive-icon
-                  | {{ $t('profile.meetingLabel', { status: rsvpLabel(book) }) }}
+              p.body-text.profile__book-description(v-if="book.description") {{ book.description }}
+            .profile__book-stats(:aria-label="t('profile.cycleStatsAria')")
+              span.profile__book-stat.label-text
+                Star.profile__archive-icon
+                | {{ $t('profile.myRating', { rating: ratingLabel(book.myRating) }) }}
+              span.profile__book-stat.label-text
+                Star.profile__archive-icon
+                | {{ $t('profile.avgRating', { rating: ratingLabel(book.clubAverageRating) }) }}
+              span.profile__book-stat.label-text
+                MessageSquare.profile__archive-icon
+                | {{ $t('profile.reviewLabel', { has: book.hasReview ? $t('profile.reviewYes') : $t('profile.reviewNo') }) }}
+              span.profile__book-stat.label-text
+                CalendarCheck.profile__archive-icon
+                | {{ $t('profile.meetingLabel', { status: rsvpLabel(book) }) }}
 
       section.panel.profile__empty(v-else aria-live="polite")
         p.body-text {{ $t('profile.emptyHistory') }}
@@ -385,107 +387,167 @@ main.profile.container
 }
 
 .profile__book-list {
-  padding-top: var(--space-sm);
-  padding-bottom: var(--space-sm);
+  display: grid;
+  gap: var(--space-md);
+}
+
+.profile__book-list > div {
+  display: grid;
+  gap: var(--space-md);
 }
 
 .profile__book {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-md);
-  padding: var(--space-lg) 0;
-  border-bottom: var(--border-width) solid var(--border);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "cover header"
+    "stats stats";
+  gap: var(--space-sm) var(--space-md);
+  padding: var(--space-md);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.01)),
+    var(--bg-panel);
   color: inherit;
   text-decoration: none;
   transition:
-    color 0.2s ease,
-    transform 0.2s ease;
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   @include tablet {
-    align-items: stretch;
+    padding: var(--space-lg);
+    gap: var(--space-md) var(--space-lg);
   }
 }
 
 .profile__book:hover {
+  border-color: var(--border-strong);
   transform: translateY(-2px);
-}
-
-a.profile__book:hover .profile__book-title {
-  color: var(--accent-dim);
-}
-
-.profile__book:last-child {
-  border-bottom: 0;
+  box-shadow:
+    var(--shadow-panel),
+    0 0.5rem 2rem rgba(0, 0, 0, 0.18);
 }
 
 .profile__book-cover {
-  flex: 0 0 3.75rem;
-  width: 3.75rem;
-  height: 5.625rem;
+  grid-area: cover;
+  align-self: start;
+  width: 4rem;
+  height: 6rem;
+  flex: 0 0 4rem;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.035)),
-    var(--cover-color, var(--bg-panel));
-  font-size: 0.65rem;
+    radial-gradient(circle at 62% 22%, rgba(255, 255, 255, 0.16), transparent 0.9rem),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.035)),
+    var(--cover-color);
+  box-shadow: inset 0.8rem 0 1.3rem rgba(0, 0, 0, 0.18);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.55rem;
+
+  @include tablet {
+    width: 5rem;
+    height: 7.5rem;
+    flex: 0 0 5rem;
+    font-size: 0.65rem;
+  }
+}
+
+.profile__book-cover-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .profile__book-details {
+  grid-area: header;
   display: flex;
-  flex: 1;
   flex-direction: column;
-  justify-content: center;
+  gap: var(--space-xs);
+  min-width: 0;
 }
 
 .profile__book-title {
-  margin-bottom: var(--space-xs);
-  font-size: 1.25rem;
+  font-size: 1.1rem;
+  margin: 0;
+  overflow-wrap: break-word;
+
+  @include tablet {
+    font-size: 1.25rem;
+  }
 }
 
 .profile__book-author {
-  margin-bottom: var(--space-sm);
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.profile__book-description {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .profile__book-genres {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-xs) var(--space-sm);
-  margin: var(--space-md) 0;
+  margin-top: var(--space-xs);
 }
 
 .profile__book-genres .badge {
   font-size: 0.6rem;
   text-transform: none;
   letter-spacing: 0;
+  padding: 0.15rem 0.45rem;
 }
 
 .profile__book-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-md);
-  margin-bottom: var(--space-sm);
+  gap: var(--space-sm);
   color: var(--text-muted);
+  font-size: 0.75rem;
 }
 
 .profile__book-stats {
+  grid-area: stats;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-sm);
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-xs);
+  padding-top: var(--space-sm);
   margin-top: var(--space-sm);
+  border-top: var(--border-width) solid var(--border);
 
   @include tablet {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-sm);
   }
 }
 
 .profile__book-stat {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-xs);
-  min-width: 0;
-  padding: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
-  background: var(--bg-panel);
+  background: var(--bg-surface);
   color: var(--text-muted);
+  font-size: 0.6rem;
+  white-space: nowrap;
+
+  @include tablet {
+    padding: var(--space-sm);
+    font-size: 0.65rem;
+  }
 }
 
 .profile__empty {
