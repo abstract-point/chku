@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, TransitionGroup } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
+  ArrowUpDown,
+  BookMarked,
   MoreHorizontal,
   Plus,
   Search,
@@ -14,16 +16,50 @@ import FilterDropdown from '@/components/ui/FilterDropdown.vue'
 import type { FilterOption } from '@/components/ui/FilterDropdown.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useAuthSession } from '@/queries/authQueries'
-import { useDeactivateMemberMutation, useMembersQuery } from '@/queries/memberQueries'
+import { useDashboardQuery } from '@/queries/dashboardQueries'
+import {
+  useActivateMemberMutation,
+  useDeactivateMemberMutation,
+  useInitReadingProgressMutation,
+  useMembersQuery,
+} from '@/queries/memberQueries'
+
+type SortMode = 'newest' | 'oldest' | 'name' | 'read' | 'owls'
 
 const { isAdmin, twoFactorEnabled, user } = useAuthSession()
 const { t } = useI18n()
 const membersQuery = useMembersQuery()
+const dashboardQuery = useDashboardQuery()
 const deactivateMemberMutation = useDeactivateMemberMutation()
+const initReadingProgressMutation = useInitReadingProgressMutation()
+const activateMemberMutation = useActivateMemberMutation()
+const leaderMemberIds = computed(() => {
+  const progress = dashboardQuery.data.value?.memberProgress
+  if (!progress) return null
+  return new Set(progress.map((m) => m.id))
+})
+
 const searchQuery = ref('')
-const statusFilter = ref<'all' | 'active' | 'inactive'>('all')
+const statusFilter = ref<'all' | 'active' | 'inactive'>('active')
 const actionError = ref('')
+const openMenuId = ref<number | null>(null)
 const canManageMembers = computed(() => isAdmin.value && twoFactorEnabled.value)
+
+function toggleMenu(id: number) {
+  openMenuId.value = openMenuId.value === id ? null : id
+}
+
+function closeMenu() {
+  openMenuId.value = null
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeMenu)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeMenu)
+})
 const members = computed(() => membersQuery.data.value ?? [])
 const activeMemberCount = computed(() => members.value.filter((m) => m.isActive).length)
 const statusOptions = computed<FilterOption[]>(() => [
@@ -32,22 +68,50 @@ const statusOptions = computed<FilterOption[]>(() => [
   { value: 'inactive', label: t('members.inactive') },
 ])
 
+const sortMode = ref<SortMode>('newest')
+
+const sortOptions = computed<FilterOption[]>(() => [
+  { value: 'newest', label: t('members.sortNewest') },
+  { value: 'oldest', label: t('members.sortOldest') },
+  { value: 'name', label: t('members.sortName') },
+  { value: 'read', label: t('members.sortRead') },
+  { value: 'owls', label: t('members.sortOwls') },
+])
+
 const filteredMembers = computed(() => {
   const normalizedQuery = searchQuery.value.trim().toLocaleLowerCase('ru')
 
-  return members.value.filter((member) => {
-    const matchesQuery =
-      !normalizedQuery ||
-      [member.name, ...(member.favoriteGenres?.map((g) => g.name) ?? [])].some((value) =>
-        value.toLocaleLowerCase('ru').includes(normalizedQuery),
-      )
-    const matchesStatus =
-      statusFilter.value === 'all' ||
-      (statusFilter.value === 'active' && member.isActive) ||
-      (statusFilter.value === 'inactive' && !member.isActive)
+  return members.value
+    .filter((member) => {
+      const matchesQuery =
+        !normalizedQuery ||
+        [member.name, ...(member.favoriteGenres?.map((g) => g.name) ?? [])].some((value) =>
+          value.toLocaleLowerCase('ru').includes(normalizedQuery),
+        )
+      const matchesStatus =
+        statusFilter.value === 'all' ||
+        (statusFilter.value === 'active' && member.isActive) ||
+        (statusFilter.value === 'inactive' && !member.isActive)
 
-    return matchesQuery && matchesStatus
-  })
+      return matchesQuery && matchesStatus
+    })
+    .sort((a, b) => {
+      if (sortMode.value === 'name') {
+        return a.name.localeCompare(b.name, 'ru')
+      }
+      if (sortMode.value === 'read') {
+        return b.stats.read - a.stats.read
+      }
+      if (sortMode.value === 'owls') {
+        const aOwls = a.stats.goldOwls + a.stats.silverOwls + a.stats.bronzeOwls
+        const bOwls = b.stats.goldOwls + b.stats.silverOwls + b.stats.bronzeOwls
+        return bOwls - aOwls
+      }
+      if (sortMode.value === 'oldest') {
+        return (a.createdAt ?? '').localeCompare(b.createdAt ?? '')
+      }
+      return (b.createdAt ?? '').localeCompare(a.createdAt ?? '')
+    })
 })
 
 async function deactivateMember(id: number) {
@@ -57,6 +121,24 @@ async function deactivateMember(id: number) {
     await deactivateMemberMutation.mutateAsync(id)
   } catch (e: unknown) {
     actionError.value = (e as Error).message || t('members.deactivateError')
+  }
+}
+
+async function addToLeaders(id: number) {
+  actionError.value = ''
+  try {
+    await initReadingProgressMutation.mutateAsync(id)
+  } catch (e: unknown) {
+    actionError.value = (e as Error).message || t('dash.initReadingError')
+  }
+}
+
+async function activateMember(id: number) {
+  actionError.value = ''
+  try {
+    await activateMemberMutation.mutateAsync(id)
+  } catch (e: unknown) {
+    actionError.value = (e as Error).message || t('members.activateError')
   }
 }
 </script>
@@ -82,6 +164,12 @@ main.members.container
         :aria-label="t('members.filterAria')"
         :leading-icon="SlidersHorizontal"
       )
+      FilterDropdown(
+        v-model="sortMode"
+        :options="sortOptions"
+        :aria-label="t('members.sortAria')"
+        :leading-icon="ArrowUpDown"
+      )
       RouterLink.button.button--primary.label-text(v-if="canManageMembers" to="/members/add")
         Plus(:size="16" aria-hidden="true")
         span {{ $t('members.add') }}
@@ -96,14 +184,18 @@ main.members.container
     p.body-text {{ $t('members.loading') }}
   section.panel(v-else-if="membersQuery.error.value" aria-live="polite")
     p.body-text {{ $t('members.error') }}
-  .members__grid(v-else-if="filteredMembers.length")
-    RouterLink.member-card-wrapper(
+  TransitionGroup.members__grid(name="list" tag="div" v-else-if="filteredMembers.length")
+    RouterLink(
       v-for="member in filteredMembers"
       :key="member.id"
-      :class="{ 'member-card--inactive': !member.isActive }"
+      v-slot="{ navigate }"
       :to="`/members/${member.id}`"
+      custom
     )
-      .member-card
+      .member-card.member-card-wrapper(
+        :class="{ 'member-card--inactive': !member.isActive }"
+        @click="navigate"
+      )
         .member-card__hero
           UserAvatar.member-card__avatar(:name="member.name" :avatar-url="member.avatarUrl")
           .member-card__info
@@ -113,18 +205,45 @@ main.members.container
             span.member-card__status(:class="{ 'member-card__status--inactive badge--muted': !member.isActive }")
               span.member-card__status-dot(aria-hidden="true")
               span {{ member.isActive ? $t('members.statusActive') : $t('members.statusInactive') }}
-          button.member-card__menu(type="button" :aria-label="t('members.actionsAria')" @click.prevent)
-            MoreHorizontal(:size="18")
+            span.member-card__joined.label-text {{ $t('members.memberSince', { date: member.memberSince }) }}
+          .member-card__menu-wrap(v-if="canManageMembers")
+            button.member-card__menu(type="button" :aria-label="t('members.actionsAria')" @click.prevent.stop="toggleMenu(member.id)")
+              MoreHorizontal(:size="18")
+            .member-card__dropdown(v-if="openMenuId === member.id" @click.stop)
+              button.member-card__dropdown-item(
+                v-if="canManageMembers && member.isActive && member.id !== user?.id"
+                type="button"
+                @click.stop="deactivateMember(member.id)"
+              )
+                UserRoundMinus(:size="14")
+                span {{ $t('members.deactivate') }}
+              button.member-card__dropdown-item.member-card__dropdown-item--action(
+                v-if="canManageMembers && !member.isActive"
+                type="button"
+                @click.stop="activateMember(member.id)"
+              )
+                UserRoundCheck(:size="14")
+                span {{ $t('members.activate') }}
+              button.member-card__dropdown-item.member-card__dropdown-item--action(
+                v-if="canManageMembers && member.isActive && leaderMemberIds && !leaderMemberIds.has(member.id)"
+                type="button"
+                @click.stop="addToLeaders(member.id)"
+              )
+                BookMarked(:size="14")
+                span {{ $t('dash.addToLeaders') }}
         .member-card__owls(:aria-label="t('profile.owlsAria')")
           .member-card__owl
-            img.member-card__owl-icon.member-card__owl-icon--gold(src="/favicon.svg" :alt="t('profile.owlGold')")
-            span.member-card__owl-value {{ member.stats.goldOwls }}
+            .member-card__owl-row
+              img.member-card__owl-icon.member-card__owl-icon--gold(src="/favicon.svg" :alt="t('profile.owlGold')")
+              span.member-card__owl-value {{ member.stats.goldOwls }}
           .member-card__owl
-            img.member-card__owl-icon.member-card__owl-icon--silver(src="/favicon.svg" :alt="t('profile.owlSilver')")
-            span.member-card__owl-value {{ member.stats.silverOwls }}
+            .member-card__owl-row
+              img.member-card__owl-icon.member-card__owl-icon--silver(src="/favicon.svg" :alt="t('profile.owlSilver')")
+              span.member-card__owl-value {{ member.stats.silverOwls }}
           .member-card__owl
-            img.member-card__owl-icon.member-card__owl-icon--bronze(src="/favicon.svg" :alt="t('profile.owlBronze')")
-            span.member-card__owl-value {{ member.stats.bronzeOwls }}
+            .member-card__owl-row
+              img.member-card__owl-icon.member-card__owl-icon--bronze(src="/favicon.svg" :alt="t('profile.owlBronze')")
+              span.member-card__owl-value {{ member.stats.bronzeOwls }}
         .member-card__stats
           .member-card__stat
             span.member-card__stat-value {{ member.stats.read }}
@@ -135,21 +254,7 @@ main.members.container
           .member-card__stat
             span.member-card__stat-value {{ member.stats.meetings }}
             span.label-text {{ $t('members.meetings') }}
-        button.member-card__deactivate(
-          v-if="canManageMembers && member.isActive && member.id !== user?.id"
-          type="button"
-          @click.prevent="deactivateMember(member.id)"
-        )
-          UserRoundMinus(:size="16" aria-hidden="true")
-          span {{ $t('members.deactivate') }}
-        button.member-card__activate(
-          v-else-if="canManageMembers && !member.isActive"
-          type="button"
-          disabled
-          @click.prevent
-        )
-          UserRoundCheck(:size="16" aria-hidden="true")
-          span {{ $t('members.activate') }}
+
   section.panel.members__empty(v-else aria-live="polite")
     h2 {{ $t('members.noResults') }}
     p.body-text {{ $t('members.noResultsText') }}
@@ -260,9 +365,9 @@ main.members.container
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   height: 100%;
-  padding: var(--space-lg);
+  padding: var(--space-md);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-panel);
   background:
@@ -274,6 +379,11 @@ main.members.container
     background-color 0.2s ease,
     border-color 0.2s ease,
     transform 0.2s ease;
+
+  @include tablet {
+    padding: var(--space-lg);
+    gap: var(--space-md);
+  }
 }
 
 .member-card:hover {
@@ -312,16 +422,26 @@ main.members.container
 .member-card__hero {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-md);
+  gap: var(--space-sm);
+
+  @include tablet {
+    gap: var(--space-md);
+  }
 }
 
 .member-card__avatar {
-  width: 3rem;
-  height: 3rem;
-  font-size: 1rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.85rem;
   flex-shrink: 0;
   border-color: var(--accent-border);
   color: var(--text-main);
+
+  @include tablet {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1rem;
+  }
 }
 
 .member-card__info {
@@ -331,16 +451,25 @@ main.members.container
   flex: 1;
 }
 
+.member-card__joined {
+  color: var(--text-subtle);
+  font-size: 0.6rem;
+}
+
 .member-card__name-row {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
   flex-wrap: wrap;
 }
 
 .member-card__name {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   line-height: 1.3;
+
+  @include tablet {
+    font-size: 1.25rem;
+  }
 }
 
 .member-card__status {
@@ -362,6 +491,10 @@ main.members.container
   background: var(--text-subtle);
 }
 
+.member-card__menu-wrap {
+  position: relative;
+}
+
 .member-card__menu {
   display: inline-flex;
   align-items: center;
@@ -372,21 +505,80 @@ main.members.container
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
   color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.member-card__menu:hover {
+  border-color: var(--border-strong);
+  color: var(--text-main);
+}
+
+.member-card__dropdown {
+  position: absolute;
+  z-index: 10;
+  top: 100%;
+  right: 0;
+  min-width: 14rem;
+  padding: var(--space-xs);
+  margin-top: var(--space-xs);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-inner);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-panel);
+}
+
+.member-card__dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 0;
+  border-radius: var(--radius-inner);
+  background: transparent;
+  color: var(--warn);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.member-card__dropdown-item:hover {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.member-card__dropdown-item--action {
+  color: var(--text-main);
+}
+
+.member-card__dropdown-item--action:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
 }
 
 .member-card__owls {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  padding-top: var(--space-sm);
-  padding-bottom: var(--space-sm);
+  padding: var(--space-sm) 0;
 }
 
 .member-card__owl {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: var(--space-xs);
+  padding: var(--space-xs) 0;
   border-right: var(--border-width) solid var(--border);
 }
 
@@ -394,9 +586,15 @@ main.members.container
   border-right: 0;
 }
 
+.member-card__owl-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
 .member-card__owl-icon {
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 1rem;
+  height: 1rem;
   flex-shrink: 0;
 }
 
@@ -417,16 +615,15 @@ main.members.container
   font-family: var(--font-mono);
   font-size: 0.95rem;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .member-card__stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  padding-top: var(--space-md);
-  padding-bottom: var(--space-md);
+  padding: var(--space-sm) 0;
   border-top: var(--border-width) solid var(--border);
-  border-bottom: var(--border-width) solid var(--border);
 }
 
 .member-card__stat {
@@ -434,12 +631,9 @@ main.members.container
   flex-direction: column;
   align-items: center;
   gap: var(--space-xs);
+  padding: var(--space-xs) 0;
   border-right: var(--border-width) solid var(--border);
   text-align: center;
-
-  @container (max-width: 320px) {
-    gap: var(--space-sm);
-  }
 }
 
 .member-card__stat:last-child {
@@ -449,46 +643,14 @@ main.members.container
 .member-card__stat-value {
   color: var(--text-main);
   font-family: var(--font-mono);
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
-.member-card__deactivate,
-.member-card__activate {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
-  margin-top: auto;
-  min-height: 2.25rem;
-  padding: 0.35rem 0.6rem;
-  border: 0;
-  background: transparent;
-  color: var(--warn);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    color 0.15s ease,
-    background-color 0.15s ease;
-}
-
-.member-card__deactivate:hover {
-  color: var(--warn);
-  background: var(--warn-bg);
-}
-
-.member-card__activate {
-  color: var(--accent);
-}
-
-.member-card__activate:disabled {
-  opacity: 0.55;
+.member-card__stat .label-text {
+  font-size: 0.55rem;
 }
 
 .members__notice {
