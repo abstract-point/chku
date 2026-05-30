@@ -267,7 +267,7 @@ select:focus-visible {
   margin: var(--space-sm) 0;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border);
 }
 
 .progress__bar {
