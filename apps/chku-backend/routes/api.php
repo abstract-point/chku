@@ -68,6 +68,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('members', [ClubMemberController::class, 'store']);
     Route::post('members/turn-order', [ClubMemberController::class, 'reorderTurnOrder']);
     Route::post('members/{member}/deactivate', [ClubMemberController::class, 'deactivate']);
+    Route::post('members/{member}/activate', [ClubMemberController::class, 'activate']);
+    Route::post('members/{member}/init-reading-progress', [ClubMemberController::class, 'initReadingProgress']);
 
     Route::get('cycles', [CycleController::class, 'index']);
     Route::get('cycles/{cycleNumber}', [CycleController::class, 'show']);

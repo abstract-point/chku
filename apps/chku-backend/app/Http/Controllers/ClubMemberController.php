@@ -19,6 +19,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Enums\ReadingCycleStatusEnum;
+use App\Enums\ReadingProgressStatusEnum;
+use App\Models\ReadingCycle;
+use App\Models\ReadingProgress;
 use Illuminate\Validation\ValidationException;
 
 final class ClubMemberController extends Controller
@@ -195,6 +199,97 @@ final class ClubMemberController extends Controller
 
         return response()->json([
             'message' => 'Участник деактивирован.',
+        ]);
+    }
+
+    public function activate(Request $request, ClubMember $member, TurnOrderService $turnOrder): JsonResponse
+    {
+        $this->authorize('deactivate', $member);
+
+        if ($member->user_id === $request->user()?->id) {
+            return response()->json([
+                'message' => 'Нельзя активировать собственный аккаунт.',
+            ], 422);
+        }
+
+        if ($member->is_active) {
+            return response()->json([
+                'message' => 'Участник уже активен.',
+            ], 422);
+        }
+
+        $member->update([
+            'is_active' => true,
+            'deactivated_at' => null,
+        ]);
+
+        $turnOrder->appendMember($member);
+
+        $actor = $request->user();
+        if ($actor) {
+            $this->auditLog->log(
+                actor: $actor,
+                action: 'member_activated',
+                subject: $member->user?->name ?? "Участник #{$member->id}",
+                description: "{$actor->name} активировал {$member->user?->name}.",
+            );
+        }
+
+        $member->load('user', 'club');
+        event(new MemberJoinedClub($member));
+
+        return response()->json([
+            'message' => 'Участник активирован.',
+        ]);
+    }
+
+    public function initReadingProgress(Request $request, ClubMember $member): JsonResponse
+    {
+        abort_unless($request->user()?->hasAnyRole(['admin', 'developer']), 403);
+
+        $cycle = ReadingCycle::query()
+            ->where('status', ReadingCycleStatusEnum::Active)
+            ->first();
+
+        if (! $cycle) {
+            return response()->json([
+                'message' => 'Нет активного цикла чтения.',
+            ], 422);
+        }
+
+        if (! $member->is_active) {
+            return response()->json([
+                'message' => 'Неактивного участника нельзя добавить в лидеры.',
+            ], 422);
+        }
+
+        $progress = ReadingProgress::firstOrCreate(
+            [
+                'reading_cycle_id' => $cycle->id,
+                'club_member_id' => $member->id,
+            ],
+            [
+                'status' => ReadingProgressStatusEnum::NotStarted,
+                'progress_percent' => 0,
+            ],
+        );
+
+        if ($progress->wasRecentlyCreated) {
+            $actor = $request->user();
+            if ($actor) {
+                $this->auditLog->log(
+                    actor: $actor,
+                    action: 'member_init_reading_progress',
+                    subject: $cycle->book?->title ?? "Цикл #{$cycle->cycle_number}",
+                    description: "{$actor->name} добавил {$member->user?->name} в лидеры цикла #{$cycle->cycle_number}.",
+                );
+            }
+        }
+
+        return response()->json([
+            'message' => $progress->wasRecentlyCreated
+                ? 'Участник добавлен в лидеры цикла.'
+                : 'Участник уже в лидерах цикла.',
         ]);
     }
 }
