@@ -96,6 +96,7 @@ export type ApiMeeting = {
   status?: 'scheduled' | 'started' | 'finished'
   canStart?: boolean
   canFinish?: boolean
+  isMeetingTime?: boolean
   missingRatingMemberIds?: number[]
   missingReadingMemberIds?: number[]
   rsvps?: ApiMeetingRsvp[]

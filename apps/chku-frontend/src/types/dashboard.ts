@@ -56,6 +56,7 @@ export type MeetingSummary = {
   status: 'scheduled' | 'started' | 'finished'
   canStart: boolean
   canFinish: boolean
+  isMeetingTime: boolean
   attendees: MeetingAttendee[]
 }
 
@@ -67,6 +68,7 @@ export type MeetingAttendee = {
   favoriteGenres?: { id: number; slug: string; name: string }[]
   memberSince?: string
   isAdmin?: boolean
+  isActive?: boolean
 }
 
 export type MeetingBook = {
@@ -93,8 +95,10 @@ export type MeetingDetail = {
   status: 'scheduled' | 'started' | 'finished'
   canStart: boolean
   canFinish: boolean
+  isMeetingTime: boolean
   missingRatingMemberIds: number[]
   missingReadingMemberIds: number[]
+  deactivatedAttendeeCount: number
   rsvpStatus: 'attending' | 'not_attending' | 'pending'
   attendees: MeetingAttendee[]
   book: MeetingBook

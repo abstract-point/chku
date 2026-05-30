@@ -23,6 +23,7 @@ export function mapMeetingSummary(meeting: ApiMeeting): MeetingSummary {
     status: meeting.status ?? 'scheduled',
     canStart: meeting.canStart ?? false,
     canFinish: meeting.canFinish ?? false,
+    isMeetingTime: meeting.isMeetingTime ?? true,
     attendees:
       meeting.rsvps?.map((rsvp) => ({
         id: rsvp.member.id,

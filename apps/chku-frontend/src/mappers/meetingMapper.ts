@@ -13,6 +13,7 @@ export function mapMeetingDetail(meeting: ApiMeeting, currentUserId?: number): M
       favoriteGenres: rsvp.member.favoriteGenres ?? [],
       memberSince: rsvp.member.memberSince,
       isAdmin: rsvp.member.isAdmin,
+      isActive: rsvp.member.isActive,
     })) ?? []
 
   return {
@@ -31,6 +32,7 @@ export function mapMeetingDetail(meeting: ApiMeeting, currentUserId?: number): M
     status: meeting.status ?? 'scheduled',
     canStart: meeting.canStart ?? false,
     canFinish: meeting.canFinish ?? false,
+    isMeetingTime: meeting.isMeetingTime ?? true,
     missingRatingMemberIds: meeting.missingRatingMemberIds ?? [],
     missingReadingMemberIds: meeting.missingReadingMemberIds ?? [],
     date: meeting.date,
@@ -38,7 +40,8 @@ export function mapMeetingDetail(meeting: ApiMeeting, currentUserId?: number): M
     rsvpStatus: currentUserId
       ? (allRsvps.find((a) => a.id === currentUserId)?.status ?? 'pending')
       : 'pending',
-    attendees: allRsvps.filter((a) => a.status === 'attending'),
+    attendees: allRsvps.filter((a) => a.status === 'attending' && a.isActive !== false),
+    deactivatedAttendeeCount: allRsvps.filter((a) => a.status === 'attending' && a.isActive === false).length,
     book: {
       title: meeting.book?.title ?? i18n.global.t('dates.fallbackBook'),
       author: meeting.book?.author ?? '',

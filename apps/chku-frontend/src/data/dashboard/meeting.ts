@@ -13,6 +13,7 @@ export const nextMeeting = {
   status: 'scheduled' as const,
   canStart: true,
   canFinish: false,
+  isMeetingTime: true,
   attendees: [
     { id: 1, name: 'Екатерина Л.', status: 'attending' as const },
     { id: 2, name: 'Михаил К.', status: 'attending' as const },
