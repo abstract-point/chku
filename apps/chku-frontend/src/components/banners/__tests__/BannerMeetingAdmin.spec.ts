@@ -29,7 +29,10 @@ describe('BannerMeetingAdmin', () => {
     })
 
     expect(wrapper.text()).toContain('Встреча «Октябрьская встреча» запланирована')
+    expect(wrapper.text()).toContain('Системное уведомление')
     expect(wrapper.text()).toContain('Перейти к управлению встречей')
+    expect(wrapper.find('.app-banner--system').exists()).toBe(true)
+    expect(wrapper.find('.button--secondary').exists()).toBe(true)
     expect(wrapper.findComponent(RouterLinkStub).props('to')).toBe('/meetings/1')
   })
 
@@ -40,7 +43,10 @@ describe('BannerMeetingAdmin', () => {
     })
 
     expect(wrapper.text()).toContain('Встреча идёт сейчас')
+    expect(wrapper.text()).toContain('Системное уведомление')
     expect(wrapper.text()).toContain('Перейти к управлению встречей')
+    expect(wrapper.find('.app-banner--system').exists()).toBe(true)
+    expect(wrapper.find('.button--secondary').exists()).toBe(true)
     expect(wrapper.findComponent(RouterLinkStub).props('to')).toBe('/meetings/1')
   })
 })

@@ -1,8 +1,18 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import { activeCandidate, patchDashboardMock, resetDashboardMock } from '@/test/setup'
 
 import HomeView from '../HomeView.vue'
+
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>()
+
+  return {
+    ...actual,
+    useRoute: () => ({ query: {}, hash: '' }),
+    useRouter: () => ({ push: vi.fn() }),
+  }
+})
 
 describe('HomeView', () => {
   afterEach(() => {

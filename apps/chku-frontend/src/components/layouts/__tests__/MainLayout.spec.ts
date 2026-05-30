@@ -33,8 +33,8 @@ describe('MainLayout', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Ожидает проверки: «Тайную историю»')
-    expect(wrapper.text()).toContain('Елена предложила «Тайную историю» — Донна Тартт')
+    expect(wrapper.text()).toContain('Ответь по книге-кандидату')
+    expect(wrapper.text()).toContain('Клуб ждёт твой ответ: читал ли ты эту книгу раньше.')
     expect(wrapper.text()).toContain('Содержимое страницы')
     expect(wrapper.text()).toContain('Профиль')
     expect(wrapper.text()).not.toContain('Предложить книгу')
@@ -50,6 +50,7 @@ describe('MainLayout', () => {
       '/profile',
       '/propose-selection',
       '/profile/settings',
+      '/',
     ])
   })
 
@@ -70,7 +71,7 @@ describe('MainLayout', () => {
       },
     })
 
-    expect(wrapper.text()).not.toContain('Ожидает проверки: «Тайную историю»')
+    expect(wrapper.text()).not.toContain('Ответь по книге-кандидату')
     expect(wrapper.text()).toContain('Содержимое страницы')
   })
 })
