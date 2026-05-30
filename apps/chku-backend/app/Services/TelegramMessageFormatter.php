@@ -340,7 +340,7 @@ final class TelegramMessageFormatter
                 $avg = round((float) $cycle->ratings->avg('rating'), 1);
                 $lines[] = '';
                 $lines[] = '📊 ' . $this->escape('Оценки клуба:');
-                $lines[] = $this->escape('Средняя: ') . '*' . $avg . '/10*';
+                $lines[] = $this->escape('Средняя: ') . '*' . $this->escape((string) $avg) . '/10*';
 
                 $finished = $cycle->readingProgress
                     ->filter(fn ($p) => $p->status === ReadingProgressStatusEnum::Finished && $p->finished_at !== null && $attendingIds->contains($p->club_member_id))
