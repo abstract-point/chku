@@ -99,11 +99,10 @@ const missingReadingAttendees = computed(() =>
 const hasMeetingQuorum = computed(
   () => (meeting.value?.attendees.length ?? 0) >= minMeetingAttendees,
 )
-const isMeetingTime = computed(() => {
-  if (!meeting.value?.date || !meeting.value.time) return true
-
-  return new Date(`${meeting.value.date}T${meeting.value.time}`).getTime() <= Date.now()
-})
+const hasInactiveAttendees = computed(
+  () => meeting.value?.attendees.some((a) => a.isActive === false) ?? false,
+)
+const isMeetingTime = computed(() => meeting.value?.isMeetingTime ?? true)
 const isCurrentUserAttending = computed(() => rsvpStatus.value === 'attending')
 
 function canRemoveAttendee(attendee: { id: number; isAdmin?: boolean }) {
@@ -228,6 +227,9 @@ main.meeting-detail.container
               .inline-alert(v-if="!hasMeetingQuorum")
                 AlertTriangle(:size="14")
                 span {{ $t('meetings.needQuorum') }}
+              .inline-alert.inline-alert--warn(v-if="meeting.deactivatedAttendeeCount > 0")
+                AlertTriangle(:size="14")
+                span {{ $t('meetings.deactivatedAttendees', { n: meeting.deactivatedAttendeeCount }) }}
               .inline-alert(v-if="missingReadingAttendees.length")
                 AlertTriangle(:size="14")
                 span {{ $t('meetings.needReading') }}
