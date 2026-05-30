@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
+use App\Events\MeetingFinished;
+use App\Events\OwlAwardsAssigned;
 use App\Models\NotificationLog;
 use App\Services\NotificationDecisionService;
 use App\Services\TelegramMessageFormatter;
@@ -22,6 +24,16 @@ final class TelegramNotificationListener implements ShouldQueue
 
     public function handle(object $event): void
     {
+        if (in_array($event::class, [MeetingFinished::class, OwlAwardsAssigned::class], true)) {
+            NotificationLog::logSkipped(
+                $this->formatter->eventName($event),
+                'included_in_cycle_completed',
+                $this->eventPayload($event),
+            );
+
+            return;
+        }
+
         $eventName = $this->formatter->eventName($event);
         $payload = $this->eventPayload($event);
 

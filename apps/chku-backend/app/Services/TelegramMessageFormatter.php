@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\MeetingRsvpStatusEnum;
+use App\Enums\ReadingProgressStatusEnum;
 use App\Events\BookCandidateAwaitingConfirmation;
 use App\Events\BookCandidateConfirmed;
 use App\Events\BookCandidateProposed;
@@ -213,8 +215,6 @@ final class TelegramMessageFormatter
             $this->escape('Участник: ') . $member,
             $this->escape('Книга: ') . '*' . $book . '*',
             $this->escape('Прогресс: ') . '*' . $percent . '%' . '*',
-            '',
-            $this->escape('👉 Открыть на сайте: ') . $this->link($this->frontendUrl('/'), $this->frontendUrl('/')),
         ]);
     }
 
@@ -224,21 +224,13 @@ final class TelegramMessageFormatter
         $progress->loadMissing(['clubMember.user', 'readingCycle.book']);
         $member = $this->memberLink($progress->clubMember);
         $book = $this->escape($progress->readingCycle->book->title);
-        $cycle = $progress->readingCycle;
 
-        $lines = [
+        return implode("\n", [
             '🏁 ' . $this->escape('Участник дочитал книгу!'),
             '',
             $this->escape('Кто: ') . $member,
             $this->escape('Книга: ') . '*' . $book . '*',
-        ];
-
-        if ($cycle->cycle_number) {
-            $lines[] = '';
-            $lines[] = $this->escape('👉 Открыть цикл: ') . $this->cycleLink($cycle);
-        }
-
-        return implode("\n", $lines);
+        ]);
     }
 
     private function formatMeetingScheduled(MeetingScheduled $event): string
@@ -326,20 +318,62 @@ final class TelegramMessageFormatter
     private function formatCycleCompleted(CycleCompleted $event): string
     {
         $cycle = $event->cycle;
-        $cycle->loadMissing(['book', 'proposer.user']);
+        $cycle->loadMissing(['book', 'proposer.user', 'meeting.rsvps', 'ratings', 'readingProgress.clubMember.user']);
         $book = $this->escape($cycle->book->title);
         $proposer = $this->memberLink($cycle->proposer);
         $cycleNumber = $cycle->cycle_number;
 
-        return implode("\n", [
-            '🎊 ' . $this->escape('Цикл ') . '*' . $this->escape('#' . (string) $cycleNumber) . '* ' . $this->escape('завершён!'),
+        $lines = [
+            '🏆 ' . $this->escape('Цикл ') . '*' . $this->escape('#' . (string) $cycleNumber) . '* ' . $this->escape('завершён! Книга уходит в архив.'),
             '',
             $this->escape('Книга: ') . '*' . $book . '*',
             $this->escape('Выбрал: ') . $proposer,
-            '',
-            $this->escape('👉 Открыть в архиве: ') . $this->cycleLink($cycle),
-            $this->escape('👉 Все циклы: ') . $this->link($this->frontendUrl('/archive'), $this->frontendUrl('/archive')),
-        ]);
+        ];
+
+        $meeting = $cycle->meeting;
+        if ($meeting?->rsvps !== null) {
+            $attendingIds = $meeting->rsvps
+                ->filter(fn ($r) => $r->status === MeetingRsvpStatusEnum::Attending)
+                ->pluck('club_member_id');
+
+            if ($attendingIds->isNotEmpty()) {
+                $avg = round((float) $cycle->ratings->avg('rating'), 1);
+                $lines[] = '';
+                $lines[] = '📊 ' . $this->escape('Оценки клуба:');
+                $lines[] = $this->escape('Средняя: ') . '*' . $avg . '/10*';
+
+                $finished = $cycle->readingProgress
+                    ->filter(fn ($p) => $p->status === ReadingProgressStatusEnum::Finished && $p->finished_at !== null && $attendingIds->contains($p->club_member_id))
+                    ->sortBy('finished_at')
+                    ->take(3)
+                    ->values();
+
+                if ($finished->isNotEmpty()) {
+                    $medals = [
+                        0 => ['🥇', 'Золотая сова'],
+                        1 => ['🥈', 'Серебряная сова'],
+                        2 => ['🥉', 'Бронзовая сова'],
+                    ];
+
+                    $lines[] = '';
+                    $lines[] = '🦉 ' . $this->escape('Награды за этот цикл:');
+
+                    foreach ($finished as $i => $progress) {
+                        $medal = $medals[$i] ?? [null, null];
+                        $name = $progress->clubMember?->user?->name ?? 'Участник';
+                        $memberUrl = $this->frontendUrl('/members/' . $progress->club_member_id);
+                        $memberLink = $this->link($name, $memberUrl);
+                        $lines[] = ($medal[0] ?? '') . ' ' . $this->escape(($medal[1] ?? '') . ': ') . $memberLink;
+                    }
+                }
+            }
+        }
+
+        $lines[] = '';
+        $lines[] = $this->escape('👉 Открыть в архиве: ') . $this->cycleLink($cycle);
+        $lines[] = $this->escape('👉 Все циклы: ') . $this->link($this->frontendUrl('/archive'), $this->frontendUrl('/archive'));
+
+        return implode("\n", $lines);
     }
 
     private function formatOwlAwards(OwlAwardsAssigned $event): string
