@@ -7,6 +7,7 @@ export function mapMember(member: ApiMember): MemberProfile {
     name: member.name,
     avatarUrl: member.avatarUrl ?? null,
     memberSince: member.memberSince,
+    createdAt: member.createdAt,
     isActive: member.isActive,
     email: member.email,
     favoriteGenres: member.favoriteGenres ?? [],
