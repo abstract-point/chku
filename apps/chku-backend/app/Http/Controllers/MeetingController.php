@@ -186,6 +186,7 @@ final class MeetingController extends Controller
 
         $attendingMemberIds = $meeting->rsvps()
             ->where('status', MeetingRsvpStatusEnum::Attending->value)
+            ->whereHas('clubMember', fn ($q) => $q->where('is_active', true))
             ->pluck('club_member_id');
 
         abort_if(
@@ -243,6 +244,7 @@ final class MeetingController extends Controller
 
         $attendingMemberIds = $meeting->rsvps()
             ->where('status', MeetingRsvpStatusEnum::Attending->value)
+            ->whereHas('clubMember', fn ($q) => $q->where('is_active', true))
             ->pluck('club_member_id');
 
         if ($attendingMemberIds->count() < Meeting::MIN_ATTENDING_MEMBERS) {

@@ -431,6 +431,12 @@ class MeetingApiTest extends TestCase
         }
 
         $this->actingAs($admin)
+            ->getJson("/api/meetings/{$meeting->id}")
+            ->assertOk()
+            ->assertJsonPath('data.canStart', false)
+            ->assertJsonPath('data.isMeetingTime', false);
+
+        $this->actingAs($admin)
             ->postJson("/api/meetings/{$meeting->id}/start")
             ->assertUnprocessable()
             ->assertJsonPath('message', 'Встречу нельзя начать раньше назначенного времени.');

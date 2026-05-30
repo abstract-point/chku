@@ -19,7 +19,7 @@ class MeetingResource extends JsonResource
         $attendingMemberIds = $this->whenLoaded(
             'rsvps',
             fn () => $this->rsvps
-                ->filter(fn ($rsvp) => $rsvp->status === MeetingRsvpStatusEnum::Attending)
+                ->filter(fn ($rsvp) => $rsvp->status === MeetingRsvpStatusEnum::Attending && $rsvp->clubMember?->is_active)
                 ->pluck('club_member_id'),
             collect(),
         );
@@ -71,6 +71,7 @@ class MeetingResource extends JsonResource
                 : ($this->started_at ? 'started' : 'scheduled'),
             'canStart' => $cycleIsActive && $this->started_at === null && $this->finished_at === null && $hasQuorum && $allAttendeesFinished && $isMeetingTime,
             'canFinish' => $cycleIsActive && $this->started_at !== null && $this->finished_at === null && $hasQuorum && $missingRatingIds->isEmpty(),
+            'isMeetingTime' => $isMeetingTime,
             'missingRatingMemberIds' => $missingRatingIds,
             'missingReadingMemberIds' => $missingReadingIds,
             'rsvps' => MeetingRsvpResource::collection($this->whenLoaded('rsvps')),
