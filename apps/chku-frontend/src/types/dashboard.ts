@@ -104,6 +104,7 @@ export type MeetingDetail = {
 
 export type DiscussionMessage = {
   id: number
+  memberId?: number
   memberName: string
   memberAvatarUrl?: string | null
   text: string

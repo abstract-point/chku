@@ -5,6 +5,7 @@ export type ApiMember = {
   email: string
   isActive: boolean
   memberSince: string
+  createdAt?: string
   favoriteGenres: ApiGenre[]
   isAdmin?: boolean
   stats?: {
@@ -22,8 +23,10 @@ export type ApiProfileBook = {
   title: string
   coverTitle: string
   author: string
+  description?: string | null
   genres: { id: number; slug: string; name: string }[]
   coverColor?: string | null
+  coverUrl?: string | null
   cycleNumber: number
   cycleLabel: string
   completedLabel: string
@@ -226,6 +229,7 @@ export type ApiCycle = {
   genre: string | null
   genreLabel: string | null
   completedLabel?: string | null
+  proposedById?: number
   proposedBy: string
   proposerAvatarUrl?: string | null
   rating: number
@@ -250,6 +254,7 @@ export type ApiCycle = {
   candidate?: ApiBookCandidate | null
   memberProgress: ApiReadingProgress[]
   reviews: {
+    memberId?: number
     memberName: string
     memberAvatarUrl?: string | null
     rating: number
@@ -260,6 +265,7 @@ export type ApiCycle = {
 
 export type ApiDiscussionMessage = {
   id: number
+  memberId?: number
   memberName: string
   memberAvatarUrl?: string | null
   text: string

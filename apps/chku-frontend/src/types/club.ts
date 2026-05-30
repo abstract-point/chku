@@ -48,6 +48,7 @@ export type MemberProfile = {
   name: string
   avatarUrl?: string | null
   memberSince: string
+  createdAt?: string
   isActive: boolean
   email: string
   favoriteGenres: { id: number; slug: string; name: string }[]
@@ -66,8 +67,10 @@ export type ProfileBook = {
   title: string
   coverTitle: string
   author: string
+  description?: string | null
   genres?: { id: number; slug: string; name: string }[]
   coverColor?: string | null
+  coverUrl?: string | null
   cycleNumber: number
   cycleLabel: string
   completedLabel: string
@@ -82,6 +85,7 @@ export type ProfileBook = {
 export type ArchiveBookGenre = string
 
 export type ArchiveBookReview = {
+  memberId?: number
   memberName: string
   memberAvatarUrl?: string | null
   rating: number
@@ -90,6 +94,7 @@ export type ArchiveBookReview = {
 
 export type ArchiveDiscussionMessage = {
   id?: number
+  memberId?: number
   memberName: string
   memberAvatarUrl?: string | null
   dateLabel?: string
