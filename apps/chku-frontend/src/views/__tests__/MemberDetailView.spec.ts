@@ -36,7 +36,7 @@ describe('MemberDetailView', () => {
     const wrapper = mountMemberDetail('1')
 
     expect(wrapper.text()).toContain('Елена Воронцова')
-    expect(wrapper.text()).toContain('Участник клуба с 2021')
+    expect(wrapper.text()).toContain('Участник клуба с Январь 2021')
     expect(wrapper.text()).toContain('Активен')
     expect(wrapper.text()).toContain('Прочитано')
     expect(wrapper.text()).toContain('Предложено')

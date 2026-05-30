@@ -28,8 +28,8 @@ describe('MembersView', () => {
     expect(wrapper.text()).toContain('Михаил Корнев')
     expect(wrapper.text()).toContain('Анна Соколова')
     expect(wrapper.text()).toContain('Тимур Васильев')
-    expect(wrapper.text()).toContain('Ольга Петрова')
-    expect(wrapper.text()).toContain('Дмитрий Смирнов')
+    expect(wrapper.text()).not.toContain('Ольга Петрова')
+    expect(wrapper.text()).not.toContain('Дмитрий Смирнов')
   })
 
   it('renders member stats', () => {
@@ -48,12 +48,11 @@ describe('MembersView', () => {
     expect(links.some((link) => link.props('to') === '/members/2')).toBe(true)
   })
 
-  it('marks inactive member cards as muted', () => {
+  it('shows active members by default', () => {
     const wrapper = mountMembers()
-    const links = wrapper.findAllComponents(RouterLinkStub)
-    const inactiveCard = links.find((link) => link.text().includes('Ольга Петрова'))
-
-    expect(inactiveCard?.classes()).toContain('member-card--inactive')
-    expect(inactiveCard?.find('.badge--muted').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Елена Воронцова')
+    expect(wrapper.text()).toContain('Михаил Корнев')
+    expect(wrapper.text()).toContain('Тимур Васильев')
+    expect(wrapper.text()).not.toContain('Ольга Петрова')
   })
 })
