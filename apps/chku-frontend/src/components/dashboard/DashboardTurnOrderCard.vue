@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { RouterLink } from 'vue-router'
 import { ArrowUpDown, Users, ArrowUp, ArrowDown, Lock } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -168,16 +169,17 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
           .turn-order__card-header {{ $t('dash.turnOrderCurrent') }}
         .turn-order__card-body
           .turn-order__person
-            UserAvatar.turn-order__avatar(
-              :name="item.member.name"
-              :avatar-url="item.member.avatarUrl"
-              size="md"
-            )
-            .turn-order__info
-              span.turn-order__name {{ item.member.name }}
-              template(v-if="item.isActive")
-                span.turn-order__badge-text {{ currentProcessBadge }}
-              span.turn-order__badge-text.turn-order__badge-text--muted(v-else-if="item.isNext") {{ $t('dash.choosingNext') }}
+            RouterLink.member-link(:to="`/members/${item.member.memberId}`")
+              UserAvatar.turn-order__avatar(
+                :name="item.member.name"
+                :avatar-url="item.member.avatarUrl"
+                size="md"
+              )
+              .turn-order__info
+                span.turn-order__name {{ item.member.name }}
+                template(v-if="item.isActive")
+                  span.turn-order__badge-text {{ currentProcessBadge }}
+                span.turn-order__badge-text.turn-order__badge-text--muted(v-else-if="item.isNext") {{ $t('dash.choosingNext') }}
 
     .turn-order__empty(v-if="!allMembers.length")
       p.body-text {{ $t('dash.turnOrderError') }}

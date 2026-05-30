@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import UserAvatar from '@/components/UserAvatar.vue'
 import DiscussionComposer from '@/components/discussion/DiscussionComposer.vue'
 import { formatRelativeDate } from '@/mappers/date'
@@ -26,8 +27,13 @@ import { ref, computed } from 'vue'
 .discussion-item(:class="{ 'discussion-item--reply': message.parentId !== null }")
   .discussion-item__row
     .discussion-item__header
-      UserAvatar.discussion-item__avatar(:name="message.memberName" :avatar-url="message.memberAvatarUrl" size="sm")
-      span.discussion-item__name {{ message.memberName }}
+      template(v-if="message.memberId")
+        RouterLink.member-link(:to="`/members/${message.memberId}`")
+          UserAvatar.discussion-item__avatar(:name="message.memberName" :avatar-url="message.memberAvatarUrl" size="sm")
+          span.discussion-item__name {{ message.memberName }}
+      template(v-else)
+        UserAvatar.discussion-item__avatar(:name="message.memberName" :avatar-url="message.memberAvatarUrl" size="sm")
+        span.discussion-item__name {{ message.memberName }}
       time.discussion-item__time(v-if="formattedDate") {{ formattedDate }}
     p.discussion-item__text {{ message.text }}
 

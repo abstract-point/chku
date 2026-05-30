@@ -330,7 +330,7 @@ header.app-header
   line-height: 1.3;
 
   @include mobile-only {
-    font-size: 0.82rem;
+    display: none;
   }
 }
 

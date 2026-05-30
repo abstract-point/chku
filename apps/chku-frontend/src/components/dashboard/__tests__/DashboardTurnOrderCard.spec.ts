@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, RouterLinkStub } from '@vue/test-utils'
 import DashboardTurnOrderCard from '@/components/dashboard/DashboardTurnOrderCard.vue'
 import type { TurnOrderMember } from '@/types/dashboard'
 
@@ -9,6 +9,9 @@ function mountCard(members: TurnOrderMember[], isAdmin = false) {
       members,
       cycleStatus: 'active',
       isAdmin,
+    },
+    global: {
+      stubs: { RouterLink: RouterLinkStub },
     },
   })
 }

@@ -180,8 +180,9 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   ul.data-list.club-progress(role="list")
     li.data-list__item.club-progress__item(v-for="member in membersWithMedals" :key="member.name")
       .member-status
-        UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" size="sm")
-        span.member-status__name {{ member.name }}
+        RouterLink.member-link(:to="`/members/${member.id}`")
+          UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" size="sm")
+          span.member-status__name {{ member.name }}
         img.club-progress__owl(
           v-if="member.medal"
           :class="`club-progress__owl--${member.medal}`"

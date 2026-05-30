@@ -156,8 +156,9 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
   ul.data-list.club-progress(role="list")
     li.data-list__item.club-progress__item(v-for="response in candidate.responses" :key="response.id")
       .member-status
-        UserAvatar(:name="response.member.name" :avatar-url="response.member.avatarUrl" size="sm")
-        span.member-status__name {{ response.member.name }}
+        RouterLink.member-link(:to="`/members/${response.member.id}`")
+          UserAvatar(:name="response.member.name" :avatar-url="response.member.avatarUrl" size="sm")
+          span.member-status__name {{ response.member.name }}
       span.label-text.book-selection__response-status(:class="responseModifier(response.response)")
         component(:is="responseIcon(response.response)" :size="15" aria-hidden="true")
         | {{ responseLabel(response.response) }}

@@ -125,6 +125,11 @@ main.cycle-detail.container
             .cycle-detail__meta-item
               span.label-text.cycle-detail__muted {{ $t('archiveBook.chosenBy') }}
               .cycle-detail__member
+              template(v-if="cycle.proposedById")
+                RouterLink.member-link(:to="`/members/${cycle.proposedById}`")
+                  UserAvatar(:name="cycle.proposedBy" :avatar-url="cycle.proposerAvatarUrl" size="sm")
+                  span.label-text {{ cycle.proposedBy }}
+              template(v-else)
                 UserAvatar(:name="cycle.proposedBy" :avatar-url="cycle.proposerAvatarUrl" size="sm")
                 span.label-text {{ cycle.proposedBy }}
             .cycle-detail__meta-item
@@ -147,7 +152,7 @@ main.cycle-detail.container
             span.label-text {{ cycle.candidate.status }}
           ul.data-list
             li.data-list__item(v-for="response in cycle.candidate.responses" :key="response.id")
-              span.label-text {{ response.member.name }}
+              RouterLink.member-link.label-text(:to="`/members/${response.member.id}`") {{ response.member.name }}
               span.label-text {{ response.response }}
           RouterLink.button.button--secondary.label-text(to="/") {{ $t('cycle.openDashboard') }}
 
@@ -157,7 +162,7 @@ main.cycle-detail.container
             span.label-text {{ cycle.memberProgress.length }}
           ul.data-list
             li.data-list__item(v-for="progress in cycle.memberProgress" :key="progress.id")
-              span.label-text {{ progress.member.name }}
+              RouterLink.member-link.label-text(:to="`/members/${progress.member.id}`") {{ progress.member.name }}
               span.label-text {{ progress.progressPercent ?? 0 }}%
           RouterLink.button.button--secondary.label-text(to="/") {{ $t('cycle.openDashboard') }}
 
@@ -168,8 +173,13 @@ main.cycle-detail.container
           article.panel.cycle-detail__review(v-for="review in cycle.reviews" :key="`${review.memberName}-${review.rating}`")
             .cycle-detail__review-header
               .cycle-detail__member
-                UserAvatar(:name="review.memberName" :avatar-url="review.memberAvatarUrl" size="sm")
-                span.label-text {{ review.memberName }}
+                template(v-if="review.memberId")
+                  RouterLink.member-link(:to="`/members/${review.memberId}`")
+                    UserAvatar(:name="review.memberName" :avatar-url="review.memberAvatarUrl" size="sm")
+                    span.label-text {{ review.memberName }}
+                template(v-else)
+                  UserAvatar(:name="review.memberName" :avatar-url="review.memberAvatarUrl" size="sm")
+                  span.label-text {{ review.memberName }}
               span.cycle-detail__rating.label-text {{ review.rating }}/10
             p.body-text {{ review.text }}
 
@@ -186,8 +196,9 @@ main.cycle-detail.container
           ul.data-list.cycle-detail__leaderboard
             li.data-list__item.cycle-detail__leaderboard-item(v-for="member in membersWithMedals" :key="member.id")
               .cycle-detail__leaderboard-member
-                UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" size="sm")
-                span.label-text {{ member.name }}
+                RouterLink.member-link(:to="`/members/${member.id}`")
+                  UserAvatar(:name="member.name" :avatar-url="member.avatarUrl" size="sm")
+                  span.label-text {{ member.name }}
                 img.cycle-detail__owl(
                   v-if="member.medal"
                   :class="`cycle-detail__owl--${member.medal}`"
