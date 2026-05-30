@@ -50,7 +50,9 @@ const saveRatingReviewMutation = useSaveRatingReviewMutation()
 const discussionMutation = useCreateDiscussionMessageMutation()
 const meeting = computed(() => meetingQuery.data.value)
 const isArchived = computed(() => meeting.value?.status === 'finished')
-const currentCycleNumber = computed(() => dashboardQuery.data.value?.currentBook?.cycleNumber ?? null)
+const currentCycleNumber = computed(
+  () => dashboardQuery.data.value?.currentBook?.cycleNumber ?? null,
+)
 const cycleRoute = computed(() => {
   if (!meeting.value) return '/'
   if (currentCycleNumber.value === meeting.value.cycleId) return '/'
@@ -99,10 +101,7 @@ const missingReadingAttendees = computed(() =>
 const hasMeetingQuorum = computed(
   () => (meeting.value?.attendees.length ?? 0) >= minMeetingAttendees,
 )
-const hasInactiveAttendees = computed(
-  () => meeting.value?.attendees.some((a) => a.isActive === false) ?? false,
-)
-const isMeetingTime = computed(() => meeting.value?.isMeetingTime ?? true)
+const isMeetingTime = computed(() => meeting.value?.isMeetingTime)
 const isCurrentUserAttending = computed(() => rsvpStatus.value === 'attending')
 
 function canRemoveAttendee(attendee: { id: number; isAdmin?: boolean }) {

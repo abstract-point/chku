@@ -32,7 +32,7 @@ export function mapMeetingDetail(meeting: ApiMeeting, currentUserId?: number): M
     status: meeting.status ?? 'scheduled',
     canStart: meeting.canStart ?? false,
     canFinish: meeting.canFinish ?? false,
-    isMeetingTime: meeting.isMeetingTime ?? true,
+    isMeetingTime: meeting.isMeetingTime ?? false,
     missingRatingMemberIds: meeting.missingRatingMemberIds ?? [],
     missingReadingMemberIds: meeting.missingReadingMemberIds ?? [],
     date: meeting.date,
