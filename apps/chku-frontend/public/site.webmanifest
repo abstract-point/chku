@@ -1,0 +1,21 @@
+{
+  "name": "ЧКУ — Читальный клуб умничек",
+  "short_name": "ЧКУ",
+  "description": "Закрытая платформа клуба для выбора книг, отслеживания прогресса, встреч и архива прочитанного.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1110",
+  "theme_color": "#0f1110",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
