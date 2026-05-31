@@ -200,9 +200,9 @@ final class BookSelectionStateMachine
         });
     }
 
-    public function makeQueueItemCandidate(MemberBookQueueItem $item): BookCandidate
+    public function makeQueueItemCandidate(MemberBookQueueItem $item): ?BookCandidate
     {
-        return DB::transaction(function () use ($item): BookCandidate {
+        return DB::transaction(function () use ($item): ?BookCandidate {
             $item->loadMissing('clubMember');
             $candidate = $this->activeCandidate($item->clubMember->club_id);
 
@@ -213,7 +213,9 @@ final class BookSelectionStateMachine
             );
 
             if (! $candidate) {
-                abort_if($this->activeCycle($item->clubMember->club_id), 422, 'Новый цикл нельзя начать, пока текущий цикл активен.');
+                if ($this->activeCycle($item->clubMember->club_id)) {
+                    return null;
+                }
 
                 $created = $this->createCandidateFromNextQueuedItem($item->clubMember);
                 abort_if(! $created, 422, 'Не удалось создать кандидата из очереди.');

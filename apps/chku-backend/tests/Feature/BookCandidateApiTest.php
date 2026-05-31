@@ -10,11 +10,13 @@ use App\Models\BookCandidate;
 use App\Models\BookCandidateResponse;
 use App\Models\Club;
 use App\Models\ClubMember;
+use App\Models\Meeting;
 use App\Models\MemberBookQueueItem;
 use App\Models\ReadingCycle;
 use App\Models\TurnOrder;
 use App\Models\User;
 use App\Services\BookSelectionStateMachine;
+use App\Services\MemberBookQueueService;
 use App\Services\TurnOrderService;
 use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -181,6 +183,52 @@ class BookCandidateApiTest extends TestCase
             BookCandidateResponse::where('book_candidate_id', $activeCandidate->id)->count(),
         );
         $this->assertSame($turnOrderBefore, $this->turnOrderEmails($candidate->proposer->club_id));
+    }
+
+    public function test_current_selector_can_promote_queue_item_during_started_active_meeting(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $cycle = ReadingCycle::with('proposer.user')
+            ->where('status', ReadingCycleStatusEnum::Active)
+            ->firstOrFail();
+
+        Meeting::where('reading_cycle_id', $cycle->id)->firstOrFail()->update([
+            'started_at' => now(),
+            'finished_at' => null,
+        ]);
+
+        $queue = app(MemberBookQueueService::class);
+        $items = $queue->orderedLiveItems($cycle->proposer)
+            ->filter(fn (MemberBookQueueItem $item): bool => $item->status === MemberBookQueueItemStatusEnum::Queued)
+            ->values();
+
+        $originalHead = $items->first();
+        $replacement = $items->skip(1)->first();
+
+        $this->assertNotNull($originalHead);
+        $this->assertNotNull($replacement);
+
+        $response = $this->actingAs($cycle->proposer->user)
+            ->postJson("/api/me/book-queue/{$replacement->id}/candidate");
+
+        $response->assertOk();
+
+        $this->assertSame(
+            $replacement->id,
+            $queue->orderedLiveItems($cycle->proposer)->first()?->id,
+        );
+        $this->assertDatabaseHas('member_book_queue_items', [
+            'id' => $replacement->id,
+            'status' => MemberBookQueueItemStatusEnum::Queued->value,
+        ]);
+        $this->assertDatabaseMissing('reading_cycles', [
+            'club_id' => $cycle->club_id,
+            'status' => ReadingCycleStatusEnum::Proposed->value,
+        ]);
+        $this->assertDatabaseMissing('book_candidates', [
+            'status' => BookCandidateStatusEnum::Pending->value,
+        ]);
     }
 
     public function test_owner_cannot_replace_candidate_after_all_members_answered_not_read(): void
