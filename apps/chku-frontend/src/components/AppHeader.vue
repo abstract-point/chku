@@ -323,8 +323,8 @@ header.app-header(ref="headerRef" :class="{ 'app-header--hidden': isHeaderHidden
   padding-left: var(--space-md);
   padding-right: var(--space-md);
   background: color-mix(in srgb, var(--bg-base) 10%, transparent);
-  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   transition: transform 0.25s ease;
 
   @include desktop {
@@ -338,8 +338,8 @@ header.app-header(ref="headerRef" :class="{ 'app-header--hidden': isHeaderHidden
     padding-right: 0;
     margin-bottom: var(--space-lg);
     background: transparent;
-    backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
 
