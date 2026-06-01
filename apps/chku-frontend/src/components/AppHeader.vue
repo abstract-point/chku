@@ -22,6 +22,7 @@ const menuRoot = ref<HTMLElement | null>(null)
 const clubName = computed(() => clubQuery.data.value?.name ?? 'ЧКУ')
 const isHeaderHidden = ref(false)
 const lastScrollY = ref(0)
+const headerRef = ref<HTMLElement | null>(null)
 
 const roleLabel = computed(() => {
   if (isDeveloper.value) return t('nav.roleDev')
@@ -102,6 +103,10 @@ onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
   window.addEventListener('scroll', handleScroll, { passive: true })
 
+  if (headerRef.value) {
+    document.documentElement.style.setProperty('--header-height', `${headerRef.value.offsetHeight}px`)
+  }
+
   window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
     if (!localStorage.getItem('chku-theme')) {
       applyTheme(event.matches ? 'dark' : 'light')
@@ -117,7 +122,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template lang="pug">
-header.app-header(:class="{ 'app-header--hidden': isHeaderHidden }")
+header.app-header(ref="headerRef" :class="{ 'app-header--hidden': isHeaderHidden }")
   .app-header__mobile(v-if="isAuthenticated")
     button.app-header__drawer-toggle(
       type="button"
@@ -299,17 +304,32 @@ header.app-header(:class="{ 'app-header--hidden': isHeaderHidden }")
   gap: var(--space-md);
   padding-top: 1.1rem;
   padding-bottom: 1.1rem;
-  margin-bottom: var(--space-lg);
+  margin-bottom: 0;
   border-bottom: var(--border-width) solid var(--border);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 30;
+  max-width: var(--container-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   transition: transform 0.25s ease;
 
   @include desktop {
     position: static;
+    left: auto;
+    right: auto;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    margin-bottom: var(--space-lg);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
