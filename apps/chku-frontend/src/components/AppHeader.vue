@@ -20,6 +20,8 @@ const isNavDrawerOpen = ref(false)
 const isUserDrawerOpen = ref(false)
 const menuRoot = ref<HTMLElement | null>(null)
 const clubName = computed(() => clubQuery.data.value?.name ?? 'ЧКУ')
+const isHeaderHidden = ref(false)
+const lastScrollY = ref(0)
 
 const roleLabel = computed(() => {
   if (isDeveloper.value) return t('nav.roleDev')
@@ -80,10 +82,25 @@ function handleKeydown(event: KeyboardEvent) {
   }
 }
 
+function handleScroll() {
+  const currentY = window.scrollY
+
+  if (currentY <= 80) {
+    isHeaderHidden.value = false
+  } else if (currentY > lastScrollY.value) {
+    isHeaderHidden.value = true
+  } else if (currentY < lastScrollY.value) {
+    isHeaderHidden.value = false
+  }
+
+  lastScrollY.value = currentY
+}
+
 onMounted(() => {
   applyTheme(getPreferredTheme())
   document.addEventListener('click', handleDocumentClick)
   document.addEventListener('keydown', handleKeydown)
+  window.addEventListener('scroll', handleScroll, { passive: true })
 
   window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
     if (!localStorage.getItem('chku-theme')) {
@@ -95,11 +112,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleDocumentClick)
   document.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
 <template lang="pug">
-header.app-header
+header.app-header(:class="{ 'app-header--hidden': isHeaderHidden }")
   .app-header__mobile(v-if="isAuthenticated")
     button.app-header__drawer-toggle(
       type="button"
@@ -283,6 +301,26 @@ header.app-header
   padding-bottom: 1.1rem;
   margin-bottom: var(--space-lg);
   border-bottom: var(--border-width) solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform 0.25s ease;
+
+  @include desktop {
+    position: static;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+.app-header--hidden {
+  transform: translateY(-100%);
+
+  @include desktop {
+    transform: none;
+  }
 }
 
 .app-header__mobile {
