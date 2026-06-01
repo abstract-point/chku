@@ -34,9 +34,20 @@ const deactivateMemberMutation = useDeactivateMemberMutation()
 const initReadingProgressMutation = useInitReadingProgressMutation()
 const activateMemberMutation = useActivateMemberMutation()
 const leaderMemberIds = computed(() => {
-  const progress = dashboardQuery.data.value?.memberProgress
-  if (!progress) return null
-  return new Set(progress.map((m) => m.id))
+  const data = dashboardQuery.data.value
+  if (!data) return null
+
+  const progress = data.memberProgress
+  if (progress && progress.length > 0) {
+    return new Set(progress.map((m) => m.id))
+  }
+
+  const candidate = data.activeCandidate
+  if (candidate?.responses) {
+    return new Set(candidate.responses.map((r) => r.member.id))
+  }
+
+  return null
 })
 
 const searchQuery = ref('')
