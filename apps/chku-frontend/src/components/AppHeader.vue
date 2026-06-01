@@ -88,9 +88,15 @@ function handleScroll() {
 
   if (currentY <= 80) {
     isHeaderHidden.value = false
-  } else if (currentY > lastScrollY.value) {
+    lastScrollY.value = currentY
+    return
+  }
+
+  const delta = currentY - lastScrollY.value
+
+  if (delta > 3) {
     isHeaderHidden.value = true
-  } else if (currentY < lastScrollY.value) {
+  } else if (delta < -3) {
     isHeaderHidden.value = false
   }
 
@@ -316,6 +322,7 @@ header.app-header(ref="headerRef" :class="{ 'app-header--hidden': isHeaderHidden
   margin-right: auto;
   padding-left: var(--space-md);
   padding-right: var(--space-md);
+  background: color-mix(in srgb, var(--bg-base) 10%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   transition: transform 0.25s ease;
@@ -330,6 +337,7 @@ header.app-header(ref="headerRef" :class="{ 'app-header--hidden': isHeaderHidden
     padding-left: 0;
     padding-right: 0;
     margin-bottom: var(--space-lg);
+    background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
