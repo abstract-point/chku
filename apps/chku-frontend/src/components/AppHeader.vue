@@ -23,6 +23,7 @@ const clubName = computed(() => clubQuery.data.value?.name ?? 'ЧКУ')
 const isHeaderHidden = ref(false)
 const lastScrollY = ref(0)
 const headerRef = ref<HTMLElement | null>(null)
+const scrollDelta = 10
 
 const roleLabel = computed(() => {
   if (isDeveloper.value) return t('nav.roleDev')
@@ -94,9 +95,9 @@ function handleScroll() {
 
   const delta = currentY - lastScrollY.value
 
-  if (delta > 3) {
+  if (delta > scrollDelta) {
     isHeaderHidden.value = true
-  } else if (delta < -3) {
+  } else if (delta < -scrollDelta) {
     isHeaderHidden.value = false
   }
 
