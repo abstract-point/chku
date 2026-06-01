@@ -10,6 +10,9 @@
 
 {
     email admin@YOUR_DOMAIN
+    servers {
+        protocols h1 h2
+    }
 }
 
 (security_headers) {
@@ -27,7 +30,7 @@ www.YOUR_DOMAIN {
 }
 
 YOUR_DOMAIN {
-    encode zstd gzip
+    encode gzip
     import security_headers
     reverse_proxy 127.0.0.1:8080
 
