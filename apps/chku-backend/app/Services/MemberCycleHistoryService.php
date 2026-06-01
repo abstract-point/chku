@@ -17,6 +17,7 @@ final class MemberCycleHistoryService
         return ReadingCycle::query()
             ->with([
                 'book.genres',
+                'book.primaryCover',
                 'proposer.user',
                 'ratings',
                 'reviews',
