@@ -62,7 +62,7 @@ describe('HomeView', () => {
     expect(wrapper.text()).toContain('Ответы клуба')
     expect(wrapper.text()).toContain('Ждём ответ')
     expect(wrapper.text()).toContain('Прочитаю')
-    expect(wrapper.text()).toContain('Я читал(а)')
+    expect(wrapper.text()).toContain('Уже читал(а)')
     expect(wrapper.text()).not.toContain('Текущий цикл')
     expect(wrapper.text()).not.toContain('Тень ветра')
     expect(wrapper.text()).not.toContain('Текущий цикл ещё не начат')

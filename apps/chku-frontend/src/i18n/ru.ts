@@ -177,17 +177,17 @@ export default {
     awaitingVerification: 'Ожидает проверки',
     proposedBy: 'Предложил(а) {name}',
 
-    iveRead: 'Я читал(а)',
+    iveRead: 'Уже читал(а)',
     notRead: 'Прочитаю',
     confirmBook: 'Подтвердить книгу',
     waitingOwner: 'Ожидаем финальное подтверждение владельца.',
     responseSaved: 'Твой ответ сохранён: {response}.',
     clubResponses: 'Ответы клуба',
-    respRead: 'Читал(а)',
+    respRead: 'Уже читал(а)',
     respNotRead: 'Прочитаю',
     respPending: 'Ждём ответ',
     summaryAllClear: 'Все активные участники готовы прочитать книгу.',
-    summaryHasRead: 'Есть ответ «читал(а)», этот кандидат не пройдёт проверку.',
+    summaryHasRead: 'Есть ответ «уже читал(а)», этот кандидат не пройдёт проверку.',
     summaryCounts: 'Ответили «прочитаю»: {notRead}. Ждём: {pending}.',
 
     turnOrder: 'Очередь выбора',
@@ -238,10 +238,10 @@ export default {
     verifText: '{proposer} предложила «{title}» — {author}. Будешь читать эту книгу?',
     verifOwnerWaiting:
       'Все ответили, что прочитают книгу. Ожидаем финальное подтверждение владельца.',
-    verifHasRead: 'Есть ответ "читал(а)", кандидат будет отклонён.',
+    verifHasRead: 'Есть ответ "уже читал(а)", кандидат будет отклонён.',
     verifWaiting: 'Ожидаем ответов: {n}.',
     verifConfirm: 'Подтвердить книгу',
-    verifRead: 'Я читал(а)',
+    verifRead: 'Уже читал(а)',
     verifNotRead: 'Прочитаю',
   },
 
