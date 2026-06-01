@@ -19,6 +19,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Enums\BookCandidateResponseEnum;
+use App\Enums\BookCandidateStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
 use App\Enums\ReadingProgressStatusEnum;
 use App\Models\ReadingCycle;
@@ -248,7 +250,7 @@ final class ClubMemberController extends Controller
         abort_unless($request->user()?->hasAnyRole(['admin', 'developer']), 403);
 
         $cycle = ReadingCycle::query()
-            ->where('status', ReadingCycleStatusEnum::Active)
+            ->whereNot('status', ReadingCycleStatusEnum::Completed)
             ->first();
 
         if (! $cycle) {
@@ -283,6 +285,20 @@ final class ClubMemberController extends Controller
                     subject: $cycle->book?->title ?? "Цикл #{$cycle->cycle_number}",
                     description: "{$actor->name} добавил {$member->user?->name} в лидеры цикла #{$cycle->cycle_number}.",
                 );
+            }
+        }
+
+        if ($cycle->status === ReadingCycleStatusEnum::Proposed) {
+            $candidate = $cycle->bookCandidate()
+                ->whereIn('status', [BookCandidateStatusEnum::Pending, BookCandidateStatusEnum::AwaitingOwnerConfirmation])
+                ->latest()
+                ->first();
+
+            if ($candidate && ! $candidate->responses()->where('club_member_id', $member->id)->exists()) {
+                $candidate->responses()->create([
+                    'club_member_id' => $member->id,
+                    'response' => BookCandidateResponseEnum::Pending,
+                ]);
             }
         }
 
