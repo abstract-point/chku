@@ -234,15 +234,15 @@ main.members.container
         .member-card__owls(:aria-label="t('profile.owlsAria')")
           .member-card__owl
             .member-card__owl-row
-              img.member-card__owl-icon.member-card__owl-icon--gold(src="/favicon.svg" :alt="t('profile.owlGold')")
+              img.member-card__owl-icon.member-card__owl-icon--gold(src="/owl.svg" :alt="t('profile.owlGold')")
               span.member-card__owl-value {{ member.stats.goldOwls }}
           .member-card__owl
             .member-card__owl-row
-              img.member-card__owl-icon.member-card__owl-icon--silver(src="/favicon.svg" :alt="t('profile.owlSilver')")
+              img.member-card__owl-icon.member-card__owl-icon--silver(src="/owl.svg" :alt="t('profile.owlSilver')")
               span.member-card__owl-value {{ member.stats.silverOwls }}
           .member-card__owl
             .member-card__owl-row
-              img.member-card__owl-icon.member-card__owl-icon--bronze(src="/favicon.svg" :alt="t('profile.owlBronze')")
+              img.member-card__owl-icon.member-card__owl-icon--bronze(src="/owl.svg" :alt="t('profile.owlBronze')")
               span.member-card__owl-value {{ member.stats.bronzeOwls }}
         .member-card__stats
           .member-card__stat

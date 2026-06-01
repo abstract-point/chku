@@ -202,7 +202,7 @@ main.cycle-detail.container
                 img.cycle-detail__owl(
                   v-if="member.medal"
                   :class="`cycle-detail__owl--${member.medal}`"
-                  src="/favicon.svg"
+                  src="/owl.svg"
                   :alt="medalLabel(member.medal)"
                   :title="medalLabel(member.medal)"
                 )

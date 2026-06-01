@@ -103,13 +103,13 @@ main.profile.container
 
       .profile__owls(:aria-label="t('profile.owlsAria')")
         .profile__owl-stat
-          img.profile__owl-icon.profile__owl-icon--gold(src="/favicon.svg" :alt="t('profile.owlGold')")
+          img.profile__owl-icon.profile__owl-icon--gold(src="/owl.svg" :alt="t('profile.owlGold')")
           span.profile__stat-value {{ currentMember.stats.goldOwls }}
         .profile__owl-stat
-          img.profile__owl-icon.profile__owl-icon--silver(src="/favicon.svg" :alt="t('profile.owlSilver')")
+          img.profile__owl-icon.profile__owl-icon--silver(src="/owl.svg" :alt="t('profile.owlSilver')")
           span.profile__stat-value {{ currentMember.stats.silverOwls }}
         .profile__owl-stat
-          img.profile__owl-icon.profile__owl-icon--bronze(src="/favicon.svg" :alt="t('profile.owlBronze')")
+          img.profile__owl-icon.profile__owl-icon--bronze(src="/owl.svg" :alt="t('profile.owlBronze')")
           span.profile__stat-value {{ currentMember.stats.bronzeOwls }}
 
       .profile__stats(:aria-label="t('profile.statsAria')")

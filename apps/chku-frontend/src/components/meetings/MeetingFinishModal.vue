@@ -143,7 +143,7 @@ AppModal(:is-open="isOpen" :title="t('meetings.finishTitle')" @close="$emit('clo
           .finish-modal__owl(v-if="item.owlAward")
             img.finish-modal__owl-icon(
               :class="`finish-modal__owl-icon--${item.owlAward.medal}`"
-              src="/favicon.svg"
+              src="/owl.svg"
               :alt="medalLabel(item.owlAward.medal)"
               :title="medalLabel(item.owlAward.medal)"
             )

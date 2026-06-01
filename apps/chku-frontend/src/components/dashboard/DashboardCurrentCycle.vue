@@ -216,7 +216,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
         img.club-progress__owl(
           v-if="member.medal"
           :class="`club-progress__owl--${member.medal}`"
-          src="/favicon.svg"
+          src="/owl.svg"
           :alt="medalLabel(member.medal)"
           :title="medalLabel(member.medal)"
         )

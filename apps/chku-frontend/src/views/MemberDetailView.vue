@@ -49,13 +49,13 @@ main.member-detail.container(v-else-if="member")
 
       .member-detail__owls(:aria-label="t('profile.owlsAria')")
         .member-detail__owl-stat
-          img.member-detail__owl-icon.member-detail__owl-icon--gold(src="/favicon.svg" :alt="t('profile.owlGold')")
+          img.member-detail__owl-icon.member-detail__owl-icon--gold(src="/owl.svg" :alt="t('profile.owlGold')")
           span.member-detail__stat-value {{ member.stats.goldOwls }}
         .member-detail__owl-stat
-          img.member-detail__owl-icon.member-detail__owl-icon--silver(src="/favicon.svg" :alt="t('profile.owlSilver')")
+          img.member-detail__owl-icon.member-detail__owl-icon--silver(src="/owl.svg" :alt="t('profile.owlSilver')")
           span.member-detail__stat-value {{ member.stats.silverOwls }}
         .member-detail__owl-stat
-          img.member-detail__owl-icon.member-detail__owl-icon--bronze(src="/favicon.svg" :alt="t('profile.owlBronze')")
+          img.member-detail__owl-icon.member-detail__owl-icon--bronze(src="/owl.svg" :alt="t('profile.owlBronze')")
           span.member-detail__stat-value {{ member.stats.bronzeOwls }}
 
       .member-detail__stats(:aria-label="t('memberDetail.statsAria')")
