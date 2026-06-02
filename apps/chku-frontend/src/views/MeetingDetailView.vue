@@ -20,6 +20,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import MeetingFinishModal from '@/components/meetings/MeetingFinishModal.vue'
 import DiscussionBlock from '@/components/discussion/DiscussionBlock.vue'
 import AppRangeInput from '@/components/ui/AppRangeInput.vue'
+import CollapseTransition from '@/components/ui/CollapseTransition.vue'
 import SecondaryButton from '@/components/ui/SecondaryButton.vue'
 import {
   useFinishMeetingMutation,
@@ -254,69 +255,71 @@ main.meeting-detail.container
                     | {{ attendee.name }}{{ idx < missingRatingAttendees.length - 1 ? ', ' : '' }}
               p.proposal__error(v-if="finishMeetingMutation.error.value") {{ $t('meetings.finishError') }}
 
-        form.panel.meeting-detail__rating(v-if="shouldShowRatingForm" @submit.prevent="submitRatingReview" novalidate)
-          template(v-if="hasSubmittedRating && !isEditingRating")
-            .section-header.section-header--compact
-              h2 {{ $t('meetings.ratingReview') }}
-            .meeting-detail__rating-submitted
-              .meeting-detail__rating-submitted-value
-                Star.meeting-detail__rating-submitted-icon(:size="20" aria-hidden="true")
-                span.meeting-detail__rating-number {{ currentUserRating }}
-                span.label-text {{ $t('meetings.of10') }}
-              p.meeting-detail__rating-submitted-review(v-if="currentUserReview") {{ currentUserReview }}
-              SecondaryButton(
-                v-if="!isArchived"
-                type="button"
-                :icon="Pencil"
-                @click="editRating"
-              ) {{ $t('common.edit') }}
-          template(v-else)
-            .section-header.section-header--compact
-              h2 {{ $t('meetings.ratingReview') }}
-            .meeting-detail__rating-prompt
-              Star.meeting-detail__rating-prompt-icon(:size="22" aria-hidden="true")
-              .meeting-detail__rating-prompt-text
-                span.label-text {{ $t('meetings.ratingAction') }}
-                h2 {{ $t('meetings.rateBook') }}
-                p.body-text {{ $t('meetings.rateBookText') }}
-            .meeting-detail__rating-row
-              label.label-text(for="meeting-rating") {{ $t('meetings.rating') }}
-              .meeting-detail__rating-input-group
-                AppRangeInput#meeting-rating(
-                  v-model="rating"
-                  :min="1"
-                  :max="10"
-                  :step="0.1"
-                  :aria-label="t('meetings.ratingAria')"
-                )
-                .meeting-detail__rating-number-input
-                  input.field-control(
-                    v-model.number="rating"
-                    type="number"
-                    min="1"
-                    max="10"
-                    step="0.1"
-                    :placeholder="t('meetings.rating')"
-                    :aria-invalid="ratingSubmitted && !rating"
+        CollapseTransition
+          form.panel.meeting-detail__rating(v-if="shouldShowRatingForm" @submit.prevent="submitRatingReview" novalidate)
+            Transition(name="list" mode="out-in")
+              .meeting-detail__rating-submitted-wrapper(v-if="hasSubmittedRating && !isEditingRating" key="submitted")
+                .section-header.section-header--compact
+                  h2 {{ $t('meetings.ratingReview') }}
+                .meeting-detail__rating-submitted
+                  .meeting-detail__rating-submitted-value
+                    Star.meeting-detail__rating-submitted-icon(:size="20" aria-hidden="true")
+                    span.meeting-detail__rating-number {{ currentUserRating }}
+                    span.label-text {{ $t('meetings.of10') }}
+                  p.meeting-detail__rating-submitted-review(v-if="currentUserReview") {{ currentUserReview }}
+                  SecondaryButton(
+                    v-if="!isArchived"
+                    type="button"
+                    :icon="Pencil"
+                    @click="editRating"
+                  ) {{ $t('common.edit') }}
+              .meeting-detail__rating-edit-wrapper(v-else key="edit")
+                .section-header.section-header--compact
+                  h2 {{ $t('meetings.ratingReview') }}
+                .meeting-detail__rating-prompt
+                  Star.meeting-detail__rating-prompt-icon(:size="22" aria-hidden="true")
+                  .meeting-detail__rating-prompt-text
+                    span.label-text {{ $t('meetings.ratingAction') }}
+                    h2 {{ $t('meetings.rateBook') }}
+                    p.body-text {{ $t('meetings.rateBookText') }}
+                .meeting-detail__rating-row
+                  label.label-text(for="meeting-rating") {{ $t('meetings.rating') }}
+                  .meeting-detail__rating-input-group
+                    AppRangeInput#meeting-rating(
+                      v-model="rating"
+                      :min="1"
+                      :max="10"
+                      :step="0.1"
+                      :aria-label="t('meetings.ratingAria')"
+                    )
+                    .meeting-detail__rating-number-input
+                      input.field-control(
+                        v-model.number="rating"
+                        type="number"
+                        min="1"
+                        max="10"
+                        step="0.1"
+                        :placeholder="t('meetings.rating')"
+                        :aria-invalid="ratingSubmitted && !rating"
+                      )
+                      span.label-text {{ $t('meetings.of10') }}
+                p.proposal__error(v-if="ratingSubmitted && !rating") {{ $t('meetings.ratingRequired') }}
+                .meeting-detail__rating-row
+                  label.label-text(for="meeting-review") {{ $t('meetings.review') }}
+                  textarea#meeting-review.field-control.meeting-detail__input.meeting-detail__review(
+                    v-model="review"
+                    :placeholder="t('meetings.reviewPlaceholder')"
                   )
-                  span.label-text {{ $t('meetings.of10') }}
-            p.proposal__error(v-if="ratingSubmitted && !rating") {{ $t('meetings.ratingRequired') }}
-            .meeting-detail__rating-row
-              label.label-text(for="meeting-review") {{ $t('meetings.review') }}
-              textarea#meeting-review.field-control.meeting-detail__input.meeting-detail__review(
-                v-model="review"
-                :placeholder="t('meetings.reviewPlaceholder')"
-              )
-            .meeting-detail__rating-actions
-              button.button.button--ghost.label-text(
-                v-if="isEditingRating"
-                type="button"
-                @click="isEditingRating = false"
-              ) {{ $t('common.cancel') }}
-              button.button.button--primary.label-text(type="submit" :disabled="saveRatingReviewMutation.isPending.value")
-                | {{ saveRatingReviewMutation.isPending.value ? $t('meetings.savingRating') : $t('meetings.saveRating') }}
-            p.body-text(v-if="saveRatingReviewMutation.isSuccess.value") {{ $t('meetings.ratingSaved') }}
-            p.proposal__error(v-if="saveRatingReviewMutation.error.value") {{ $t('meetings.ratingError') }}
+                .meeting-detail__rating-actions
+                  button.button.button--ghost.label-text(
+                    v-if="isEditingRating"
+                    type="button"
+                    @click="isEditingRating = false"
+                  ) {{ $t('common.cancel') }}
+                  button.button.button--primary.label-text(type="submit" :disabled="saveRatingReviewMutation.isPending.value")
+                    | {{ saveRatingReviewMutation.isPending.value ? $t('meetings.savingRating') : $t('meetings.saveRating') }}
+                p.body-text(v-if="saveRatingReviewMutation.isSuccess.value") {{ $t('meetings.ratingSaved') }}
+                p.proposal__error(v-if="saveRatingReviewMutation.error.value") {{ $t('meetings.ratingError') }}
 
         section.panel.meeting-detail__info(aria-labelledby="meeting-info-title")
           .section-header.section-header--compact
@@ -757,6 +760,12 @@ main.meeting-detail.container
   display: grid;
   gap: var(--space-md);
   grid-area: rating;
+}
+
+.meeting-detail__rating-submitted-wrapper,
+.meeting-detail__rating-edit-wrapper {
+  display: grid;
+  gap: var(--space-md);
 }
 
 .meeting-detail__rating-row {
