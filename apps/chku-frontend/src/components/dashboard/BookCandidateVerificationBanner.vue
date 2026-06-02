@@ -44,7 +44,7 @@ section.book-candidate-banner(aria-labelledby="verification-title")
     p.book-candidate-banner__text
       | {{ $t('dash.verifText', { proposer: choice.proposerName, title: choice.bookTitle, author: choice.author }) }}
     p.book-candidate-banner__text(v-if="choice.status === 'awaiting_owner_confirmation'")
-      | {{ $t('dash.verifOwnerWaiting') }}
+      | {{ $t('dash.verifOwnerWaiting', { name: choice.proposerName }) }}
     p.book-candidate-banner__text(v-else-if="readCount > 0")
       | {{ $t('dash.verifHasRead') }}
     p.book-candidate-banner__text(v-else)

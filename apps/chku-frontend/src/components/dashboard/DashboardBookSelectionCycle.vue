@@ -4,6 +4,7 @@ import { Check, Clock3, Pencil, X } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
 import CycleBookForm from '@/components/books/CycleBookForm.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import CollapseTransition from '@/components/ui/CollapseTransition.vue'
 import type { ApiBookCandidate, ApiBookCandidateResponse } from '@/api/types'
 import { useAuthSession } from '@/queries/authQueries'
 import {
@@ -111,43 +112,48 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
           br
 
     .current-book__details
-      CycleBookForm(
-        v-if="isBookFormOpen && editCycleNumber"
-        :cycle-number="editCycleNumber"
-        :book="candidate.book"
-        id-prefix="candidate-book"
-        @cancel="isBookFormOpen = false"
-        @saved="isBookFormOpen = false"
-      )
-      template(v-else)
-        .current-book__meta
-          h1 {{ candidate.book.title }}
-          p.current-book__author — {{ candidate.book.author }}
-        p.body-text.current-book__description
-          | {{ candidate.description }}
-        .book-selection__actions(v-if="canRespond || candidate.canConfirm")
-          button.button.button--secondary.label-text(
-            v-if="canRespond"
-            type="button"
-            :disabled="isPending"
-            @click="respond('read')"
-          ) {{ $t('dash.iveRead') }}
-          button.button.button--inverted.label-text(
-            v-if="canRespond"
-            type="button"
-            :disabled="isPending"
-            @click="respond('not_read')"
-          ) {{ $t('dash.notRead') }}
-          button.button.button--primary.label-text(
-            v-if="candidate.canConfirm"
-            type="button"
-            :disabled="isPending"
-            @click="confirm"
-          ) {{ $t('dash.confirmBook') }}
-        p.body-text.book-selection__note(v-else-if="candidate.status === 'awaiting_owner_confirmation'")
-          | {{ $t('dash.waitingOwner') }}
-        p.body-text.book-selection__note(v-else-if="currentResponse && currentResponse.response !== 'pending'")
-          | {{ $t('dash.responseSaved', { response: responseLabel(currentResponse.response) }) }}
+      CollapseTransition(mode="out-in")
+        .current-book__edit-wrapper(v-if="isBookFormOpen && editCycleNumber" key="form")
+          CycleBookForm(
+            :cycle-number="editCycleNumber"
+            :book="candidate.book"
+            id-prefix="candidate-book"
+            @cancel="isBookFormOpen = false"
+            @saved="isBookFormOpen = false"
+          )
+        .current-book__details-content(v-else key="details")
+          .current-book__meta
+            p.current-book__proposer {{ $t('dash.proposedBy', { name: candidate.proposer.name }) }}
+            h1 {{ candidate.book.title }}
+            p.current-book__author — {{ candidate.book.author }}
+          p.body-text.current-book__description
+            | {{ candidate.description }}
+          .book-selection__actions(v-if="canRespond || candidate.canConfirm")
+            button.button.button--secondary.label-text(
+              v-if="canRespond"
+              type="button"
+              :disabled="isPending"
+              @click="respond('read')"
+            ) {{ $t('dash.iveRead') }}
+            button.button.button--inverted.label-text(
+              v-if="canRespond"
+              type="button"
+              :disabled="isPending"
+              @click="respond('not_read')"
+            ) {{ $t('dash.notRead') }}
+            button.button.button--primary.label-text(
+              v-if="candidate.canConfirm"
+              type="button"
+              :disabled="isPending"
+              @click="confirm"
+            ) {{ $t('dash.confirmBook') }}
+          p.body-text.book-selection__note(v-else-if="candidate.status === 'awaiting_owner_confirmation'")
+            | {{ $t('dash.waitingOwner', { name: candidate.proposer.name }) }}
+          .inline-alert.inline-alert--success.book-selection__note(v-else-if="currentResponse && currentResponse.response !== 'pending'")
+            Check(:size="16" aria-hidden="true")
+            span
+              | {{ $t('dash.responseSavedPrefix') }}
+              strong.book-selection__response-value {{ responseLabel(currentResponse.response) }}
 
   .section-header.dashboard__section-spaced
     h3 {{ $t('dash.clubResponses') }}
@@ -239,6 +245,14 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
   letter-spacing: -0.01em;
 }
 
+.current-book__proposer {
+  margin: 0 0 var(--space-xs);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
 .current-book__author {
   margin-top: var(--space-xs);
   color: var(--text-muted);
@@ -277,6 +291,14 @@ section.dashboard__main.book-selection(aria-labelledby="book-selection-title")
 .book-selection__note {
   margin-top: var(--space-md);
   color: var(--text-muted);
+  align-items: center;
+}
+
+.book-selection__response-value {
+  display: inline-block;
+  margin-left: 0.35rem;
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .club-progress {

@@ -113,7 +113,7 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
       ArrowUpDown(:size="16")
 
   template(v-if="isEditing")
-    .turn-order__list
+    TransitionGroup.turn-order__list(name="list" tag="div")
       .turn-order__card.turn-order__card--editable(
         v-for="(item, index) in editOrder"
         :key="item.memberId"
@@ -156,7 +156,7 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
       ) {{ $t('common.cancel') }}
 
   template(v-else)
-    TransitionGroup.turn-order__list(name="list" tag="div")
+    .turn-order__list
       .turn-order__card(
         v-for="item in allMembers"
         :key="item.member.memberId"
