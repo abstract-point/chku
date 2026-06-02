@@ -137,7 +137,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
     h2#current-cycle-title {{ $t('dash.currentCycle') }}
     span.label-text(v-if="cycleHeaderLabel") {{ cycleHeaderLabel }}
     button.button.button--secondary.label-text(
-      v-if="book.canEditBook"
+      v-if="book.canEditBook && !isBookFormOpen"
       type="button"
       @click="isBookFormOpen = true; isProgressFormOpen = false"
     )
