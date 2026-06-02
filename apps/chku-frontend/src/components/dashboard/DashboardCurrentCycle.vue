@@ -6,6 +6,7 @@ import { Pencil } from '@lucide/vue'
 import CycleBookForm from '@/components/books/CycleBookForm.vue'
 import DashboardReadingProgressForm from '@/components/dashboard/DashboardReadingProgressForm.vue'
 import AppModal from '@/components/ui/AppModal.vue'
+import CollapseTransition from '@/components/ui/CollapseTransition.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useUpdateReadingProgressMutation } from '@/queries/dashboardQueries'
 import type { BookProgressMember, CurrentBook } from '@/types/dashboard'
@@ -138,7 +139,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
     button.button.button--secondary.label-text(
       v-if="book.canEditBook && !isBookFormOpen"
       type="button"
-      @click="isBookFormOpen = true"
+      @click="isBookFormOpen = true; isProgressFormOpen = false"
     )
       Pencil.current-book__button-icon
       | {{ $t('cycle.editBook') }}
@@ -153,22 +154,23 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
           br
 
     .current-book__details
-      .panel.panel--filled.current-book__edit-panel(v-if="isBookFormOpen")
-        CycleBookForm(
-          :cycle-number="book.cycleNumber"
-          :book="book"
-          id-prefix="dashboard-book"
-          @cancel="isBookFormOpen = false"
-          @saved="isBookFormOpen = false"
-        )
-      template(v-else)
-        .current-book__meta
-          h1 {{ book.title }}
-          p.current-book__author — {{ book.author }}
-        .current-book__genres(v-if="book.genres?.length")
-          span.badge(v-for="g in book.genres" :key="g.id") {{ g.name }}
-        p.body-text.current-book__description
-          | {{ book.description }}
+      CollapseTransition(mode="out-in")
+        .panel.panel--filled.current-book__edit-panel(v-if="isBookFormOpen" key="form")
+          CycleBookForm(
+            :cycle-number="book.cycleNumber"
+            :book="book"
+            id-prefix="dashboard-book"
+            @cancel="isBookFormOpen = false"
+            @saved="isBookFormOpen = false"
+          )
+        .current-book__details-content(v-else key="details")
+          .current-book__meta
+            h1 {{ book.title }}
+            p.current-book__author — {{ book.author }}
+          .current-book__genres(v-if="book.genres?.length")
+            span.badge(v-for="g in book.genres" :key="g.id") {{ g.name }}
+          p.body-text.current-book__description
+            | {{ book.description }}
 
       .panel.panel--filled.current-book__progress(
         v-if="!isBookFormOpen"
@@ -184,24 +186,25 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
           .current-book__done-message
             span.label-text {{ $t('dash.doneMsg') }}
             p.body-text {{ $t('dash.doneSub') }}
-        template(v-else-if="!isProgressFormOpen")
-          .current-book__progress-header
-            span.label-text {{ $t('dash.myProgress') }}
-            span.label-text {{ book.progressLabel }}
-          .progress(:aria-label="$t('dash.myProgressAria', { pct: book.progress })")
-            .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
-          button.button.button--secondary.label-text(
-            type="button"
-            @click="openProgressForm"
-          ) {{ $t('dash.updateProgress') }}
-        DashboardReadingProgressForm(
-          v-else
-          :model-value="book.progress"
-          :is-saving="updateProgressMutation.isPending.value"
-          :error-message="progressErrorMessage"
-          @cancel="closeProgressForm"
-          @save="saveProgress"
-        )
+        CollapseTransition(mode="out-in" v-if="book.progress !== 100")
+          .current-book__progress-content(v-if="!isProgressFormOpen" key="progress")
+            .current-book__progress-header
+              span.label-text {{ $t('dash.myProgress') }}
+              span.label-text {{ book.progressLabel }}
+            .progress(:aria-label="$t('dash.myProgressAria', { pct: book.progress })")
+              .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
+            button.button.button--secondary.label-text(
+              type="button"
+              @click="openProgressForm"
+            ) {{ $t('dash.updateProgress') }}
+          .current-book__progress-form(v-else key="form")
+            DashboardReadingProgressForm(
+              :model-value="book.progress"
+              :is-saving="updateProgressMutation.isPending.value"
+              :error-message="progressErrorMessage"
+              @cancel="closeProgressForm"
+              @save="saveProgress"
+            )
 
   .section-header.dashboard__section-spaced
     h3 {{ $t('dash.clubProgress') }}
