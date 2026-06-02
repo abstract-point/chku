@@ -6,6 +6,7 @@ import { ArrowLeft, CalendarDays, MapPin, Monitor, Pencil, Star } from '@lucide/
 import CycleBookForm from '@/components/books/CycleBookForm.vue'
 import DiscussionBlock from '@/components/discussion/DiscussionBlock.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import CollapseTransition from '@/components/ui/CollapseTransition.vue'
 import { formatDateLabel, formatTimeLabel } from '@/mappers/date'
 import { useCycleQuery } from '@/queries/cycleQueries'
 
@@ -97,18 +98,9 @@ main.cycle-detail.container
       span /
       span.cycle-detail__breadcrumb-current {{ cycle.cycleLabel }}
 
-    .cycle-detail__hero(:class="{ 'cycle-detail__hero--editing': isEditingBook }")
-      .book-cover.cycle-detail__cover(:style="{ backgroundColor: cycle.book.coverColor ?? undefined }" :aria-label="t('archiveBook.coverAria', { title: cycle.book.title })")
-        img.cycle-detail__cover-image(v-if="cycle.book.coverUrl" :src="cycle.book.coverUrl" :alt="cycle.book.title")
-        .book-cover__content.cycle-detail__cover-title(v-else) {{ cycle.coverTitle }}
-
-      .cycle-detail__info
-        .cycle-detail__heading
-          span.badge.label-text(:class="cycle.status === 'completed' ? 'badge--done' : 'badge--action'") {{ cycle.statusLabel }}
-          button.button.button--secondary.label-text(v-if="cycle.canEditBook && !isEditingBook" type="button" @click="isEditingBook = true")
-            Pencil.cycle-detail__icon
-            | {{ $t('cycle.editBook') }}
-        template(v-if="isEditingBook")
+    .cycle-detail__hero
+      CollapseTransition(mode="out-in")
+        .cycle-detail__edit-panel(v-if="isEditingBook" key="form")
           CycleBookForm(
             :cycle-number="cycle.cycleNumber"
             :book="cycle.book"
@@ -116,33 +108,48 @@ main.cycle-detail.container
             @cancel="cancelEdit"
             @saved="isEditingBook = false"
           )
-        template(v-else)
-          h1.cycle-detail__title {{ cycle.book.title }}
-          p.subtitle-italic {{ cycle.book.author }}
-          .cycle-detail__genres(v-if="cycle.book.genres?.length")
-            span.badge(v-for="g in cycle.book.genres" :key="g.id") {{ g.name }}
-          .cycle-detail__meta
-            .cycle-detail__meta-item
-              span.label-text.cycle-detail__muted {{ $t('archiveBook.chosenBy') }}
-              .cycle-detail__member
-              template(v-if="cycle.proposedById")
-                RouterLink.member-link(:to="`/members/${cycle.proposedById}`")
-                  UserAvatar(:name="cycle.proposedBy" :avatar-url="cycle.proposerAvatarUrl" size="sm")
-                  span.label-text {{ cycle.proposedBy }}
-              template(v-else)
-                UserAvatar(:name="cycle.proposedBy" :avatar-url="cycle.proposerAvatarUrl" size="sm")
-                span.label-text {{ cycle.proposedBy }}
-            .cycle-detail__meta-item
-              span.label-text.cycle-detail__muted {{ $t('archiveBook.avgRating') }}
-              span.cycle-detail__rating.label-text
-                Star.cycle-detail__icon
-                | {{ cycle.rating.toFixed(1) }}/10
-            .cycle-detail__meta-item
-              span.label-text.cycle-detail__muted {{ $t('archiveBook.cycle') }}
-              span.cycle-detail__cycle.label-text
-                CalendarDays.cycle-detail__icon
-                | {{ cycle.cycleLabel }}{{ cycle.completedLabel ? ` · ${cycle.completedLabel}` : '' }}
-          p.body-text.cycle-detail__synopsis {{ cycle.book.description }}
+        .cycle-detail__view(v-else key="details")
+          .book-cover.cycle-detail__cover(:style="{ backgroundColor: cycle.book.coverColor ?? undefined }" :aria-label="t('archiveBook.coverAria', { title: cycle.book.title })")
+            img.cycle-detail__cover-image(v-if="cycle.book.coverUrl" :src="cycle.book.coverUrl" :alt="cycle.book.title")
+            .book-cover__content.cycle-detail__cover-title(v-else) {{ cycle.coverTitle }}
+
+          .cycle-detail__info
+            .cycle-detail__heading
+              span.badge.label-text(:class="cycle.status === 'completed' ? 'badge--done' : 'badge--action'") {{ cycle.statusLabel }}
+              button.button.button--secondary.label-text(
+                v-if="cycle.canEditBook"
+                type="button"
+                @click="isEditingBook = true"
+              )
+                Pencil.cycle-detail__icon
+                | {{ $t('cycle.editBook') }}
+            .cycle-detail__details-wrapper
+              h1.cycle-detail__title {{ cycle.book.title }}
+              p.subtitle-italic {{ cycle.book.author }}
+              .cycle-detail__genres(v-if="cycle.book.genres?.length")
+                span.badge(v-for="g in cycle.book.genres" :key="g.id") {{ g.name }}
+              .cycle-detail__meta
+                .cycle-detail__meta-item
+                  span.label-text.cycle-detail__muted {{ $t('archiveBook.chosenBy') }}
+                  .cycle-detail__member
+                  template(v-if="cycle.proposedById")
+                    RouterLink.member-link(:to="`/members/${cycle.proposedById}`")
+                      UserAvatar(:name="cycle.proposedBy" :avatar-url="cycle.proposerAvatarUrl" size="sm")
+                      span.label-text {{ cycle.proposedBy }}
+                  template(v-else)
+                    UserAvatar(:name="cycle.proposedBy" :avatar-url="cycle.proposerAvatarUrl" size="sm")
+                    span.label-text {{ cycle.proposedBy }}
+                .cycle-detail__meta-item
+                  span.label-text.cycle-detail__muted {{ $t('archiveBook.avgRating') }}
+                  span.cycle-detail__rating.label-text
+                    Star.cycle-detail__icon
+                    | {{ cycle.rating.toFixed(1) }}/10
+                .cycle-detail__meta-item
+                  span.label-text.cycle-detail__muted {{ $t('archiveBook.cycle') }}
+                  span.cycle-detail__cycle.label-text
+                    CalendarDays.cycle-detail__icon
+                    | {{ cycle.cycleLabel }}{{ cycle.completedLabel ? ` · ${cycle.completedLabel}` : '' }}
+              p.body-text.cycle-detail__synopsis {{ cycle.book.description }}
 
     .cycle-detail__content
       section.cycle-detail__main
@@ -259,32 +266,32 @@ main.cycle-detail.container
 }
 
 .cycle-detail__hero {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-xl);
   margin-bottom: var(--space-xl);
   padding: var(--space-lg);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-panel);
   background: var(--bg-surface);
   box-shadow: var(--shadow-panel);
+}
+
+.cycle-detail__view {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
 
   @include tablet {
     grid-template-columns: 18rem minmax(0, 1fr);
   }
 }
 
-.cycle-detail__hero--editing .cycle-detail__cover {
-  display: none;
-
-  @include tablet {
-    display: flex;
-  }
+.cycle-detail__edit-panel {
+  padding-top: var(--space-sm);
 }
 
 .cycle-detail__cover {
   position: relative;
   width: min(100%, 14rem);
+  max-height: 30rem;
   overflow: hidden;
 
   @include tablet {
