@@ -19,7 +19,11 @@ class BookCandidateResource extends JsonResource
             'proposer' => new MemberResource($this->whenLoaded('proposer')),
             'description' => $this->book?->description,
             'status' => $this->status->value,
-            'responses' => BookCandidateResponseResource::collection($this->whenLoaded('responses')),
+            'responses' => BookCandidateResponseResource::collection(
+                $this->whenLoaded('responses', fn () => $this->responses->filter(
+                    fn ($response) => $response->clubMember?->is_active,
+                )),
+            ),
             'canConfirm' => $this->status->value === 'awaiting_owner_confirmation'
                 && $currentMemberId === $this->proposer_id,
             'canEditBook' => ($request->user()?->hasAnyRole(['admin', 'developer']) ?? false)
