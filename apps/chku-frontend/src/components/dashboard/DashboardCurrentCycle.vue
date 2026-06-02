@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, TransitionGroup, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Pencil } from '@lucide/vue'
@@ -207,7 +207,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
     h3 {{ $t('dash.clubProgress') }}
     span.label-text {{ $t('dash.clubProgressCount', { n: activeProgressCount }) }}
 
-  ul.data-list.club-progress(role="list")
+  TransitionGroup.data-list.club-progress(name="list" tag="ul" role="list")
     li.data-list__item.club-progress__item(v-for="member in membersWithMedals" :key="member.name")
       .member-status
         RouterLink.member-link(:to="`/members/${member.id}`")

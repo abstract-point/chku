@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, TransitionGroup, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ArrowUpDown, Users, ArrowUp, ArrowDown, Lock } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
@@ -156,7 +156,7 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
       ) {{ $t('common.cancel') }}
 
   template(v-else)
-    .turn-order__list
+    TransitionGroup.turn-order__list(name="list" tag="div")
       .turn-order__card(
         v-for="item in allMembers"
         :key="item.member.memberId"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Send, Trash2, X } from '@lucide/vue'
+import { BookCheck, BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Trash2, X } from '@lucide/vue'
 import AppTabs from '@/components/ui/AppTabs.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
@@ -354,7 +354,7 @@ main.proposal.container
                 :aria-label="t('books.promoteAria')"
                 :title="t('books.promoteTitle')"
               )
-                Send.proposal__button-icon
+                BookCheck.proposal__button-icon
               button.button.button--secondary.label-text(
                 v-if="isEditable(item)"
                 type="button"
