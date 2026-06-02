@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, Transition } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BookCheck, BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Trash2, X } from '@lucide/vue'
 import AppTabs from '@/components/ui/AppTabs.vue'
@@ -280,8 +280,8 @@ main.proposal.container
                 .proposal__book-genres(v-if="editingId !== item.id && item.genres?.length")
                   span.badge.badge--sm(v-for="genre in item.genres" :key="genre.id") {{ genre.name }}
 
-            template(v-if="editingId === item.id")
-              .proposal__book-edit
+            Transition(name="list" mode="out-in")
+              .proposal__book-edit(v-if="editingId === item.id" key="edit")
                 .proposal__field
                   label.label-text(:for="`edit-title-${item.id}`") {{ $t('books.titleLabel') }}
                   input.field-control.proposal__input(
@@ -342,9 +342,9 @@ main.proposal.container
                   )
                     | {{ updateQueueItem.isPending.value ? $t('books.saving') : $t('books.save') }}
                 p.proposal__error(v-if="updateQueueItem.error.value") {{ $t('books.editError') }}
-            template(v-else)
-              .proposal__book-content(v-if="item.description")
-                p.proposal__book-meta {{ item.description }}
+              .proposal__book-content-wrapper(v-else key="content")
+                .proposal__book-content(v-if="item.description")
+                  p.proposal__book-meta {{ item.description }}
             .proposal__book-actions
               button.button.button--secondary.label-text(
                 v-if="index !== 0"
@@ -695,7 +695,8 @@ main.proposal.container
 }
 
 .proposal__book-content,
-.proposal__book-edit {
+.proposal__book-edit,
+.proposal__book-content-wrapper {
   grid-area: content;
   font-size: 0.82rem;
   color: var(--text-muted);
