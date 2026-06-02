@@ -3,18 +3,32 @@ set -eu
 
 cd "$(dirname "$0")/../.."
 
-. apps/chku-backend/.env
+CHKU_BACKUP_DIR="${CHKU_BACKUP_DIR:-/var/backups/chku}"
+CHKU_BACKUP_ENV="${CHKU_BACKUP_ENV:-apps/chku-backend/.env}"
+CHKU_BACKUP_COMPOSE="${CHKU_BACKUP_COMPOSE:-infra/docker/prod/docker-compose.yml}"
 
-BACKUP_DIR="backups"
-mkdir -p "$BACKUP_DIR"
+. "$CHKU_BACKUP_ENV"
 
-TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
-FILENAME="chku_${TIMESTAMP}.sql"
+if [ "$#" -gt 0 ]; then
+  OUTPUT_FILE="$1"
+else
+  TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+  OUTPUT_FILE="${CHKU_BACKUP_DIR}/snapshots/${TIMESTAMP}/database/chku.dump"
+fi
 
-docker compose --env-file apps/chku-backend/.env \
-  -f infra/docker/prod/docker-compose.yml \
+mkdir -p "$(dirname "$OUTPUT_FILE")"
+TMP_FILE="${OUTPUT_FILE}.tmp"
+rm -f "$TMP_FILE"
+
+docker compose --env-file "$CHKU_BACKUP_ENV" \
+  -f "$CHKU_BACKUP_COMPOSE" \
   exec -T db \
   pg_dump -U "${DB_USERNAME}" -d "${DB_DATABASE}" \
-  > "${BACKUP_DIR}/${FILENAME}"
+    --format=custom \
+    --no-owner \
+    --no-privileges \
+  > "$TMP_FILE"
 
-echo "Backup saved to ${BACKUP_DIR}/${FILENAME}"
+mv "$TMP_FILE" "$OUTPUT_FILE"
+
+echo "Database backup saved to ${OUTPUT_FILE}"
