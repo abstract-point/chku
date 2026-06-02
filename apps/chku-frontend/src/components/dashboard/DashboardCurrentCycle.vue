@@ -137,33 +137,33 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
     h2#current-cycle-title {{ $t('dash.currentCycle') }}
     span.label-text(v-if="cycleHeaderLabel") {{ cycleHeaderLabel }}
     button.button.button--secondary.label-text(
-      v-if="book.canEditBook && !isBookFormOpen"
+      v-if="book.canEditBook"
       type="button"
       @click="isBookFormOpen = true; isProgressFormOpen = false"
     )
       Pencil.current-book__button-icon
       | {{ $t('cycle.editBook') }}
 
-  article.current-book(:class="{ 'current-book--editing': isBookFormOpen }")
-    .book-cover.current-book__cover(:style="{ backgroundColor: book.coverColor ?? undefined }" :aria-label="$t('archive.coverAria', { title: book.title })")
-      img.current-book__cover-image(v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title")
-      .book-cover__content(v-else)
-        span.current-book__cover-label.label-text {{ $t('dash.selectedBy', { name: book.selectedBy }) }}
-        template(v-for="line in coverTitleLines" :key="line")
-          | {{ line }}
-          br
+  article.current-book
+    CollapseTransition(mode="out-in")
+      .current-book__edit(v-if="isBookFormOpen" key="form")
+        CycleBookForm(
+          :cycle-number="book.cycleNumber"
+          :book="book"
+          id-prefix="dashboard-book"
+          @cancel="isBookFormOpen = false"
+          @saved="isBookFormOpen = false"
+        )
+      .current-book__view(v-else key="details")
+        .book-cover.current-book__cover(:style="{ backgroundColor: book.coverColor ?? undefined }" :aria-label="$t('archive.coverAria', { title: book.title })")
+          img.current-book__cover-image(v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title")
+          .book-cover__content(v-else)
+            span.current-book__cover-label.label-text {{ $t('dash.selectedBy', { name: book.selectedBy }) }}
+            template(v-for="line in coverTitleLines" :key="line")
+              | {{ line }}
+              br
 
-    .current-book__details
-      CollapseTransition(mode="out-in")
-        .panel.panel--filled.current-book__edit-panel(v-if="isBookFormOpen" key="form")
-          CycleBookForm(
-            :cycle-number="book.cycleNumber"
-            :book="book"
-            id-prefix="dashboard-book"
-            @cancel="isBookFormOpen = false"
-            @saved="isBookFormOpen = false"
-          )
-        .current-book__details-content(v-else key="details")
+        .current-book__details
           .current-book__meta
             h1 {{ book.title }}
             p.current-book__author — {{ book.author }}
@@ -172,39 +172,38 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
           p.body-text.current-book__description
             | {{ book.description }}
 
-      .panel.panel--filled.current-book__progress(
-        v-if="!isBookFormOpen"
-        id="reading-progress"
-        ref="progressPanel"
-      )
-        template(v-if="book.progress === 100")
-          .current-book__progress-header
-            span.label-text {{ $t('dash.myProgress') }}
-            span.label-text {{ book.progressLabel }}
-          .progress(:aria-label="$t('dash.myProgressAria', { pct: book.progress })")
-            .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
-          .current-book__done-message
-            span.label-text {{ $t('dash.doneMsg') }}
-            p.body-text {{ $t('dash.doneSub') }}
-        CollapseTransition(mode="out-in" v-if="book.progress !== 100")
-          .current-book__progress-content(v-if="!isProgressFormOpen" key="progress")
-            .current-book__progress-header
-              span.label-text {{ $t('dash.myProgress') }}
-              span.label-text {{ book.progressLabel }}
-            .progress(:aria-label="$t('dash.myProgressAria', { pct: book.progress })")
-              .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
-            button.button.button--secondary.label-text(
-              type="button"
-              @click="openProgressForm"
-            ) {{ $t('dash.updateProgress') }}
-          .current-book__progress-form(v-else key="form")
-            DashboardReadingProgressForm(
-              :model-value="book.progress"
-              :is-saving="updateProgressMutation.isPending.value"
-              :error-message="progressErrorMessage"
-              @cancel="closeProgressForm"
-              @save="saveProgress"
-            )
+          .panel.panel--filled.current-book__progress(
+            id="reading-progress"
+            ref="progressPanel"
+          )
+            template(v-if="book.progress === 100")
+              .current-book__progress-header
+                span.label-text {{ $t('dash.myProgress') }}
+                span.label-text {{ book.progressLabel }}
+              .progress(:aria-label="$t('dash.myProgressAria', { pct: book.progress })")
+                .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
+              .current-book__done-message
+                span.label-text {{ $t('dash.doneMsg') }}
+                p.body-text {{ $t('dash.doneSub') }}
+            CollapseTransition(mode="out-in" v-if="book.progress !== 100")
+              .current-book__progress-content(v-if="!isProgressFormOpen" key="progress")
+                .current-book__progress-header
+                  span.label-text {{ $t('dash.myProgress') }}
+                  span.label-text {{ book.progressLabel }}
+                .progress(:aria-label="$t('dash.myProgressAria', { pct: book.progress })")
+                  .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
+                button.button.button--secondary.label-text(
+                  type="button"
+                  @click="openProgressForm"
+                ) {{ $t('dash.updateProgress') }}
+              .current-book__progress-form(v-else key="form")
+                DashboardReadingProgressForm(
+                  :model-value="book.progress"
+                  :is-saving="updateProgressMutation.isPending.value"
+                  :error-message="progressErrorMessage"
+                  @cancel="closeProgressForm"
+                  @save="saveProgress"
+                )
 
   .section-header.dashboard__section-spaced
     h3 {{ $t('dash.clubProgress') }}
@@ -268,15 +267,22 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 }
 
 .current-book {
+  margin-bottom: var(--space-xl);
+}
+
+.current-book__view {
   display: flex;
   flex-direction: column;
   gap: clamp(var(--space-lg), 4vw, var(--space-xl));
-  margin-bottom: var(--space-xl);
 
   @include tablet {
     display: grid;
     grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
   }
+}
+
+.current-book__edit {
+  padding-top: var(--space-sm);
 }
 
 .current-book__cover {
@@ -312,7 +318,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 .current-book__details {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: var(--space-md);
 }
 
 .current-book__meta h1 {
@@ -336,28 +342,6 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.4;
-}
-
-.current-book--editing .current-book__cover {
-  display: none;
-
-  @media (min-width: 1280px) {
-    display: flex;
-  }
-}
-
-.current-book--editing {
-  @media (min-width: 768px) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  @media (min-width: 1280px) {
-    grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
-  }
-}
-
-.current-book__edit-panel {
-  margin-top: var(--space-sm);
 }
 
 .current-book__genres {
