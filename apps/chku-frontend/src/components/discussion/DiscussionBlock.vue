@@ -19,7 +19,7 @@ const showNewComposer = ref(false)
 </script>
 
 <script lang="ts">
-import { ref } from 'vue'
+import { ref, Transition } from 'vue'
 </script>
 
 <template lang="pug">
@@ -54,8 +54,9 @@ section.discussion-block(aria-labelledby="discussion-title")
       Plus(:size="14")
       | {{ $t('discussion.addMessage') }}
 
-  .discussion-block__composer(v-if="showNewComposer")
-    DiscussionComposer(
+  Transition(name="list")
+    .discussion-block__composer(v-if="showNewComposer")
+      DiscussionComposer(
       :placeholder="$t('discussion.newPlaceholder')"
       :submit-label="$t('discussion.addMessage')"
       :is-submitting="isSubmitting"

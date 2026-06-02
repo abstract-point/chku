@@ -20,7 +20,7 @@ const formattedDate = computed(() => formatRelativeDate(props.message.createdAt)
 </script>
 
 <script lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, Transition } from 'vue'
 </script>
 
 <template lang="pug">
@@ -43,8 +43,9 @@ import { ref, computed } from 'vue'
       @click="showReplyComposer = !showReplyComposer"
     ) {{ showReplyComposer ? $t('discussion.cancel') : $t('discussion.reply') }}
 
-  .discussion-item__composer(v-if="showReplyComposer")
-    DiscussionComposer(
+  Transition(name="list")
+    .discussion-item__composer(v-if="showReplyComposer")
+      DiscussionComposer(
       :placeholder="$t('discussion.replyPlaceholder')"
       :submit-label="$t('discussion.reply')"
       :is-submitting="isSubmitting"
