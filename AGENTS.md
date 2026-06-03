@@ -80,9 +80,8 @@ Follow `docs/business-rules.md` for product behavior. The MVP centers on this fl
 Important domain constraints:
 
 - Book selection is turn-based, not vote-based.
-- Voting can be used for meeting date/time, but not as the primary book-selection mechanic.
 - A candidate cannot be approved if any active member answered `read`.
-- A candidate should not be auto-approved while any active member is `pending` or `not_sure`.
+- A candidate should not be auto-approved while any active member is `pending`.
 - Only active members participate in the turn order and candidate verification.
 - Historical selections, ratings, and reviews should remain when a member leaves the club.
 - Ratings are one per member per book within a reading cycle and range from 1 to 10.
