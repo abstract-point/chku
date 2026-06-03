@@ -5,7 +5,7 @@ DOCKER_COMPOSE := docker compose --env-file $(BACKEND_ENV)
 DEV_DOCKER_COMPOSE := $(DOCKER_COMPOSE) -f $(DEV_COMPOSE)
 PROD_DOCKER_COMPOSE := $(DOCKER_COMPOSE) -f $(PROD_COMPOSE)
 
-.PHONY: dev dev-build dev-down dev-logs prod prod-build prod-down prod-logs backend-install backend-key backend-migrate backend-shell backend-test deploy backup backup-db backup-storage restore-db
+.PHONY: dev dev-build dev-down dev-logs prod prod-build prod-down prod-logs backend-install backend-key backend-migrate backend-shell backend-test deploy backup backup-local backup-restic backup-db backup-storage restore-db
 
 dev:
 	$(DEV_DOCKER_COMPOSE) up -d --build
@@ -54,6 +54,13 @@ deploy:
 
 backup:
 	infra/scripts/backup.sh
+
+backup-local:
+	infra/scripts/backup-local.sh
+
+backup-restic:
+	@[ -n "$(SNAPSHOT)" ] || { echo "Usage: make backup-restic SNAPSHOT=/path/to/snapshot" >&2; exit 1; }
+	infra/scripts/backup-restic.sh "$(SNAPSHOT)"
 
 backup-db:
 	infra/scripts/backup-db.sh
