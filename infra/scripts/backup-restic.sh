@@ -31,7 +31,14 @@ if [ ! -f "$CHKU_RESTIC_ENV" ]; then
   exit 1
 fi
 
+set -a
 . "$CHKU_RESTIC_ENV"
+set +a
+
+: "${RESTIC_REPOSITORY:?RESTIC_REPOSITORY is required}"
+: "${RESTIC_PASSWORD:?RESTIC_PASSWORD is required}"
+: "${AWS_ACCESS_KEY_ID:?AWS_ACCESS_KEY_ID is required}"
+: "${AWS_SECRET_ACCESS_KEY:?AWS_SECRET_ACCESS_KEY is required}"
 
 if [ -z "${RESTIC_REPOSITORY:-}" ]; then
   echo "RESTIC_REPOSITORY is not set in ${CHKU_RESTIC_ENV}." >&2
