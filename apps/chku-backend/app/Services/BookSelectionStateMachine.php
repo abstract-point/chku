@@ -154,11 +154,16 @@ final class BookSelectionStateMachine
                 ->where('club_id', $candidate->proposer->club_id)
                 ->where('is_active', true)
                 ->get()
-                ->each(fn (ClubMember $member) => ReadingProgress::create([
-                    'reading_cycle_id' => $cycle->id,
-                    'club_member_id' => $member->id,
-                    'status' => ReadingProgressStatusEnum::NotStarted,
-                ]));
+                ->each(fn (ClubMember $member) => ReadingProgress::firstOrCreate(
+                    [
+                        'reading_cycle_id' => $cycle->id,
+                        'club_member_id' => $member->id,
+                    ],
+                    [
+                        'status' => ReadingProgressStatusEnum::NotStarted,
+                        'progress_percent' => 0,
+                    ],
+                ));
 
             DB::afterCommit(fn () => event(new BookCandidateConfirmed($candidate->refresh())));
 

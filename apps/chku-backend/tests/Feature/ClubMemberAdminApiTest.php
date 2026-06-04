@@ -2,9 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Enums\BookCandidateResponseEnum;
+use App\Enums\BookCandidateStatusEnum;
+use App\Enums\ReadingCycleStatusEnum;
+use App\Models\BookCandidate;
+use App\Models\BookCandidateResponse;
 use App\Models\ClubMember;
+use App\Models\ReadingCycle;
+use App\Models\ReadingProgress;
 use App\Models\TurnOrder;
 use App\Models\User;
+use App\Services\BookSelectionStateMachine;
 use App\Services\TurnOrderService;
 use Database\Seeders\TestDatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -166,6 +174,86 @@ class ClubMemberAdminApiTest extends TestCase
         $response->assertForbidden();
     }
 
+    public function test_admin_can_add_member_to_proposed_cycle_without_reading_progress(): void
+    {
+        $this->actingAsAdmin();
+        $candidate = $this->createProposedCandidate();
+        $member = $this->activateMemberByEmail('anna@example.com');
+
+        $response = $this->postJson("/api/members/{$member->id}/add-to-current-cycle");
+
+        $response->assertOk();
+        $response->assertJsonPath('message', 'Участник добавлен в цикл.');
+        $this->assertDatabaseHas('book_candidate_responses', [
+            'book_candidate_id' => $candidate->id,
+            'club_member_id' => $member->id,
+            'response' => BookCandidateResponseEnum::Pending->value,
+        ]);
+        $this->assertDatabaseMissing('reading_progress', [
+            'reading_cycle_id' => $candidate->reading_cycle_id,
+            'club_member_id' => $member->id,
+        ]);
+    }
+
+    public function test_admin_adds_member_to_proposed_cycle_idempotently(): void
+    {
+        $this->actingAsAdmin();
+        $candidate = $this->createProposedCandidate();
+        $member = $this->activateMemberByEmail('anna@example.com');
+
+        $this->postJson("/api/members/{$member->id}/add-to-current-cycle")->assertOk();
+        $this->postJson("/api/members/{$member->id}/add-to-current-cycle")
+            ->assertOk()
+            ->assertJsonPath('message', 'Участник уже добавлен в цикл.');
+
+        $this->assertSame(1, BookCandidateResponse::query()
+            ->where('book_candidate_id', $candidate->id)
+            ->where('club_member_id', $member->id)
+            ->count());
+    }
+
+    public function test_adding_member_to_awaiting_candidate_returns_it_to_pending(): void
+    {
+        $this->actingAsAdmin();
+        $candidate = $this->createProposedCandidate();
+        BookCandidateResponse::where('book_candidate_id', $candidate->id)->update([
+            'response' => BookCandidateResponseEnum::NotRead->value,
+        ]);
+        $candidate->update(['status' => BookCandidateStatusEnum::AwaitingOwnerConfirmation]);
+        $member = $this->activateMemberByEmail('anna@example.com');
+
+        $this->postJson("/api/members/{$member->id}/add-to-current-cycle")->assertOk();
+
+        $this->assertDatabaseHas('book_candidates', [
+            'id' => $candidate->id,
+            'status' => BookCandidateStatusEnum::Pending->value,
+        ]);
+    }
+
+    public function test_admin_can_add_member_to_active_cycle_with_reading_progress(): void
+    {
+        $this->actingAsAdmin();
+        $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
+        $candidate = BookCandidate::where('reading_cycle_id', $cycle->id)->first();
+        $member = $this->activateMemberByEmail('anna@example.com');
+
+        $response = $this->postJson("/api/members/{$member->id}/add-to-current-cycle");
+
+        $response->assertOk();
+        $this->assertDatabaseHas('reading_progress', [
+            'reading_cycle_id' => $cycle->id,
+            'club_member_id' => $member->id,
+        ]);
+
+        if ($candidate) {
+            $this->assertDatabaseHas('book_candidate_responses', [
+                'book_candidate_id' => $candidate->id,
+                'club_member_id' => $member->id,
+                'response' => BookCandidateResponseEnum::Pending->value,
+            ]);
+        }
+    }
+
     private function turnOrderEmails(): array
     {
         $clubId = ClubMember::whereHas('user', fn ($query) => $query->where('email', 'elena@example.com'))
@@ -175,5 +263,30 @@ class ClubMemberAdminApiTest extends TestCase
             ->orderedTurnOrders($clubId)
             ->map(fn (TurnOrder $order) => $order->clubMember?->user?->email)
             ->all();
+    }
+
+    private function createProposedCandidate(): BookCandidate
+    {
+        $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
+        $cycle->update([
+            'status' => ReadingCycleStatusEnum::Completed,
+            'completed_at' => now(),
+        ]);
+
+        app(TurnOrderService::class)->rotateAfterCompletedCycle($cycle);
+        app(BookSelectionStateMachine::class)->createCandidateForCurrentSelector($cycle->club_id);
+
+        return BookCandidate::where('status', BookCandidateStatusEnum::Pending)->latest()->firstOrFail();
+    }
+
+    private function activateMemberByEmail(string $email): ClubMember
+    {
+        $member = ClubMember::whereHas('user', fn ($query) => $query->where('email', $email))->firstOrFail();
+        $member->update([
+            'is_active' => true,
+            'deactivated_at' => null,
+        ]);
+
+        return $member->refresh();
     }
 }

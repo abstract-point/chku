@@ -6,6 +6,7 @@ use App\Enums\BookCandidateResponseEnum;
 use App\Enums\BookCandidateStatusEnum;
 use App\Enums\MemberBookQueueItemStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
+use App\Enums\ReadingProgressStatusEnum;
 use App\Models\BookCandidate;
 use App\Models\BookCandidateResponse;
 use App\Models\Club;
@@ -13,6 +14,7 @@ use App\Models\ClubMember;
 use App\Models\Meeting;
 use App\Models\MemberBookQueueItem;
 use App\Models\ReadingCycle;
+use App\Models\ReadingProgress;
 use App\Models\TurnOrder;
 use App\Models\User;
 use App\Services\BookSelectionStateMachine;
@@ -142,6 +144,38 @@ class BookCandidateApiTest extends TestCase
         ]);
         $this->assertSame(43, ReadingCycle::max('cycle_number'));
         $this->assertSame($turnOrderBefore, $this->turnOrderEmails($candidate->proposer->club_id));
+    }
+
+    public function test_owner_can_confirm_candidate_when_member_already_has_reading_progress(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $candidate = $this->createProposedCandidate();
+        $candidate->load('proposer.user');
+        $member = ClubMember::where('club_id', $candidate->proposer->club_id)
+            ->where('is_active', true)
+            ->where('id', '!=', $candidate->proposer_id)
+            ->firstOrFail();
+
+        ReadingProgress::create([
+            'reading_cycle_id' => $candidate->reading_cycle_id,
+            'club_member_id' => $member->id,
+            'status' => ReadingProgressStatusEnum::NotStarted,
+            'progress_percent' => 0,
+        ]);
+        BookCandidateResponse::where('book_candidate_id', $candidate->id)->update([
+            'response' => BookCandidateResponseEnum::NotRead->value,
+        ]);
+        $candidate->update(['status' => BookCandidateStatusEnum::AwaitingOwnerConfirmation]);
+
+        $response = $this->actingAs($candidate->proposer->user)
+            ->postJson("/api/candidates/{$candidate->id}/confirm");
+
+        $response->assertOk();
+        $this->assertSame(1, ReadingProgress::where([
+            'reading_cycle_id' => $candidate->reading_cycle_id,
+            'club_member_id' => $member->id,
+        ])->count());
     }
 
     public function test_owner_can_replace_pending_candidate_from_personal_queue(): void

@@ -23,6 +23,7 @@ use App\Enums\BookCandidateResponseEnum;
 use App\Enums\BookCandidateStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
 use App\Enums\ReadingProgressStatusEnum;
+use App\Models\BookCandidate;
 use App\Models\ReadingCycle;
 use App\Models\ReadingProgress;
 use Illuminate\Validation\ValidationException;
@@ -245,11 +246,12 @@ final class ClubMemberController extends Controller
         ]);
     }
 
-    public function initReadingProgress(Request $request, ClubMember $member): JsonResponse
+    public function addToCurrentCycle(Request $request, ClubMember $member): JsonResponse
     {
         abort_unless($request->user()?->hasAnyRole(['admin', 'developer']), 403);
 
         $cycle = ReadingCycle::query()
+            ->where('club_id', $member->club_id)
             ->whereNot('status', ReadingCycleStatusEnum::Completed)
             ->first();
 
@@ -261,51 +263,95 @@ final class ClubMemberController extends Controller
 
         if (! $member->is_active) {
             return response()->json([
-                'message' => 'Неактивного участника нельзя добавить в лидеры.',
+                'message' => 'Неактивного участника нельзя добавить в цикл.',
             ], 422);
         }
 
-        $progress = ReadingProgress::firstOrCreate(
-            [
-                'reading_cycle_id' => $cycle->id,
-                'club_member_id' => $member->id,
-            ],
-            [
-                'status' => ReadingProgressStatusEnum::NotStarted,
-                'progress_percent' => 0,
-            ],
-        );
+        $created = false;
 
-        if ($progress->wasRecentlyCreated) {
+        if ($cycle->status === ReadingCycleStatusEnum::Proposed) {
+            $candidate = $this->currentCycleCandidate($cycle, [
+                BookCandidateStatusEnum::Pending,
+                BookCandidateStatusEnum::AwaitingOwnerConfirmation,
+            ]);
+
+            if (! $candidate) {
+                return response()->json([
+                    'message' => 'В текущем цикле нет кандидата для проверки.',
+                ], 422);
+            }
+
+            $created = $this->ensureCandidateResponse($candidate, $member);
+        } elseif ($cycle->status === ReadingCycleStatusEnum::Active) {
+            $candidate = $this->currentCycleCandidate($cycle, [
+                BookCandidateStatusEnum::Approved,
+                BookCandidateStatusEnum::AwaitingOwnerConfirmation,
+                BookCandidateStatusEnum::Pending,
+            ]);
+
+            if ($candidate) {
+                $created = $this->ensureCandidateResponse($candidate, $member);
+            }
+
+            $progress = ReadingProgress::firstOrCreate(
+                [
+                    'reading_cycle_id' => $cycle->id,
+                    'club_member_id' => $member->id,
+                ],
+                [
+                    'status' => ReadingProgressStatusEnum::NotStarted,
+                    'progress_percent' => 0,
+                ],
+            );
+
+            $created = $created || $progress->wasRecentlyCreated;
+        } else {
+            return response()->json([
+                'message' => 'Участника можно добавить только в текущий цикл.',
+            ], 422);
+        }
+
+        if ($created) {
             $actor = $request->user();
             if ($actor) {
                 $this->auditLog->log(
                     actor: $actor,
-                    action: 'member_init_reading_progress',
+                    action: 'member_added_to_current_cycle',
                     subject: $cycle->book?->title ?? "Цикл #{$cycle->cycle_number}",
-                    description: "{$actor->name} добавил {$member->user?->name} в лидеры цикла #{$cycle->cycle_number}.",
+                    description: "{$actor->name} добавил {$member->user?->name} в цикл #{$cycle->cycle_number}.",
                 );
             }
         }
 
-        if ($cycle->status === ReadingCycleStatusEnum::Proposed) {
-            $candidate = $cycle->bookCandidate()
-                ->whereIn('status', [BookCandidateStatusEnum::Pending, BookCandidateStatusEnum::AwaitingOwnerConfirmation])
-                ->latest()
-                ->first();
+        return response()->json([
+            'message' => $created
+                ? 'Участник добавлен в цикл.'
+                : 'Участник уже добавлен в цикл.',
+        ]);
+    }
 
-            if ($candidate && ! $candidate->responses()->where('club_member_id', $member->id)->exists()) {
-                $candidate->responses()->create([
-                    'club_member_id' => $member->id,
-                    'response' => BookCandidateResponseEnum::Pending,
-                ]);
-            }
+    /**
+     * @param  array<int, BookCandidateStatusEnum>  $statuses
+     */
+    private function currentCycleCandidate(ReadingCycle $cycle, array $statuses): ?BookCandidate
+    {
+        return $cycle->bookCandidate()
+            ->whereIn('status', array_map(fn (BookCandidateStatusEnum $status): string => $status->value, $statuses))
+            ->latest()
+            ->first();
+    }
+
+    private function ensureCandidateResponse(BookCandidate $candidate, ClubMember $member): bool
+    {
+        $response = $candidate->responses()->firstOrCreate(
+            ['club_member_id' => $member->id],
+            ['response' => BookCandidateResponseEnum::Pending],
+        );
+
+        if ($response->wasRecentlyCreated && $candidate->status === BookCandidateStatusEnum::AwaitingOwnerConfirmation) {
+            $candidate->update(['status' => BookCandidateStatusEnum::Pending]);
         }
 
-        return response()->json([
-            'message' => $progress->wasRecentlyCreated
-                ? 'Участник добавлен в лидеры цикла.'
-                : 'Участник уже в лидерах цикла.',
-        ]);
+        return $response->wasRecentlyCreated;
     }
 }
