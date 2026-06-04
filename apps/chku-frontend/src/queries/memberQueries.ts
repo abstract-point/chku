@@ -67,11 +67,11 @@ export function useActivateMemberMutation() {
   })
 }
 
-export function useInitReadingProgressMutation() {
+export function useAddToCurrentCycleMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (id: number) => membersApi.initReadingProgress(id),
+    mutationFn: (id: number) => membersApi.addToCurrentCycle(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.members })
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })

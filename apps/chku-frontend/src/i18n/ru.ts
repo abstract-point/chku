@@ -231,8 +231,8 @@ export default {
       'Для управления участниками Админу и Разработчику нужна двухфакторная защита.',
     bannerSetup2fa: 'Настроить 2FA',
 
-    addToLeaders: 'Добавить в цикл',
-    initReadingError: 'Не удалось добавить участника в лидеры.',
+    addToCurrentCycle: 'Добавить в цикл',
+    addToCurrentCycleError: 'Не удалось добавить участника в цикл.',
 
     verifTitle: 'Ожидает проверки: «{title}»',
     verifText: '{proposer} предложила «{title}» — {author}. Будешь читать эту книгу?',

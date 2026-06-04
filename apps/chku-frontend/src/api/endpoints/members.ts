@@ -48,8 +48,8 @@ export const membersApi = {
     return http.post<unknown, { message: string }>(`/members/${id}/activate`)
   },
 
-  async initReadingProgress(id: number) {
-    return http.post<unknown, { message: string }>(`/members/${id}/init-reading-progress`)
+  async addToCurrentCycle(id: number) {
+    return http.post<unknown, { message: string }>(`/members/${id}/add-to-current-cycle`)
   },
 
   async reorderTurnOrder(memberIds: number[]) {

@@ -233,7 +233,7 @@ vi.mock('@/queries/memberQueries', () => ({
   useCreateMemberMutation: () => mutationResult(),
   useActivateMemberMutation: () => mutationResult(),
   useDeactivateMemberMutation: () => mutationResult(),
-  useInitReadingProgressMutation: () => mutationResult(),
+  useAddToCurrentCycleMutation: () => mutationResult(),
   useReorderTurnOrderMutation: () => mutationResult(),
   useMemberQuery: (id: unknown) => {
     const data = computed(() => members.find((member) => member.id === Number(toValue(id))))

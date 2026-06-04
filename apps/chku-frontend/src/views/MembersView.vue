@@ -18,9 +18,9 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
 import {
+  useAddToCurrentCycleMutation,
   useActivateMemberMutation,
   useDeactivateMemberMutation,
-  useInitReadingProgressMutation,
   useMembersQuery,
 } from '@/queries/memberQueries'
 
@@ -31,9 +31,9 @@ const { t } = useI18n()
 const membersQuery = useMembersQuery()
 const dashboardQuery = useDashboardQuery()
 const deactivateMemberMutation = useDeactivateMemberMutation()
-const initReadingProgressMutation = useInitReadingProgressMutation()
+const addToCurrentCycleMutation = useAddToCurrentCycleMutation()
 const activateMemberMutation = useActivateMemberMutation()
-const leaderMemberIds = computed(() => {
+const currentCycleMemberIds = computed(() => {
   const data = dashboardQuery.data.value
   if (!data) return null
 
@@ -135,12 +135,12 @@ async function deactivateMember(id: number) {
   }
 }
 
-async function addToLeaders(id: number) {
+async function addToCurrentCycle(id: number) {
   actionError.value = ''
   try {
-    await initReadingProgressMutation.mutateAsync(id)
+    await addToCurrentCycleMutation.mutateAsync(id)
   } catch (e: unknown) {
-    actionError.value = (e as Error).message || t('dash.initReadingError')
+    actionError.value = (e as Error).message || t('dash.addToCurrentCycleError')
   }
 }
 
@@ -236,12 +236,12 @@ main.members.container
                 UserRoundCheck(:size="14")
                 span {{ $t('members.activate') }}
               button.member-card__dropdown-item.member-card__dropdown-item--action(
-                v-if="canManageMembers && member.isActive && leaderMemberIds && !leaderMemberIds.has(member.id)"
+                v-if="canManageMembers && member.isActive && currentCycleMemberIds && !currentCycleMemberIds.has(member.id)"
                 type="button"
-                @click.stop="addToLeaders(member.id)"
+                @click.stop="addToCurrentCycle(member.id)"
               )
                 BookMarked(:size="14")
-                span {{ $t('dash.addToLeaders') }}
+                span {{ $t('dash.addToCurrentCycle') }}
         .member-card__owls(:aria-label="t('profile.owlsAria')")
           .member-card__owl
             .member-card__owl-row
