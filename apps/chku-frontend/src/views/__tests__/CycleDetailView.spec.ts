@@ -1,7 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import { ref } from 'vue'
 
+import { archiveBooks } from '@/data/club/archiveBooks'
+import type { ArchiveCycle } from '@/types/club'
 import CycleDetailView from '../CycleDetailView.vue'
 
 const route = ref({
@@ -35,6 +37,13 @@ function mountCycle(cycleNumber = '40') {
 }
 
 describe('CycleDetailView', () => {
+  afterEach(() => {
+    const cycle = archiveBooks.find((item) => item.cycleNumber === 41)
+    if (cycle) {
+      cycle.memberProgress = []
+    }
+  })
+
   it('renders completed cycle details, reviews and discussion', () => {
     const wrapper = mountCycle('41')
 
@@ -48,6 +57,42 @@ describe('CycleDetailView', () => {
     expect(
       wrapper.findAllComponents(RouterLinkStub).some((link) => link.props('to') === '/meetings/1'),
     ).toBe(true)
+  })
+
+  it('breaks finished_at ties by member id in the leaderboard', () => {
+    const cycle = archiveBooks.find((item) => item.cycleNumber === 41)
+    if (!cycle) throw new Error('Expected cycle fixture')
+    const memberProgress: ArchiveCycle['memberProgress'] = [
+      {
+        id: 9,
+        member: { id: 6, name: 'Андрей Семёнов' },
+        status: 'finished',
+        progressPercent: 100,
+        currentPage: null,
+        notes: null,
+        finishedAt: '2026-05-11T00:00:00Z',
+      },
+      {
+        id: 8,
+        member: { id: 5, name: 'Александр Семёнов' },
+        status: 'finished',
+        progressPercent: 100,
+        currentPage: null,
+        notes: null,
+        finishedAt: '2026-05-11T00:00:00Z',
+      },
+    ]
+
+    const archiveCycle = cycle as ArchiveCycle
+    archiveCycle.memberProgress = memberProgress
+
+    const wrapper = mountCycle('41')
+    const rows = wrapper.findAll('.cycle-detail__leaderboard-item')
+
+    expect(rows[0]!.text()).toContain('Александр Семёнов')
+    expect(rows[0]!.find('.cycle-detail__owl--gold').exists()).toBe(true)
+    expect(rows[1]!.text()).toContain('Андрей Семёнов')
+    expect(rows[1]!.find('.cycle-detail__owl--silver').exists()).toBe(true)
   })
 
   it('renders fallback for unknown cycle number', () => {

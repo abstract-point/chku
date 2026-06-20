@@ -358,7 +358,14 @@ final class TelegramMessageFormatter
 
                 $finished = $cycle->readingProgress
                     ->filter(fn ($p) => $p->status === ReadingProgressStatusEnum::Finished && $p->finished_at !== null && $attendingIds->contains($p->club_member_id))
-                    ->sortBy('finished_at')
+                    ->sort(function ($a, $b): int {
+                        $finishedAtDiff = $a->finished_at->getTimestamp() <=> $b->finished_at->getTimestamp();
+                        if ($finishedAtDiff !== 0) {
+                            return $finishedAtDiff;
+                        }
+
+                        return $a->club_member_id <=> $b->club_member_id;
+                    })
                     ->take(3)
                     ->values();
 

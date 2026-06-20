@@ -83,6 +83,38 @@ class OwlAwardServiceTest extends TestCase
         $this->assertEquals(0, $members[1]->refresh()->gold_owls_count);
     }
 
+    public function test_members_with_same_finished_at_are_ordered_by_member_id(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
+        $members = ClubMember::where('club_id', $cycle->club_id)
+            ->where('is_active', true)
+            ->orderByDesc('id')
+            ->take(2)
+            ->get();
+        $finishedAt = now()->milliseconds(0);
+
+        foreach ($members as $member) {
+            $progress = $member->readingProgress()->where('reading_cycle_id', $cycle->id)->first();
+            if ($progress) {
+                $progress->update([
+                    'progress_percent' => 100,
+                    'status' => ReadingProgressStatusEnum::Finished,
+                    'finished_at' => $finishedAt,
+                ]);
+            }
+        }
+
+        $this->service->awardForCompletedCycle($cycle, $members->pluck('id')->all());
+
+        $first = $members->sortBy('id')->first();
+        $second = $members->sortBy('id')->last();
+
+        $this->assertEquals(1, $first->refresh()->gold_owls_count);
+        $this->assertEquals(1, $second->refresh()->silver_owls_count);
+    }
+
     public function test_no_owls_when_no_one_finished(): void
     {
         $this->seed(TestDatabaseSeeder::class);

@@ -45,11 +45,12 @@ const membersWithMedals = computed(() => {
     const progressDiff = (b.progress ?? 0) - (a.progress ?? 0)
     if (progressDiff !== 0) return progressDiff
     if (a.finishedAt && b.finishedAt) {
-      return new Date(a.finishedAt).getTime() - new Date(b.finishedAt).getTime()
+      const finishedAtDiff = new Date(a.finishedAt).getTime() - new Date(b.finishedAt).getTime()
+      if (finishedAtDiff !== 0) return finishedAtDiff
     }
     if (a.finishedAt) return -1
     if (b.finishedAt) return 1
-    return 0
+    return a.id - b.id
   })
   const hasFinished = sorted.some((m) => m.progress === 100)
   if (!hasFinished) {

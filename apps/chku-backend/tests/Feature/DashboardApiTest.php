@@ -104,6 +104,45 @@ class DashboardApiTest extends TestCase
         $this->assertSame('silver', $items[$mikhailProgress->club_member_id]['medal']);
     }
 
+    public function test_member_progress_medals_break_finished_at_ties_by_member_id(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $cycle = ReadingCycle::where('status', 'active')->firstOrFail();
+        $meeting = Meeting::where('reading_cycle_id', $cycle->id)->firstOrFail();
+        $progress = $cycle->readingProgress()->with('clubMember.user')->get();
+
+        $elenaProgress = $progress->firstOrFail(fn ($item) => $item->clubMember->user->email === 'elena@example.com');
+        $mikhailProgress = $progress->firstOrFail(fn ($item) => $item->clubMember->user->email === 'mikhail@example.com');
+        $finishedAt = now()->subMinutes(20)->milliseconds(0);
+
+        foreach ([$elenaProgress, $mikhailProgress] as $item) {
+            $item->update([
+                'status' => ReadingProgressStatusEnum::Finished,
+                'progress_percent' => 100,
+                'finished_at' => $finishedAt,
+            ]);
+
+            MeetingRsvp::updateOrCreate(
+                ['meeting_id' => $meeting->id, 'club_member_id' => $item->club_member_id],
+                ['status' => MeetingRsvpStatusEnum::Attending],
+            );
+        }
+
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+
+        $response = $this->actingAs($user)->getJson('/api/dashboard');
+
+        $response->assertOk();
+
+        $items = collect($response->json('data.memberProgress'))->keyBy('id');
+        $first = collect([$elenaProgress, $mikhailProgress])->sortBy('club_member_id')->first();
+        $second = collect([$elenaProgress, $mikhailProgress])->sortBy('club_member_id')->last();
+
+        $this->assertSame('gold', $items[$first->club_member_id]['medal']);
+        $this->assertSame('silver', $items[$second->club_member_id]['medal']);
+    }
+
     public function test_turn_order_marks_current_cycle_proposer_and_next_selector(): void
     {
         $this->seed(TestDatabaseSeeder::class);

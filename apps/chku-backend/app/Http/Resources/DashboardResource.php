@@ -184,7 +184,7 @@ class DashboardResource extends JsonResource
             ->filter(fn (ReadingProgress $progress) => $progress->status === ReadingProgressStatusEnum::Finished
                 && $progress->finished_at !== null
                 && $attendingMemberIds->has($progress->club_member_id))
-            ->sortBy(fn (ReadingProgress $progress) => $progress->finished_at)
+            ->sort(fn (ReadingProgress $a, ReadingProgress $b) => $this->sortFinishedProgress($a, $b))
             ->take(3)
             ->values()
             ->mapWithKeys(fn (ReadingProgress $progress, int $index) => [
@@ -209,6 +209,16 @@ class DashboardResource extends JsonResource
             return -1;
         } elseif ($b->finished_at) {
             return 1;
+        }
+
+        return $a->club_member_id <=> $b->club_member_id;
+    }
+
+    private function sortFinishedProgress(ReadingProgress $a, ReadingProgress $b): int
+    {
+        $finishedAtDiff = $a->finished_at->getTimestamp() <=> $b->finished_at->getTimestamp();
+        if ($finishedAtDiff !== 0) {
+            return $finishedAtDiff;
         }
 
         return $a->club_member_id <=> $b->club_member_id;

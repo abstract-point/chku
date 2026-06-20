@@ -115,4 +115,40 @@ describe('MeetingFinishModal', () => {
 
     expect(wrapper.emitted('confirm')).toHaveLength(1)
   })
+
+  it('breaks owl award ties by member id', () => {
+    const wrapper = mount(MeetingFinishModal, {
+      props: {
+        isOpen: true,
+        meeting,
+        memberProgress: [
+          { id: 3, name: 'Анна', progress: 100, finishedAt: '2024-10-14T10:01:00Z' },
+          { id: 2, name: 'Михаил', progress: 100, finishedAt: '2024-10-14T10:01:00Z' },
+          { id: 1, name: 'Елена', progress: 100, finishedAt: '2024-10-14T10:02:00Z' },
+        ],
+      },
+      global: {
+        stubs: {
+          AppModal: {
+            props: ['isOpen', 'title'],
+            template: `
+              <section v-if="isOpen">
+                <h2>{{ title }}</h2>
+                <slot />
+                <footer><slot name="footer" /></footer>
+              </section>
+            `,
+          },
+          UserAvatar: true,
+        },
+      },
+    })
+
+    const rows = wrapper.findAll('.finish-modal__progress-item')
+
+    expect(rows[0]!.text()).toContain('Михаил')
+    expect(rows[0]!.find('.finish-modal__owl-icon--gold').exists()).toBe(true)
+    expect(rows[1]!.text()).toContain('Анна')
+    expect(rows[1]!.find('.finish-modal__owl-icon--silver').exists()).toBe(true)
+  })
 })

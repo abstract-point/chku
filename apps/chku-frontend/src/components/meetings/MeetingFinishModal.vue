@@ -47,11 +47,12 @@ const progressSorted = computed(() =>
       const progressDiff = (b.progress ?? 0) - (a.progress ?? 0)
       if (progressDiff !== 0) return progressDiff
       if (a.finishedAt && b.finishedAt) {
-        return new Date(a.finishedAt).getTime() - new Date(b.finishedAt).getTime()
+        const finishedAtDiff = new Date(a.finishedAt).getTime() - new Date(b.finishedAt).getTime()
+        if (finishedAtDiff !== 0) return finishedAtDiff
       }
       if (a.finishedAt) return -1
       if (b.finishedAt) return 1
-      return 0
+      return a.id - b.id
     }),
 )
 
@@ -68,7 +69,11 @@ const owlAwardMembers = computed(() =>
         Boolean(member.finishedAt) &&
         attendingMemberIds.value.has(member.id),
     )
-    .sort((a, b) => new Date(a.finishedAt!).getTime() - new Date(b.finishedAt!).getTime())
+    .sort((a, b) => {
+      const finishedAtDiff = new Date(a.finishedAt!).getTime() - new Date(b.finishedAt!).getTime()
+      if (finishedAtDiff !== 0) return finishedAtDiff
+      return a.id - b.id
+    })
     .slice(0, 3)
     .map((member, index) => {
       const medal = medalOrder[index] ?? 'bronze'

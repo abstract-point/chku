@@ -33,6 +33,7 @@ final class OwlAwardService
             ->whereNotNull('finished_at')
             ->whereIn('club_member_id', $attendingMemberIds)
             ->orderBy('finished_at')
+            ->orderBy('club_member_id')
             ->get();
 
         if ($finished->isEmpty()) {

@@ -174,6 +174,7 @@ export type ArchiveCycle = {
     progressPercent: number | null
     currentPage: number | null
     notes: string | null
+    finishedAt?: string | null
   }[]
   reviews: ArchiveBookReview[]
   discussion: ArchiveDiscussionMessage[]
