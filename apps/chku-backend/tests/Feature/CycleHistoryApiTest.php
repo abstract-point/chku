@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ReadingProgressStatusEnum;
 use App\Models\ReadingCycle;
 use App\Models\User;
 use Database\Seeders\TestDatabaseSeeder;
@@ -64,6 +65,38 @@ class CycleHistoryApiTest extends TestCase
         $response->assertJsonPath('data.book.title', 'Тёмная башня');
         $response->assertJsonPath('data.cycleLabel', 'Цикл #10');
         $response->assertJsonPath('data.status', 'completed');
+    }
+
+    public function test_cycle_detail_member_progress_breaks_finished_at_ties_by_member_id(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $cycle = ReadingCycle::where('cycle_number', 42)->firstOrFail();
+        $progressRows = $cycle->readingProgress()
+            ->orderByDesc('club_member_id')
+            ->take(2)
+            ->get();
+        $finishedAt = now()->milliseconds(0);
+
+        foreach ($progressRows as $progressRow) {
+            $progressRow->update([
+                'status' => ReadingProgressStatusEnum::Finished,
+                'progress_percent' => 100,
+                'finished_at' => $finishedAt,
+            ]);
+        }
+
+        $user = User::where('email', 'pavel@example.com')->firstOrFail();
+
+        $response = $this->actingAs($user)->getJson('/api/cycles/42');
+
+        $response->assertOk();
+
+        $progress = collect($response->json('data.memberProgress'));
+        $expectedIds = $progressRows->sortBy('club_member_id')->pluck('club_member_id')->values();
+
+        $this->assertSame($expectedIds[0], $progress[0]['member']['id']);
+        $this->assertSame($expectedIds[1], $progress[1]['member']['id']);
     }
 
     public function test_archive_routes_are_removed(): void

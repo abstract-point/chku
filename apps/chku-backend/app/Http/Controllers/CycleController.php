@@ -114,6 +114,12 @@ final class CycleController extends Controller
             'bookCandidate.book.genres',
             'bookCandidate.proposer.user',
             'bookCandidate.responses.clubMember.user',
+            'readingProgress' => function ($q): void {
+                $q->orderByDesc('progress_percent')
+                    ->orderByRaw('finished_at is null')
+                    ->orderBy('finished_at')
+                    ->orderBy('club_member_id');
+            },
             'readingProgress.clubMember.user',
             'reviews.clubMember.user',
             'discussionMessages' => function ($q): void {
