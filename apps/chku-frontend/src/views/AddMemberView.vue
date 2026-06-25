@@ -42,7 +42,7 @@ async function submit() {
   formErrors.clearAllErrors()
   try {
     await createMemberMutation.mutateAsync(form.value)
-    router.push('/members')
+    void router.push('/members')
   } catch (e: unknown) {
     formErrors.setFromApiError(e)
   }
