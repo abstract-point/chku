@@ -45,7 +45,6 @@ services:
       - ../../../apps/chku-backend:/var/www/backend
       - backend_vendor:/var/www/backend/vendor
     command: php artisan queue:work --tries=1 --sleep=1 --timeout=60
-    restart: unless-stopped
 
   db:
     container_name: chku-db
