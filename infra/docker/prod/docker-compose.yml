@@ -22,7 +22,7 @@ services:
     volumes:
       - backend_storage_public:/var/www/backend/storage/app/public
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.30.10.1"
     expose:
       - "9000"
     restart: unless-stopped
@@ -40,7 +40,7 @@ services:
     volumes:
       - backend_storage_public:/var/www/backend/storage/app/public
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:172.30.10.1"
     command: php artisan queue:work --tries=3 --sleep=3 --timeout=60 --rest=0
     restart: unless-stopped
     networks:
