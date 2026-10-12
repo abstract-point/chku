@@ -40,6 +40,9 @@ const nextQueueBook = computed(
 const nextQueueLabel = computed(() =>
   nextQueueBook.value?.isCurrentCandidate ? t('profile.inProposal') : t('profile.autoProposal'),
 )
+const currentCycleNumber = computed(
+  () => dashboardQuery.data.value?.lifecycle?.currentCycleNumber ?? null,
+)
 const currentMemberFirstName = computed(() => currentMember.value?.name.split(' ')[0] ?? '')
 const canProposeNextBook = computed(() =>
   dashboardQuery.data.value?.turnOrder.some(
@@ -168,7 +171,7 @@ main.profile.container
     section.profile__history(aria-labelledby="reading-history-title")
       .section-header
         h2#reading-history-title {{ $t('profile.history') }}
-        span.label-text {{ $t('profile.cycleCurrent', { n: 28 }) }}
+        span.label-text(v-if="currentCycleNumber") {{ $t('profile.cycleCurrent', { n: currentCycleNumber }) }}
 
       section.panel(v-if="readingHistoryQuery.isLoading.value" aria-live="polite")
         p.body-text {{ $t('profile.historyLoading') }}
@@ -400,15 +403,14 @@ main.profile.container
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-areas:
-    "cover header"
-    "stats stats";
+    'cover header'
+    'stats stats';
   gap: var(--space-sm) var(--space-md);
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.01)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.01)), var(--bg-panel);
   color: inherit;
   text-decoration: none;
   transition:

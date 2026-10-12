@@ -22,8 +22,10 @@ export function formatRelativeDate(iso?: string | null): string {
   const date = new Date(iso)
   if (isNaN(date.getTime())) return ''
   const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffMs / 86_400_000)
+  const startOfDay = (value: Date) =>
+    new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime()
+  // Calendar days, not 24-hour windows: 23:00 yesterday is "вчера" even at 00:30 today.
+  const diffDays = Math.round((startOfDay(now) - startOfDay(date)) / 86_400_000)
   const timeStr = tf.format(date)
 
   if (diffDays === 0) return timeStr

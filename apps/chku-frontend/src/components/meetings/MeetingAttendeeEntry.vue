@@ -165,6 +165,11 @@ function submit() {
   max-width: 12rem;
 }
 
+.attendee-entry__rating .label-text {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .attendee-entry__input {
   width: 100%;
   padding: 0.75rem 0.9rem;

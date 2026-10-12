@@ -117,7 +117,7 @@ main.archive.container
     h1.archive__title {{ $t('archive.title') }}
     span.archive__count
       strong {{ archiveCycles.length }}
-      |  {{ $t('archive.cycles', { n: archiveCycles.length }).replace(/^\d+\s*/, '') }}
+      |  {{ $t('archive.cycles', { n: archiveCycles.length }, archiveCycles.length).replace(/^\d+\s*/, '') }}
 
   .archive__controls(:aria-label="t('archive.filtersAria')")
     label.archive__search
@@ -191,13 +191,15 @@ main.archive.container
                   span {{ ratingLabel(cycle.averageRating ?? cycle.rating) }}
                 span.archive-card__stat.label-text
                   Star(:size="15" aria-hidden="true")
-                  span {{ $t('archive.ratingsN', { n: cycle.ratingsCount ?? cycle.reviews.length }) }}
+                  span {{ $t('archive.ratingsN', { n: cycle.ratingsCount ?? cycle.reviews.length }, cycle.ratingsCount ?? cycle.reviews.length) }}
                 span.archive-card__stat.label-text
                   MessageSquare(:size="15" aria-hidden="true")
-                  span {{ $t('archive.reviewsN', { n: cycle.reviewsCount ?? cycle.reviews.length }) }}
-                span.archive-card__stat.label-text
+                  span {{ $t('archive.reviewsN', { n: cycle.reviewsCount ?? cycle.reviews.length }, cycle.reviewsCount ?? cycle.reviews.length) }}
+                span.archive-card__stat.label-text(
+                  :title="t('archive.attendanceTitle', { attending: cycle.attendingCount ?? 0, total: cycle.rsvpCount ?? 0 })"
+                )
                   CalendarCheck(:size="15" aria-hidden="true")
-                  span {{ cycle.attendingCount ?? 0 }}/{{ cycle.rsvpCount ?? 0 }} RSVP
+                  span {{ $t('archive.attendanceN', { attending: cycle.attendingCount ?? 0, total: cycle.rsvpCount ?? 0 }) }}
 
   section.panel.archive__empty(v-else aria-live="polite")
     .section-header.section-header--compact

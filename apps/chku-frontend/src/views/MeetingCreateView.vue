@@ -15,6 +15,7 @@ const createMutation = useCreateMeetingMutation()
 const formErrors = useFormErrors()
 
 const cycleId = computed(() => dashboardQuery.data.value?.lifecycle?.currentCycleId)
+const cycleNumber = computed(() => dashboardQuery.data.value?.lifecycle?.currentCycleNumber ?? null)
 
 function handleSubmit(payload: Record<string, unknown>) {
   formErrors.clearAllErrors()
@@ -48,6 +49,7 @@ main.container
   MeetingForm(
     v-else
     :cycle-id="cycleId"
+    :cycle-number="cycleNumber"
     :is-submitting="createMutation.isPending.value"
     :errors="formErrors.fieldErrors.value"
     @submit="handleSubmit"

@@ -41,7 +41,7 @@ const actionLabel = computed(() => {
       confirm_candidate: 'Подтвердить',
       add_book_to_queue: 'Управлять очередью',
       update_progress: 'Обновить прогресс',
-      rsvp_meeting: 'Отметить RSVP',
+      rsvp_meeting: 'Отметить участие',
       rate_book: 'Поставить оценку',
       write_review: 'Оставить отзыв',
       none: 'Перейти',

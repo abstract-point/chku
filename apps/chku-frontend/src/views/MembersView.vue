@@ -60,6 +60,28 @@ const actionError = ref('')
 const openMenuId = ref<number | null>(null)
 const canManageMembers = computed(() => isAdmin.value && twoFactorEnabled.value)
 
+function canDeactivate(member: MemberProfile) {
+  return canManageMembers.value && member.isActive && member.id !== user.value?.id
+}
+
+function canActivate(member: MemberProfile) {
+  return canManageMembers.value && !member.isActive
+}
+
+function canAddToCycle(member: MemberProfile) {
+  return (
+    canManageMembers.value &&
+    member.isActive &&
+    !!currentCycleMemberIds.value &&
+    !currentCycleMemberIds.value.has(member.id)
+  )
+}
+
+// The actions button is shown only when the menu would have at least one item.
+function hasMemberActions(member: MemberProfile) {
+  return canDeactivate(member) || canActivate(member) || canAddToCycle(member)
+}
+
 function toggleMenu(id: number) {
   openMenuId.value = openMenuId.value === id ? null : id
 }
@@ -183,7 +205,7 @@ main.members.container
   .members__header
     .members__heading
       h1.members__title {{ $t('members.title') }}
-      span.label-text {{ $t('members.count', { n: activeMemberCount }) }}
+      span.label-text {{ $t('members.count', { n: activeMemberCount }, activeMemberCount) }}
     .members__toolbar
       label.members__search
         Search.members__search-icon(:size="18" aria-hidden="true")
@@ -229,7 +251,10 @@ main.members.container
     )
       .member-card.member-card-wrapper(
         :class="{ 'member-card--inactive': !member.isActive }"
+        role="link"
+        tabindex="0"
         @click="navigate"
+        @keydown.enter.self="navigate"
       )
         .member-card__hero
           UserAvatar.member-card__avatar(:name="member.name" :avatar-url="member.avatarUrl")
@@ -241,11 +266,11 @@ main.members.container
               span.member-card__status-dot(aria-hidden="true")
               span {{ memberStatusLabel(member) }}
             span.member-card__joined.label-text {{ $t('members.memberSince', { date: member.memberSince }) }}
-          .member-card__menu-wrap(v-if="canManageMembers")
+          .member-card__menu-wrap(v-if="hasMemberActions(member)")
             button.member-card__menu(type="button" :aria-label="t('members.actionsAria')" @click.prevent.stop="toggleMenu(member.id)")
               MoreHorizontal(:size="18")
             .member-card__dropdown(v-if="openMenuId === member.id" @click.stop)
-              template(v-if="canManageMembers && member.isActive && member.id !== user?.id")
+              template(v-if="canDeactivate(member)")
                 button.member-card__dropdown-item(
                   type="button"
                   @click.stop="requestDeactivation(member, 'paused')"
@@ -259,14 +284,14 @@ main.members.container
                   UserRoundMinus(:size="14")
                   span {{ $t('members.deactivate') }}
               button.member-card__dropdown-item.member-card__dropdown-item--action(
-                v-if="canManageMembers && !member.isActive"
+                v-if="canActivate(member)"
                 type="button"
                 @click.stop="activateMember(member.id)"
               )
                 UserRoundCheck(:size="14")
                 span {{ member.deactivationReason === 'paused' ? $t('members.resume') : $t('members.activate') }}
               button.member-card__dropdown-item.member-card__dropdown-item--action(
-                v-if="canManageMembers && member.isActive && currentCycleMemberIds && !currentCycleMemberIds.has(member.id)"
+                v-if="canAddToCycle(member)"
                 type="button"
                 @click.stop="addToCurrentCycle(member.id)"
               )
@@ -435,6 +460,7 @@ main.members.container
     var(--bg-surface);
   box-shadow: var(--shadow-panel);
   color: inherit;
+  cursor: pointer;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -444,6 +470,11 @@ main.members.container
     padding: var(--space-lg);
     gap: var(--space-md);
   }
+}
+
+.member-card:focus-visible {
+  outline: 2px solid var(--accent-border);
+  outline-offset: 2px;
 }
 
 .member-card:hover {

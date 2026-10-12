@@ -3,12 +3,14 @@ import { beforeEach, vi } from 'vitest'
 import { config } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import ru from '@/i18n/ru'
+import { pluralRules } from '@/i18n/pluralRules'
 
 const i18n = createI18n({
   legacy: false,
   locale: 'ru',
   fallbackLocale: 'ru',
   messages: { ru },
+  pluralRules,
 })
 
 config.global.plugins = [i18n]

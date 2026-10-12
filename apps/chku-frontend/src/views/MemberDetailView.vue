@@ -92,7 +92,7 @@ main.member-detail.container(v-else-if="member")
     section.member-detail__history(aria-labelledby="reading-history-title")
       .section-header
         h2#reading-history-title {{ $t('memberDetail.history') }}
-        span.label-text {{ $t('memberDetail.booksN', { n: member.readingHistory.length }) }}
+        span.label-text {{ $t('memberDetail.booksN', { n: member.readingHistory.length }, member.readingHistory.length) }}
 
       .member-detail__book-list(v-if="member.readingHistory.length")
         component.member-detail__book(

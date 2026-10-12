@@ -41,8 +41,9 @@ select.app-select.field-control(
   :aria-invalid="ariaInvalid || undefined"
   @change="onChange"
 )
-  option(v-if="placeholder" :value="null") {{ placeholder }}
-  option(v-for="option in options" :key="String(option.value)" :value="option.value ?? null")
+  option(v-if="placeholder" value="") {{ placeholder }}
+  //- An empty value must render as "" so it matches the select's "" model and shows as selected.
+  option(v-for="option in options" :key="String(option.value)" :value="option.value ?? ''")
     | {{ option.label }}
 </template>
 

@@ -470,51 +470,6 @@ main.meeting-detail.container
       @confirm="handleFinishConfirm"
     )
 
-      section.panel.meeting-detail__participants(aria-labelledby="meeting-participants-title")
-        .section-header.section-header--compact
-          h2#meeting-participants-title {{ $t('meetings.participants') }}
-          .meeting-detail__participant-count
-            span.label-text {{ meeting.attendees.length }}
-            Users(:size="15" aria-hidden="true")
-        .meeting-detail__rsvp-status(v-if="!isArchived")
-          .inline-alert.inline-alert--success(v-if="rsvpStatus === 'attending'")
-            CheckCircle(:size="14" aria-hidden="true")
-            span {{ $t('meetings.youAttending') }}
-            button.meeting-detail__decline-text(type="button" :disabled="updateRsvpMutation.isPending.value" @click="setRsvp('not_attending')")
-              | {{ $t('meetings.notAttending') }}
-          .inline-alert(v-else-if="rsvpStatus === 'not_attending'")
-            span {{ $t('meetings.youNotAttending') }}
-          button.button.button--primary.label-text(
-            v-if="!isCurrentUserAttending"
-            type="button"
-            :disabled="updateRsvpMutation.isPending.value"
-            @click="setRsvp('attending')"
-          ) {{ $t('meetings.willAttend') }}
-        ul.data-list
-          li.data-list__item(v-for="attendee in meeting.attendees" :key="attendee.id")
-            RouterLink.meeting-detail__attendee(:to="`/members/${attendee.id}`")
-              UserAvatar(:name="attendee.name" :avatar-url="attendee.avatarUrl" size="sm")
-              span.body-text {{ attendee.name }}
-            button.meeting-detail__remove-button(
-              v-if="isAdmin && !isArchived && canRemoveAttendee(attendee)"
-              type="button"
-              :title="t('meetings.removeAttendee')"
-              :aria-label="t('meetings.removeAttendee')"
-              :disabled="removeRsvpMutation.isPending.value"
-              @click="removeAttendee(attendee.id)"
-            )
-              UserMinus(:size="15" aria-hidden="true")
-        p.body-text(v-if="!meeting.attendees.length") {{ $t('meetings.noParticipants') }}
-
-    MeetingFinishModal(
-      v-if="!isArchived"
-      :is-open="isFinishModalOpen"
-      :meeting="meeting"
-      :member-progress="memberProgress"
-      @close="isFinishModalOpen = false"
-      @confirm="handleFinishConfirm"
-    )
-
   section.panel.meeting-detail__missing(v-else)
     .section-header.section-header--compact
       h1 {{ $t('meetings.notFound') }}
@@ -750,7 +705,7 @@ main.meeting-detail.container
 }
 
 .meeting-detail__link {
-  display: inline-block;
+  display: block;
   max-width: 100%;
   overflow-wrap: anywhere;
   color: var(--accent);

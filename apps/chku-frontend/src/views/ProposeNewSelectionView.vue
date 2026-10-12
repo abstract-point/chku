@@ -233,7 +233,7 @@ main.proposal.container
         | {{ $t('books.addBook') }}
       .section-header
         h2#queue-title {{ $t('books.queueTitle') }}
-        span.label-text {{ $t('books.queueCount', { n: items.length }) }}
+        span.label-text {{ $t('books.queueCount', { n: items.length }, items.length) }}
 
       AppTabs(
         :tabs="[{ id: 'queue', label: $t('books.tabQueue') }, { id: 'rejected', label: $t('books.tabRejected') }]"

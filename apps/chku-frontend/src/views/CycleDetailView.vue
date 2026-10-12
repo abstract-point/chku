@@ -133,13 +133,13 @@ main.cycle-detail.container
                 .cycle-detail__meta-item
                   span.label-text.cycle-detail__muted {{ $t('archiveBook.chosenBy') }}
                   .cycle-detail__member
-                  template(v-if="cycle.proposedById")
-                    RouterLink.member-link(:to="`/members/${cycle.proposedById}`")
+                    template(v-if="cycle.proposedById")
+                      RouterLink.member-link(:to="`/members/${cycle.proposedById}`")
+                        UserAvatar(:name="cycle.proposedBy" :avatar-url="cycle.proposerAvatarUrl" size="sm")
+                        span.label-text {{ cycle.proposedBy }}
+                    template(v-else)
                       UserAvatar(:name="cycle.proposedBy" :avatar-url="cycle.proposerAvatarUrl" size="sm")
                       span.label-text {{ cycle.proposedBy }}
-                  template(v-else)
-                    UserAvatar(:name="cycle.proposedBy" :avatar-url="cycle.proposerAvatarUrl" size="sm")
-                    span.label-text {{ cycle.proposedBy }}
                 .cycle-detail__meta-item
                   span.label-text.cycle-detail__muted {{ $t('archiveBook.avgRating') }}
                   span.cycle-detail__rating.label-text
@@ -177,7 +177,7 @@ main.cycle-detail.container
         template(v-if="cycle.status === 'completed'")
           .section-header
             h2 {{ $t('archiveBook.reviews') }}
-            span.label-text {{ $t('archiveBook.reviewN', { n: cycle.reviews.length }) }}
+            span.label-text {{ $t('archiveBook.reviewN', { n: cycle.reviews.length }, cycle.reviews.length) }}
           article.panel.cycle-detail__review(v-for="review in cycle.reviews" :key="`${review.memberName}-${review.rating}`")
             .cycle-detail__review-header
               .cycle-detail__member
@@ -200,7 +200,7 @@ main.cycle-detail.container
         section.panel
           .section-header.section-header--compact
             span.label-text {{ $t('dash.clubProgress') }}
-            span.label-text {{ $t('dash.clubProgressCount', { n: leaderboardCount }) }}
+            span.label-text {{ $t('dash.clubProgressCount', { n: leaderboardCount }, leaderboardCount) }}
           ul.data-list.cycle-detail__leaderboard
             li.data-list__item.cycle-detail__leaderboard-item(v-for="member in membersWithMedals" :key="member.id")
               .cycle-detail__leaderboard-member
@@ -254,6 +254,13 @@ main.cycle-detail.container
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+/* Same row height as the proposer avatar so all meta values line up. */
+.cycle-detail__meta .cycle-detail__member,
+.cycle-detail__meta .cycle-detail__rating,
+.cycle-detail__meta .cycle-detail__cycle {
+  min-height: 1.75rem;
 }
 
 .cycle-detail__breadcrumb {

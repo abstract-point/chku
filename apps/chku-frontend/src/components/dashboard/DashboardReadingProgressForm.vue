@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import AppRangeInput from '@/components/ui/AppRangeInput.vue'
 
 const props = defineProps<{
   modelValue: number
@@ -44,18 +45,15 @@ form.reading-progress-form(@submit.prevent="submitForm")
       | {{ $t('dash.progressFormCurrent') }}
       span {{ normalizedProgress }}%
 
-  .reading-progress-form__slider
-    input(
-      type="range"
-      min="0"
-      max="100"
-      step="1"
-      :value="normalizedProgress"
-      :style="{ '--range-value': `${normalizedProgress}%` }"
-      :aria-label="$t('dash.progressFormAria')"
-      @input="updateFromEvent"
-    )
-    .reading-progress-form__scale
+  AppRangeInput(
+    :model-value="normalizedProgress"
+    :min="0"
+    :max="100"
+    :step="1"
+    :aria-label="$t('dash.progressFormAria')"
+    @update:model-value="updateProgress"
+  )
+    template(#scale)
       span.label-text 0%
       span.label-text 100%
 
@@ -116,61 +114,6 @@ form.reading-progress-form(@submit.prevent="submitForm")
   font-variant-numeric: tabular-nums;
 }
 
-.reading-progress-form__slider {
-  display: grid;
-  gap: var(--space-sm);
-}
-
-.reading-progress-form__slider input {
-  width: 100%;
-  height: 1.7rem;
-  cursor: pointer;
-  background: transparent;
-}
-
-.reading-progress-form__slider input::-webkit-slider-runnable-track {
-  height: 0.2rem;
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    var(--accent) 0 var(--range-value),
-    var(--border) var(--range-value) 100%
-  );
-}
-
-.reading-progress-form__slider input::-webkit-slider-thumb {
-  width: 1.25rem;
-  height: 1.25rem;
-  margin-top: -0.52rem;
-  border: 0.15rem solid var(--accent);
-  border-radius: 50%;
-  background: var(--bg-surface);
-  appearance: none;
-  box-shadow: 0 0 0 0.1rem var(--bg-surface);
-}
-
-.reading-progress-form__slider input::-moz-range-track {
-  height: 0.2rem;
-  border-radius: 999px;
-  background: var(--border);
-}
-
-.reading-progress-form__slider input::-moz-range-progress {
-  height: 0.2rem;
-  border-radius: 999px;
-  background: var(--accent);
-}
-
-.reading-progress-form__slider input::-moz-range-thumb {
-  width: 1rem;
-  height: 1rem;
-  border: 0.15rem solid var(--accent);
-  border-radius: 50%;
-  background: var(--bg-surface);
-  box-shadow: 0 0 0 0.1rem var(--bg-surface);
-}
-
-.reading-progress-form__scale,
 .reading-progress-form__actions {
   display: flex;
   justify-content: space-between;

@@ -13,6 +13,7 @@ const { t, tm } = useI18n()
 const props = defineProps<{
   meeting?: MeetingDetail
   cycleId: number
+  cycleNumber?: number | null
   isSubmitting: boolean
   errors?: Record<string, string>
 }>()
@@ -57,6 +58,12 @@ const formatOptions = computed(() => [
 
 const isEdit = computed(() => props.meeting !== undefined)
 
+// Show the club-facing cycle number, not the database id.
+const cycleLabel = computed(() => {
+  if (props.meeting?.cycleLabel) return props.meeting.cycleLabel
+  return props.cycleNumber ? t('meetings.formCycle', { n: props.cycleNumber }) : ''
+})
+
 const dateString = computed(() => {
   const d = day.value ? String(day.value).padStart(2, '0') : '01'
   const m = String(month.value).padStart(2, '0')
@@ -85,7 +92,18 @@ watch(
   { immediate: true },
 )
 
+const dayError = ref('')
+
+watch(day, () => {
+  dayError.value = ''
+})
+
 function onSubmit() {
+  if (!day.value) {
+    dayError.value = t('meetings.formDayRequired')
+    return
+  }
+
   const payload: Record<string, unknown> = {
     reading_cycle_id: props.cycleId,
     title: title.value,
@@ -108,6 +126,7 @@ function onSubmit() {
 }
 
 function fieldError(field: string): string | undefined {
+  if (field === 'date' && dayError.value) return dayError.value
   return props.errors?.[field]
 }
 
@@ -120,7 +139,7 @@ function isInvalid(field: string): boolean {
 form.meeting-form(@submit.prevent="onSubmit" novalidate)
   .section-header
     h1 {{ isEdit ? $t('meetings.formEdit') : $t('meetings.formNew') }}
-    span.label-text {{ $t('meetings.formCycle', { id: cycleId }) }}
+    span.label-text(v-if="cycleLabel") {{ cycleLabel }}
 
   .meeting-form__fields
     AppFormField(:label="t('meetings.formTitle')" label-for="meeting-title" required :error="fieldError('title')")
@@ -134,7 +153,7 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
     .meeting-form__datetime-row
       AppFormField(:label="t('meetings.formDate')" label-for="meeting-day" required :error="fieldError('date')")
         .meeting-form__date-selects
-          AppSelect#meeting-day(v-model.number="day" :options="dayOptions")
+          AppSelect#meeting-day(v-model.number="day" :options="dayOptions" :aria-invalid="!!dayError")
           AppSelect(v-model.number="month" :options="monthOptions" required)
           AppSelect(v-model.number="year" :options="yearOptions" required)
       AppFormField(:label="t('meetings.formTime')" label-for="meeting-time" required :error="fieldError('time')")

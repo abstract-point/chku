@@ -212,7 +212,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
 
   .section-header.dashboard__section-spaced
     h3 {{ $t('dash.clubProgress') }}
-    span.label-text {{ $t('dash.clubProgressCount', { n: activeProgressCount }) }}
+    span.label-text {{ $t('dash.clubProgressCount', { n: activeProgressCount }, activeProgressCount) }}
 
   TransitionGroup.data-list.club-progress(name="list" tag="ul" role="list")
     li.data-list__item.club-progress__item(v-for="member in membersWithMedals" :key="member.name")
