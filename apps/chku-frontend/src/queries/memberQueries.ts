@@ -1,6 +1,7 @@
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { membersApi } from '@/api/endpoints/members'
+import type { MemberDeactivationReason } from '@/api/types'
 import { mapMember } from '@/mappers/memberMapper'
 import { queryKeys } from '@/queries/keys'
 import { authSessionQueryOptions } from '@/queries/authQueries'
@@ -46,8 +47,9 @@ export function useDeactivateMemberMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (id: number) => membersApi.deactivate(id),
-    onSuccess: (_member, id) => {
+    mutationFn: ({ id, reason }: { id: number; reason: MemberDeactivationReason }) =>
+      membersApi.deactivate(id, reason),
+    onSuccess: (_result, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.members })
       queryClient.invalidateQueries({ queryKey: queryKeys.member(id) })
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })

@@ -122,6 +122,23 @@ class TelegramMessageFormatterTest extends TestCase
         $this->assertStringContainsString('дочитал', $message);
     }
 
+    public function test_formats_pause_and_return_messages(): void
+    {
+        $member = \App\Models\ClubMember::with('user')->where('is_active', true)->firstOrFail();
+
+        $member->deactivation_reason = \App\Enums\MemberDeactivationReasonEnum::Paused;
+        $paused = $this->formatter->format(new \App\Events\MemberDeactivated($member));
+        $this->assertStringContainsString('поставлен на паузу', $paused);
+        $this->assertStringNotContainsString('покинул клуб', $paused);
+
+        $member->deactivation_reason = \App\Enums\MemberDeactivationReasonEnum::Left;
+        $this->assertStringContainsString('покинул клуб', $this->formatter->format(new \App\Events\MemberDeactivated($member)));
+
+        $resumed = $this->formatter->format(new \App\Events\MemberResumed($member));
+        $this->assertStringContainsString('снова в клубе после паузы', $resumed);
+        $this->assertSame('member_resumed', $this->formatter->eventName(new \App\Events\MemberResumed($member)));
+    }
+
     public function test_formats_reminders_with_member_names(): void
     {
         $meeting = \App\Models\Meeting::with('readingCycle.book')->firstOrFail();

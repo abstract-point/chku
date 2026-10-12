@@ -110,6 +110,35 @@ final class BookSelectionStateMachine
         });
     }
 
+    /**
+     * The proposer left the turn order (pause or leaving the club): their candidate is withdrawn,
+     * the book goes back to their queue and the next selector gets a candidate.
+     */
+    public function withdrawCandidateOf(ClubMember $proposer): bool
+    {
+        return DB::transaction(function () use ($proposer): bool {
+            $candidate = $this->activeCandidate($proposer->club_id);
+            if (! $candidate || $candidate->proposer_id !== $proposer->id) {
+                return false;
+            }
+
+            $candidate->update(['status' => BookCandidateStatusEnum::Withdrawn]);
+            $candidate->queueItem?->update(['status' => MemberBookQueueItemStatusEnum::Queued]);
+
+            $this->createCandidateForCurrentSelector($proposer->club_id);
+
+            return true;
+        });
+    }
+
+    public function recalculateActiveCandidate(int $clubId): void
+    {
+        $candidate = $this->activeCandidate($clubId);
+        if ($candidate?->status === BookCandidateStatusEnum::Pending) {
+            $this->recalculateCandidate($candidate);
+        }
+    }
+
     public function confirmCandidate(BookCandidate $candidate): BookCandidate
     {
         return DB::transaction(function () use ($candidate): BookCandidate {

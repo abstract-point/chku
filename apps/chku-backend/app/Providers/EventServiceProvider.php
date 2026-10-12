@@ -19,6 +19,7 @@ use App\Events\MeetingStarted;
 use App\Events\MemberDeactivated;
 use App\Events\MemberFinishedReading;
 use App\Events\MemberJoinedClub;
+use App\Events\MemberResumed;
 use App\Events\OwlAwardsAssigned;
 use App\Events\ReadingProgressReminder;
 use App\Events\ReadingProgressUpdated;
@@ -29,6 +30,9 @@ class EventServiceProvider extends ServiceProvider
 {
     protected $listen = [
         MemberJoinedClub::class => [
+            TelegramNotificationListener::class,
+        ],
+        MemberResumed::class => [
             TelegramNotificationListener::class,
         ],
         MemberDeactivated::class => [

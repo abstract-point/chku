@@ -8,4 +8,5 @@ enum BookCandidateStatusEnum: string
     case AwaitingOwnerConfirmation = 'awaiting_owner_confirmation';
     case Approved = 'approved';
     case Rejected = 'rejected';
+    case Withdrawn = 'withdrawn';
 }

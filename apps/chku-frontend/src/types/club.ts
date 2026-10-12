@@ -50,6 +50,7 @@ export type MemberProfile = {
   memberSince: string
   createdAt?: string
   isActive: boolean
+  deactivationReason?: 'paused' | 'left' | null
   email: string
   favoriteGenres: { id: number; slug: string; name: string }[]
   stats: {

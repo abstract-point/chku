@@ -4,6 +4,7 @@ import {
   BookOpenCheck,
   CalendarCheck,
   ListPlus,
+  PauseCircle,
   PencilLine,
   Star,
   TrendingUp,
@@ -27,6 +28,7 @@ const icon = computed(() => {
       rsvp_meeting: CalendarCheck,
       rate_book: Star,
       write_review: PencilLine,
+      paused: PauseCircle,
       none: BookCheck,
     }[props.action.type] ?? BookCheck
   )
@@ -56,6 +58,6 @@ AppBanner(variant="action")
     span.label-text {{ $t('dash.bannerAction') }}
     h2 {{ action.title }}
     p.body-text {{ action.description }}
-  template(#actions)
+  template(v-if="action.type !== 'paused'" #actions)
     RouterLink.button.button--primary.label-text(:to="action.actionUrl") {{ actionLabel }}
 </template>

@@ -1,9 +1,12 @@
+export type MemberDeactivationReason = 'paused' | 'left'
+
 export type ApiMember = {
   id: number
   name: string
   avatarUrl?: string | null
   email: string
   isActive: boolean
+  deactivationReason?: MemberDeactivationReason | null
   memberSince: string
   createdAt?: string
   favoriteGenres: ApiGenre[]
@@ -205,6 +208,7 @@ export type ApiNextAction = {
     | 'rsvp_meeting'
     | 'rate_book'
     | 'write_review'
+    | 'paused'
     | 'none'
   priority: number
   title: string

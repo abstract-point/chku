@@ -8,6 +8,7 @@ import DashboardReadingProgressForm from '@/components/dashboard/DashboardReadin
 import AppModal from '@/components/ui/AppModal.vue'
 import CollapseTransition from '@/components/ui/CollapseTransition.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import { useAuthSession } from '@/queries/authQueries'
 import { useUpdateReadingProgressMutation } from '@/queries/dashboardQueries'
 import type { BookProgressMember, CurrentBook } from '@/types/dashboard'
 
@@ -26,6 +27,8 @@ const isBookFormOpen = ref(false)
 const isConfirmModalOpen = ref(false)
 const pendingProgressPercent = ref(0)
 const updateProgressMutation = useUpdateReadingProgressMutation()
+const { user } = useAuthSession()
+const canUpdateProgress = computed(() => user.value?.isActive !== false)
 
 const progressErrorMessage = computed(() =>
   updateProgressMutation.error.value ? t('dash.progressError') : '',
@@ -194,6 +197,7 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
                 .progress(:aria-label="$t('dash.myProgressAria', { pct: book.progress })")
                   .progress__bar(:style="{ '--progress-value': `${book.progress}%` }")
                 button.button.button--secondary.label-text(
+                  v-if="canUpdateProgress"
                   type="button"
                   @click="openProgressForm"
                 ) {{ $t('dash.updateProgress') }}

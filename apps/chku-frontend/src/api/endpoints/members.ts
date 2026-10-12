@@ -1,5 +1,5 @@
 import { http } from '@/api/http'
-import type { ApiMember } from '@/api/types'
+import type { ApiMember, MemberDeactivationReason } from '@/api/types'
 
 export const membersApi = {
   async list() {
@@ -40,8 +40,8 @@ export const membersApi = {
     })
   },
 
-  async deactivate(id: number) {
-    return http.post<unknown, ApiMember>(`/members/${id}/deactivate`)
+  async deactivate(id: number, reason: MemberDeactivationReason) {
+    return http.post<unknown, { message: string }>(`/members/${id}/deactivate`, { reason })
   },
 
   async activate(id: number) {

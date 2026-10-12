@@ -45,8 +45,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('club', [ClubController::class, 'show']);
     Route::get('dashboard', [DashboardController::class, 'index']);
-    Route::patch('reading-progress/me', [ReadingProgressController::class, 'updateCurrent']);
-    Route::put('reading-cycles/current/rating-review', [ReadingCycleController::class, 'updateCurrentRatingReview']);
+    Route::patch('reading-progress/me', [ReadingProgressController::class, 'updateCurrent'])->middleware('active.member');
+    Route::put('reading-cycles/current/rating-review', [ReadingCycleController::class, 'updateCurrentRatingReview'])->middleware('active.member');
     Route::get('genres', [GenreController::class, 'index']);
 
     Route::get('book-covers/{cover}', [BookCoverController::class, 'show']);
@@ -58,7 +58,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('me/book-queue', [MemberBookQueueController::class, 'store']);
     Route::patch('me/book-queue/{item}', [MemberBookQueueController::class, 'update']);
     Route::delete('me/book-queue/{item}', [MemberBookQueueController::class, 'destroy']);
-    Route::post('me/book-queue/{item}/candidate', [MemberBookQueueController::class, 'makeCandidate']);
+    Route::post('me/book-queue/{item}/candidate', [MemberBookQueueController::class, 'makeCandidate'])->middleware('active.member');
     Route::post('me/book-queue/reorder', [MemberBookQueueController::class, 'reorder']);
 
     Route::get('members', [ClubMemberController::class, 'index']);
@@ -81,14 +81,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('meetings/{meeting}', [MeetingController::class, 'update']);
     Route::post('meetings/{meeting}/start', [MeetingController::class, 'start']);
     Route::post('meetings/{meeting}/finish', [MeetingController::class, 'finish']);
-    Route::patch('meetings/{meeting}/rsvps/me', [MeetingController::class, 'updateMyRsvp']);
+    Route::patch('meetings/{meeting}/rsvps/me', [MeetingController::class, 'updateMyRsvp'])->middleware('active.member');
     Route::post('meetings/{meeting}/attendees', [MeetingController::class, 'storeAttendee']);
     Route::delete('meetings/{meeting}/rsvps/{member}', [MeetingController::class, 'destroyRsvp']);
     Route::post('cycles/{cycle}/discussion-messages', [DiscussionMessageController::class, 'store']);
 
     Route::get('candidates/active', [BookCandidateController::class, 'active']);
-    Route::patch('candidates/{candidate}/responses/me', [BookCandidateController::class, 'respond']);
-    Route::post('candidates/{candidate}/confirm', [BookCandidateController::class, 'confirm']);
+    Route::patch('candidates/{candidate}/responses/me', [BookCandidateController::class, 'respond'])->middleware('active.member');
+    Route::post('candidates/{candidate}/confirm', [BookCandidateController::class, 'confirm'])->middleware('active.member');
 
     Route::get('audit-logs', [AuditLogController::class, 'index']);
 });

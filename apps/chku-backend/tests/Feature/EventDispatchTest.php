@@ -82,7 +82,7 @@ class EventDispatchTest extends TestCase
         $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
         $user->forceFill(['two_factor_confirmed_at' => now()])->save();
-        $member = ClubMember::whereHas('user', fn ($q) => $q->where('email', 'anna@example.com'))->firstOrFail();
+        $member = ClubMember::whereHas('user', fn ($q) => $q->where('email', 'mikhail@example.com'))->firstOrFail();
 
         Event::fake([MemberDeactivated::class]);
 

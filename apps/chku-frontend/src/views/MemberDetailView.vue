@@ -76,7 +76,7 @@ main.member-detail.container(v-else-if="member")
           span.label-text {{ $t('memberDetail.status') }}
           span.member-detail__status
             span.status-dot(:class="{ 'status-dot--active': member.isActive }")
-            span.label-text {{ member.isActive ? $t('memberDetail.active') : $t('memberDetail.inactive') }}
+            span.label-text {{ member.isActive ? $t('memberDetail.active') : member.deactivationReason === 'paused' ? $t('memberDetail.paused') : $t('memberDetail.inactive') }}
         .member-detail__info-row
           span.label-text {{ $t('genrePicker.favGenres') }}
           span.member-detail__info-value.member-detail__genres
@@ -271,15 +271,14 @@ section.panel.container(v-else aria-live="polite")
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-areas:
-    "cover header"
-    "stats stats";
+    'cover header'
+    'stats stats';
   gap: var(--space-sm) var(--space-md);
   padding: var(--space-md);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-inner);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.01)),
-    var(--bg-panel);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.026), rgba(255, 255, 255, 0.01)), var(--bg-panel);
   color: inherit;
   text-decoration: none;
   transition:

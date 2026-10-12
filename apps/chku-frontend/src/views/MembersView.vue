@@ -6,6 +6,7 @@ import {
   ArrowUpDown,
   BookMarked,
   MoreHorizontal,
+  PauseCircle,
   Plus,
   Search,
   SlidersHorizontal,
@@ -15,6 +16,9 @@ import {
 import FilterDropdown from '@/components/ui/FilterDropdown.vue'
 import type { FilterOption } from '@/components/ui/FilterDropdown.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import AppModal from '@/components/ui/AppModal.vue'
+import type { MemberDeactivationReason } from '@/api/types'
+import type { MemberProfile } from '@/types/club'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDashboardQuery } from '@/queries/dashboardQueries'
 import {
@@ -125,14 +129,34 @@ const filteredMembers = computed(() => {
     })
 })
 
-async function deactivateMember(id: number) {
-  if (!confirm(t('members.deactivateConfirm'))) return
+const pendingDeactivation = ref<{
+  member: MemberProfile
+  reason: MemberDeactivationReason
+} | null>(null)
+
+function requestDeactivation(member: MemberProfile, reason: MemberDeactivationReason) {
+  openMenuId.value = null
+  pendingDeactivation.value = { member, reason }
+}
+
+async function confirmDeactivation() {
+  if (!pendingDeactivation.value) return
+  const { member, reason } = pendingDeactivation.value
   actionError.value = ''
   try {
-    await deactivateMemberMutation.mutateAsync(id)
+    await deactivateMemberMutation.mutateAsync({ id: member.id, reason })
   } catch (e: unknown) {
     actionError.value = (e as Error).message || t('members.deactivateError')
+  } finally {
+    pendingDeactivation.value = null
   }
+}
+
+function memberStatusLabel(member: MemberProfile) {
+  if (member.isActive) return t('members.statusActive')
+  return member.deactivationReason === 'paused'
+    ? t('members.statusPaused')
+    : t('members.statusInactive')
 }
 
 async function addToCurrentCycle(id: number) {
@@ -215,26 +239,32 @@ main.members.container
               span.badge.badge--reading.label-text(v-if="member.id === user?.id") {{ $t('members.you') }}
             span.member-card__status(:class="{ 'member-card__status--inactive badge--muted': !member.isActive }")
               span.member-card__status-dot(aria-hidden="true")
-              span {{ member.isActive ? $t('members.statusActive') : $t('members.statusInactive') }}
+              span {{ memberStatusLabel(member) }}
             span.member-card__joined.label-text {{ $t('members.memberSince', { date: member.memberSince }) }}
           .member-card__menu-wrap(v-if="canManageMembers")
             button.member-card__menu(type="button" :aria-label="t('members.actionsAria')" @click.prevent.stop="toggleMenu(member.id)")
               MoreHorizontal(:size="18")
             .member-card__dropdown(v-if="openMenuId === member.id" @click.stop)
-              button.member-card__dropdown-item(
-                v-if="canManageMembers && member.isActive && member.id !== user?.id"
-                type="button"
-                @click.stop="deactivateMember(member.id)"
-              )
-                UserRoundMinus(:size="14")
-                span {{ $t('members.deactivate') }}
+              template(v-if="canManageMembers && member.isActive && member.id !== user?.id")
+                button.member-card__dropdown-item(
+                  type="button"
+                  @click.stop="requestDeactivation(member, 'paused')"
+                )
+                  PauseCircle(:size="14")
+                  span {{ $t('members.pause') }}
+                button.member-card__dropdown-item(
+                  type="button"
+                  @click.stop="requestDeactivation(member, 'left')"
+                )
+                  UserRoundMinus(:size="14")
+                  span {{ $t('members.deactivate') }}
               button.member-card__dropdown-item.member-card__dropdown-item--action(
                 v-if="canManageMembers && !member.isActive"
                 type="button"
                 @click.stop="activateMember(member.id)"
               )
                 UserRoundCheck(:size="14")
-                span {{ $t('members.activate') }}
+                span {{ member.deactivationReason === 'paused' ? $t('members.resume') : $t('members.activate') }}
               button.member-card__dropdown-item.member-card__dropdown-item--action(
                 v-if="canManageMembers && member.isActive && currentCycleMemberIds && !currentCycleMemberIds.has(member.id)"
                 type="button"
@@ -269,6 +299,25 @@ main.members.container
   section.panel.members__empty(v-else aria-live="polite")
     h2 {{ $t('members.noResults') }}
     p.body-text {{ $t('members.noResultsText') }}
+
+  AppModal(
+    :is-open="pendingDeactivation !== null"
+    :title="pendingDeactivation?.reason === 'paused' ? t('members.pauseTitle') : t('members.deactivateTitle')"
+    @close="pendingDeactivation = null"
+  )
+    template(#default)
+      template(v-if="pendingDeactivation")
+        p.body-text
+          strong {{ pendingDeactivation.member.name }}
+          | {{ ' ' }}{{ pendingDeactivation.reason === 'paused' ? $t('members.pauseText') : $t('members.deactivateText') }}
+        p.body-text {{ $t('members.deactivateEffects') }}
+    template(#footer)
+      button.button.button--secondary.label-text(type="button" @click="pendingDeactivation = null") {{ $t('common.cancel') }}
+      button.button.button--primary.label-text(
+        type="button"
+        :disabled="deactivateMemberMutation.isPending.value"
+        @click="confirmDeactivation"
+      ) {{ pendingDeactivation?.reason === 'paused' ? $t('members.pauseConfirm') : $t('members.deactivateConfirmButton') }}
 </template>
 
 <style scoped lang="scss">

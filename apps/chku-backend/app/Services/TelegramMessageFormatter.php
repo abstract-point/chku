@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\MeetingRsvpStatusEnum;
 use App\Enums\ReadingProgressStatusEnum;
+use App\Enums\MemberDeactivationReasonEnum;
 use App\Events\BookCandidateAwaitingConfirmation;
 use App\Events\BookCandidateConfirmed;
 use App\Events\BookCandidateProposed;
@@ -21,6 +22,7 @@ use App\Events\MeetingStarted;
 use App\Events\MemberDeactivated;
 use App\Events\MemberFinishedReading;
 use App\Events\MemberJoinedClub;
+use App\Events\MemberResumed;
 use App\Events\OwlAwardsAssigned;
 use App\Events\ReadingProgressReminder;
 use App\Events\ReadingProgressUpdated;
@@ -33,6 +35,7 @@ final class TelegramMessageFormatter
         return match ($event::class) {
             MemberJoinedClub::class => $this->formatMemberJoined($event),
             MemberDeactivated::class => $this->formatMemberDeactivated($event),
+            MemberResumed::class => $this->formatMemberResumed($event),
             BookCandidateProposed::class => $this->formatCandidateProposed($event),
             BookCandidateRejected::class => $this->formatCandidateRejected($event),
             BookCandidateAwaitingConfirmation::class => $this->formatCandidateAwaiting($event),
@@ -58,6 +61,7 @@ final class TelegramMessageFormatter
         return match ($event::class) {
             MemberJoinedClub::class => 'member_joined_club',
             MemberDeactivated::class => 'member_deactivated',
+            MemberResumed::class => 'member_resumed',
             BookCandidateProposed::class => 'book_candidate_proposed',
             BookCandidateRejected::class => 'book_candidate_rejected',
             BookCandidateAwaitingConfirmation::class => 'book_candidate_awaiting_confirmation',
@@ -93,11 +97,25 @@ final class TelegramMessageFormatter
     private function formatMemberDeactivated(MemberDeactivated $event): string
     {
         $name = $this->escape($event->member->user->name);
+        $isPaused = $event->member->deactivation_reason === MemberDeactivationReasonEnum::Paused;
 
         return implode("\n", [
-            '🚪 ' . $this->escape('Участник покинул клуб.'),
+            $isPaused
+                ? '⏸ ' . $this->escape('Участник поставлен на паузу.')
+                : '🚪 ' . $this->escape('Участник покинул клуб.'),
             '',
             $this->escape('Имя: ') . '*' . $name . '*',
+        ]);
+    }
+
+    private function formatMemberResumed(MemberResumed $event): string
+    {
+        $event->member->loadMissing('user');
+
+        return implode("\n", [
+            '▶️ ' . $this->escape('Участник снова в клубе после паузы!'),
+            '',
+            $this->escape('Имя: ') . $this->memberLink($event->member),
         ]);
     }
 

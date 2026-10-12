@@ -30,6 +30,16 @@ final class UserNextActionService
         bool $nextSelectorQueueEmpty,
         Collection $missingRatings,
     ): NextAction {
+        if (! $member->is_active) {
+            return new NextAction(
+                type: 'paused',
+                priority: 100,
+                title: 'Твоё участие на паузе',
+                description: 'Пока ты на паузе, тебе не предлагаются книги, проверки и встречи. Вернуть участие может администратор.',
+                actionUrl: '/',
+            );
+        }
+
         if ($activeCandidate) {
             $candidateAction = $this->candidateAction($member, $activeCandidate);
             if ($candidateAction) {

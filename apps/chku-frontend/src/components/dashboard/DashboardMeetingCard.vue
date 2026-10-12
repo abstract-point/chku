@@ -29,7 +29,9 @@ const attendingMembers = computed(() =>
 
 const visibleAttendees = computed(() => attendingMembers.value.slice(0, 4))
 const extraCount = computed(() => Math.max(0, attendingMembers.value.length - 4))
-const isRsvpOpen = computed(() => props.meeting.status === 'scheduled')
+const isRsvpOpen = computed(
+  () => props.meeting.status === 'scheduled' && user.value?.isActive !== false,
+)
 const sectionLabel = computed(() =>
   props.meeting.status === 'started' ? t('dash.meetingInProgress') : t('dash.nextMeeting'),
 )

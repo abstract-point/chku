@@ -9,6 +9,7 @@ export function mapMember(member: ApiMember): MemberProfile {
     memberSince: member.memberSince,
     createdAt: member.createdAt,
     isActive: member.isActive,
+    deactivationReason: member.deactivationReason ?? null,
     email: member.email,
     favoriteGenres: member.favoriteGenres ?? [],
     stats: member.stats ?? {

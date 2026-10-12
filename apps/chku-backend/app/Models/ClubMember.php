@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MemberDeactivationReasonEnum;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['club_id', 'user_id', 'is_active', 'joined_at', 'gold_owls_count', 'silver_owls_count', 'bronze_owls_count'])]
+#[Fillable(['club_id', 'user_id', 'is_active', 'deactivated_at', 'deactivation_reason', 'joined_at', 'gold_owls_count', 'silver_owls_count', 'bronze_owls_count'])]
 class ClubMember extends Model
 {
     use HasFactory;
@@ -18,6 +19,7 @@ class ClubMember extends Model
         'is_active' => 'boolean',
         'joined_at' => 'date',
         'deactivated_at' => 'datetime',
+        'deactivation_reason' => MemberDeactivationReasonEnum::class,
         'gold_owls_count' => 'integer',
         'silver_owls_count' => 'integer',
         'bronze_owls_count' => 'integer',

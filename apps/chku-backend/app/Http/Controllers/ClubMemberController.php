@@ -6,6 +6,10 @@ namespace App\Http\Controllers;
 
 use App\Events\MemberDeactivated;
 use App\Events\MemberJoinedClub;
+use App\Events\MemberResumed;
+use App\Enums\MemberDeactivationReasonEnum;
+use App\Services\MembershipService;
+use Illuminate\Validation\Rule;
 use App\Models\Club;
 use App\Models\ClubMember;
 use App\Models\User;
@@ -19,13 +23,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\Enums\BookCandidateResponseEnum;
-use App\Enums\BookCandidateStatusEnum;
 use App\Enums\ReadingCycleStatusEnum;
-use App\Enums\ReadingProgressStatusEnum;
-use App\Models\BookCandidate;
 use App\Models\ReadingCycle;
-use App\Models\ReadingProgress;
 use Illuminate\Validation\ValidationException;
 
 final class ClubMemberController extends Controller
@@ -175,7 +174,7 @@ final class ClubMemberController extends Controller
         ]);
     }
 
-    public function deactivate(Request $request, ClubMember $member, TurnOrderService $turnOrder): JsonResponse
+    public function deactivate(Request $request, ClubMember $member, MembershipService $membership): JsonResponse
     {
         $this->authorize('deactivate', $member);
 
@@ -186,12 +185,18 @@ final class ClubMemberController extends Controller
             ], 422);
         }
 
-        $member->update([
-            'is_active' => false,
-            'deactivated_at' => now(),
-        ]);
+        if (! $member->is_active) {
+            return response()->json([
+                'message' => 'Участник уже неактивен.',
+            ], 422);
+        }
 
-        $turnOrder->removeMember($member);
+        $payload = $request->validate([
+            'reason' => ['sometimes', Rule::enum(MemberDeactivationReasonEnum::class)],
+        ]);
+        $reason = MemberDeactivationReasonEnum::from($payload['reason'] ?? MemberDeactivationReasonEnum::Left->value);
+
+        $membership->deactivate($member, $reason);
 
         if ($actor) {
             $this->auditLog->logMemberDeactivated($member, $actor);
@@ -201,11 +206,13 @@ final class ClubMemberController extends Controller
         event(new MemberDeactivated($member));
 
         return response()->json([
-            'message' => 'Участник деактивирован.',
+            'message' => $reason === MemberDeactivationReasonEnum::Paused
+                ? 'Участник поставлен на паузу.'
+                : 'Участник деактивирован.',
         ]);
     }
 
-    public function activate(Request $request, ClubMember $member, TurnOrderService $turnOrder): JsonResponse
+    public function activate(Request $request, ClubMember $member, MembershipService $membership): JsonResponse
     {
         $this->authorize('deactivate', $member);
 
@@ -221,12 +228,9 @@ final class ClubMemberController extends Controller
             ], 422);
         }
 
-        $member->update([
-            'is_active' => true,
-            'deactivated_at' => null,
-        ]);
+        $wasPaused = $member->deactivation_reason === MemberDeactivationReasonEnum::Paused;
 
-        $turnOrder->appendMember($member);
+        $membership->activate($member);
 
         $actor = $request->user();
         if ($actor) {
@@ -239,27 +243,16 @@ final class ClubMemberController extends Controller
         }
 
         $member->load('user', 'club');
-        event(new MemberJoinedClub($member));
+        event($wasPaused ? new MemberResumed($member) : new MemberJoinedClub($member));
 
         return response()->json([
             'message' => 'Участник активирован.',
         ]);
     }
 
-    public function addToCurrentCycle(Request $request, ClubMember $member): JsonResponse
+    public function addToCurrentCycle(Request $request, ClubMember $member, MembershipService $membership): JsonResponse
     {
         abort_unless($request->user()?->hasAnyRole(['admin', 'developer']), 403);
-
-        $cycle = ReadingCycle::query()
-            ->where('club_id', $member->club_id)
-            ->whereNot('status', ReadingCycleStatusEnum::Completed)
-            ->first();
-
-        if (! $cycle) {
-            return response()->json([
-                'message' => 'Нет активного цикла чтения.',
-            ], 422);
-        }
 
         if (! $member->is_active) {
             return response()->json([
@@ -267,47 +260,16 @@ final class ClubMemberController extends Controller
             ], 422);
         }
 
-        $created = false;
+        $cycle = ReadingCycle::query()
+            ->where('club_id', $member->club_id)
+            ->whereNot('status', ReadingCycleStatusEnum::Completed)
+            ->first();
 
-        if ($cycle->status === ReadingCycleStatusEnum::Proposed) {
-            $candidate = $this->currentCycleCandidate($cycle, [
-                BookCandidateStatusEnum::Pending,
-                BookCandidateStatusEnum::AwaitingOwnerConfirmation,
-            ]);
+        $created = DB::transaction(fn () => $membership->addToCurrentCycle($member));
 
-            if (! $candidate) {
-                return response()->json([
-                    'message' => 'В текущем цикле нет кандидата для проверки.',
-                ], 422);
-            }
-
-            $created = $this->ensureCandidateResponse($candidate, $member);
-        } elseif ($cycle->status === ReadingCycleStatusEnum::Active) {
-            $candidate = $this->currentCycleCandidate($cycle, [
-                BookCandidateStatusEnum::Approved,
-                BookCandidateStatusEnum::AwaitingOwnerConfirmation,
-                BookCandidateStatusEnum::Pending,
-            ]);
-
-            if ($candidate) {
-                $created = $this->ensureCandidateResponse($candidate, $member);
-            }
-
-            $progress = ReadingProgress::firstOrCreate(
-                [
-                    'reading_cycle_id' => $cycle->id,
-                    'club_member_id' => $member->id,
-                ],
-                [
-                    'status' => ReadingProgressStatusEnum::NotStarted,
-                    'progress_percent' => 0,
-                ],
-            );
-
-            $created = $created || $progress->wasRecentlyCreated;
-        } else {
+        if ($created === null) {
             return response()->json([
-                'message' => 'Участника можно добавить только в текущий цикл.',
+                'message' => $cycle ? 'В текущем цикле нет кандидата для проверки.' : 'Нет активного цикла чтения.',
             ], 422);
         }
 
@@ -328,30 +290,5 @@ final class ClubMemberController extends Controller
                 ? 'Участник добавлен в цикл.'
                 : 'Участник уже добавлен в цикл.',
         ]);
-    }
-
-    /**
-     * @param  array<int, BookCandidateStatusEnum>  $statuses
-     */
-    private function currentCycleCandidate(ReadingCycle $cycle, array $statuses): ?BookCandidate
-    {
-        return $cycle->bookCandidate()
-            ->whereIn('status', array_map(fn (BookCandidateStatusEnum $status): string => $status->value, $statuses))
-            ->latest()
-            ->first();
-    }
-
-    private function ensureCandidateResponse(BookCandidate $candidate, ClubMember $member): bool
-    {
-        $response = $candidate->responses()->firstOrCreate(
-            ['club_member_id' => $member->id],
-            ['response' => BookCandidateResponseEnum::Pending],
-        );
-
-        if ($response->wasRecentlyCreated && $candidate->status === BookCandidateStatusEnum::AwaitingOwnerConfirmation) {
-            $candidate->update(['status' => BookCandidateStatusEnum::Pending]);
-        }
-
-        return $response->wasRecentlyCreated;
     }
 }

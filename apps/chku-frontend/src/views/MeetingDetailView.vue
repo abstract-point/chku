@@ -90,7 +90,9 @@ const isRatingStage = computed(
 )
 const shouldShowRatingForm = computed(() => isRatingStage.value && hasCurrentUserFinished.value)
 const shouldShowFinishPrompt = computed(() => isRatingStage.value && !hasCurrentUserFinished.value)
-const isRsvpOpen = computed(() => meeting.value?.status === 'scheduled')
+const isRsvpOpen = computed(
+  () => meeting.value?.status === 'scheduled' && user.value?.isActive !== false,
+)
 const gridLayoutClass = computed(() => {
   const hasAdmin = isAdmin.value && !isArchived.value
   const hasRating = isRatingStage.value
@@ -426,7 +428,8 @@ main.meeting-detail.container
               ) {{ $t('meetings.notAttending') }}
             .inline-alert(v-else-if="rsvpStatus === 'not_attending'")
               span {{ $t('meetings.youNotAttending') }}
-            p.body-text.meeting-detail__rsvp-locked(v-if="!isRsvpOpen && !isCurrentUserAttending") {{ $t('meetings.rsvpLocked') }}
+            p.body-text.meeting-detail__rsvp-locked(v-if="user?.isActive === false") {{ $t('meetings.rsvpPaused') }}
+            p.body-text.meeting-detail__rsvp-locked(v-else-if="!isRsvpOpen && !isCurrentUserAttending") {{ $t('meetings.rsvpLocked') }}
             button.button.button--primary.label-text(
               v-if="isRsvpOpen && !isCurrentUserAttending"
               type="button"
