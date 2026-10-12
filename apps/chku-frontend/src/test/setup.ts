@@ -301,6 +301,7 @@ vi.mock('@/queries/meetingQueries', () => ({
   },
   useUpdateMeetingRsvpMutation: () => mutationResult(),
   useRemoveMeetingRsvpMutation: () => mutationResult(),
+  useEnterMeetingAttendeeMutation: () => mutationResult(),
   useAddMeetingTopicMutation: () => mutationResult(),
   useCreateMeetingMutation: () => mutationResult(),
   useUpdateMeetingMutation: () => mutationResult(),
@@ -383,5 +384,4 @@ vi.mock('@/queries/readingCycleQueries', () => ({
     ...mutationResult(),
     isSuccess: ref(false),
   }),
-  useCompleteCurrentCycleMutation: () => mutationResult(),
 }))

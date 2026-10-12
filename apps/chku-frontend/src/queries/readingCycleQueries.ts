@@ -14,16 +14,3 @@ export function useSaveRatingReviewMutation() {
     },
   })
 }
-
-export function useCompleteCurrentCycleMutation() {
-  const client = useQueryClient()
-
-  return useMutation({
-    mutationFn: () => readingCyclesApi.completeCurrent(),
-    onSuccess: () => {
-      client.invalidateQueries({ queryKey: queryKeys.dashboard })
-      client.invalidateQueries({ queryKey: queryKeys.activeCandidate })
-      client.invalidateQueries({ queryKey: queryKeys.cycles })
-    },
-  })
-}

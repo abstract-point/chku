@@ -18,6 +18,13 @@ export type UpdateMeetingPayload = Partial<CreateMeetingPayload> & {
   rescheduleReason?: string
 }
 
+export type EnterAttendeePayload = {
+  memberId: number
+  finishedReading?: boolean
+  rating?: number | null
+  review?: string
+}
+
 export const meetingsApi = {
   async show(id: string | number) {
     return http.get<unknown, ApiMeeting>(`/meetings/${id}`)
@@ -41,6 +48,10 @@ export const meetingsApi = {
 
   async updateMyRsvp(id: string | number, status: 'attending' | 'not_attending' | 'pending') {
     return http.patch<unknown, ApiMeeting>(`/meetings/${id}/rsvps/me`, { status })
+  },
+
+  async enterAttendee(meetingId: string | number, payload: EnterAttendeePayload) {
+    return http.post<unknown, ApiMeeting>(`/meetings/${meetingId}/attendees`, payload)
   },
 
   async removeRsvp(meetingId: string | number, memberId: number) {

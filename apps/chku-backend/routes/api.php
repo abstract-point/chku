@@ -47,7 +47,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index']);
     Route::patch('reading-progress/me', [ReadingProgressController::class, 'updateCurrent']);
     Route::put('reading-cycles/current/rating-review', [ReadingCycleController::class, 'updateCurrentRatingReview']);
-    Route::post('reading-cycles/current/complete', [ReadingCycleController::class, 'completeCurrent']);
     Route::get('genres', [GenreController::class, 'index']);
 
     Route::get('book-covers/{cover}', [BookCoverController::class, 'show']);
@@ -83,6 +82,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('meetings/{meeting}/start', [MeetingController::class, 'start']);
     Route::post('meetings/{meeting}/finish', [MeetingController::class, 'finish']);
     Route::patch('meetings/{meeting}/rsvps/me', [MeetingController::class, 'updateMyRsvp']);
+    Route::post('meetings/{meeting}/attendees', [MeetingController::class, 'storeAttendee']);
     Route::delete('meetings/{meeting}/rsvps/{member}', [MeetingController::class, 'destroyRsvp']);
     Route::post('cycles/{cycle}/discussion-messages', [DiscussionMessageController::class, 'store']);
 

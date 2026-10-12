@@ -132,7 +132,10 @@ AppModal(:is-open="isOpen" :title="t('meetings.finishTitle')" @close="$emit('clo
           p.finish-modal__review(v-if="item.reviewText") {{ item.reviewText }}
           p.finish-modal__review.finish-modal__review--empty(v-else) {{ $t('meetings.finishNoReview') }}
           span.finish-modal__badge.finish-modal__rating-badge(v-if="item.ratingValue !== null") {{ item.ratingValue }}/10
-          span.finish-modal__badge.finish-modal__badge--warn.finish-modal__rating-badge(v-else) {{ $t('meetings.finishNoRating') }}
+          span.finish-modal__badge.finish-modal__badge--warn.finish-modal__rating-badge(
+            v-else-if="meeting.missingRatingMemberIds.includes(item.id)"
+          ) {{ $t('meetings.finishNoRating') }}
+          span.finish-modal__badge.finish-modal__rating-badge(v-else) {{ $t('meetings.finishNotRead') }}
 
     .finish-modal__section(v-if="memberProgress.length")
       h3.finish-modal__subtitle {{ $t('meetings.finishProgress') }}

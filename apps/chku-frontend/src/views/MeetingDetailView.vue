@@ -17,6 +17,7 @@ import {
   Users,
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import MeetingAttendeeEntry from '@/components/meetings/MeetingAttendeeEntry.vue'
 import MeetingFinishModal from '@/components/meetings/MeetingFinishModal.vue'
 import DiscussionBlock from '@/components/discussion/DiscussionBlock.vue'
 import AppRangeInput from '@/components/ui/AppRangeInput.vue'
@@ -31,7 +32,7 @@ import {
 } from '@/queries/meetingQueries'
 import { useCreateDiscussionMessageMutation } from '@/queries/discussionQueries'
 import { useAuthSession } from '@/queries/authQueries'
-import { useDashboardQuery } from '@/queries/dashboardQueries'
+import { useDashboardQuery, useUpdateReadingProgressMutation } from '@/queries/dashboardQueries'
 import { useSaveRatingReviewMutation } from '@/queries/readingCycleQueries'
 
 const route = useRoute()
@@ -48,6 +49,7 @@ const removeRsvpMutation = useRemoveMeetingRsvpMutation(meetingId)
 const startMeetingMutation = useStartMeetingMutation(meetingId)
 const finishMeetingMutation = useFinishMeetingMutation(meetingId)
 const saveRatingReviewMutation = useSaveRatingReviewMutation()
+const updateProgressMutation = useUpdateReadingProgressMutation()
 const discussionMutation = useCreateDiscussionMessageMutation()
 const meeting = computed(() => meetingQuery.data.value)
 const isArchived = computed(() => meeting.value?.status === 'finished')
@@ -63,6 +65,12 @@ const memberProgress = computed(() => dashboardQuery.data.value?.memberProgress 
 const rsvpStatus = ref<'attending' | 'not_attending' | 'pending'>('pending')
 const rating = ref<number | null>(null)
 const review = ref('')
+const reviewMaxLength = 10000
+const reviewLengthLabel = computed(
+  () =>
+    `${review.value.length.toLocaleString('ru-RU')} / ${reviewMaxLength.toLocaleString('ru-RU')}`,
+)
+const isReviewNearLimit = computed(() => review.value.length >= reviewMaxLength * 0.9)
 const ratingSubmitted = ref(false)
 const isFinishModalOpen = ref(false)
 const isEditingRating = ref(false)
@@ -74,12 +82,18 @@ const currentUserReview = computed(
   () => meeting.value?.reviews.find((item) => item.memberId === user.value?.id)?.text ?? '',
 )
 const hasSubmittedRating = computed(() => currentUserRating.value !== null)
-const shouldShowRatingForm = computed(
+const hasCurrentUserFinished = computed(
+  () => !meeting.value?.missingReadingMemberIds.includes(user.value?.id ?? -1),
+)
+const isRatingStage = computed(
   () => meeting.value?.status === 'started' && rsvpStatus.value === 'attending',
 )
+const shouldShowRatingForm = computed(() => isRatingStage.value && hasCurrentUserFinished.value)
+const shouldShowFinishPrompt = computed(() => isRatingStage.value && !hasCurrentUserFinished.value)
+const isRsvpOpen = computed(() => meeting.value?.status === 'scheduled')
 const gridLayoutClass = computed(() => {
   const hasAdmin = isAdmin.value && !isArchived.value
-  const hasRating = shouldShowRatingForm.value
+  const hasRating = isRatingStage.value
   if (hasAdmin && hasRating) return 'meeting-detail__grid--layout-full'
   if (hasAdmin) return 'meeting-detail__grid--layout-no-rating'
   if (hasRating) return 'meeting-detail__grid--layout-no-admin'
@@ -139,6 +153,10 @@ function setRsvp(status: 'attending' | 'not_attending') {
       rsvpStatus.value = status
     },
   })
+}
+
+function markFinished() {
+  updateProgressMutation.mutate({ progressPercent: 100 })
 }
 
 function editRating() {
@@ -232,10 +250,9 @@ main.meeting-detail.container
                 span {{ $t('meetings.deactivatedAttendees', { n: meeting.deactivatedAttendeeCount }) }}
               .inline-alert(v-if="missingReadingAttendees.length")
                 AlertTriangle(:size="14")
-                span {{ $t('meetings.needReading') }}
-                span.meeting-detail__missing-reading
-                  template(v-for="(attendee, idx) in missingReadingAttendees" :key="attendee.id")
-                    | {{ attendee.name }}{{ idx < missingReadingAttendees.length - 1 ? ', ' : '' }}
+                p.meeting-detail__alert-text
+                  | {{ $t('meetings.needReading') }}{{ ' ' }}
+                  span.meeting-detail__missing-reading {{ missingReadingAttendees.map((attendee) => attendee.name).join(', ') }}
               .inline-alert(v-if="!isMeetingTime")
                 AlertTriangle(:size="14")
                 span {{ $t('meetings.notYet', { date: meeting.dateLabel, time: meeting.timeLabel }) }}
@@ -249,11 +266,28 @@ main.meeting-detail.container
                 span {{ $t('meetings.readyFinish') }}
               .inline-alert(v-if="missingRatingAttendees.length")
                 AlertTriangle(:size="14")
-                span {{ $t('meetings.needRatings') }}
-                span.meeting-detail__missing-rating
-                  template(v-for="(attendee, idx) in missingRatingAttendees" :key="attendee.id")
-                    | {{ attendee.name }}{{ idx < missingRatingAttendees.length - 1 ? ', ' : '' }}
+                p.meeting-detail__alert-text
+                  | {{ $t('meetings.needRatings') }}{{ ' ' }}
+                  span.meeting-detail__missing-rating {{ missingRatingAttendees.map((attendee) => attendee.name).join(', ') }}
               p.proposal__error(v-if="finishMeetingMutation.error.value") {{ $t('meetings.finishError') }}
+          MeetingAttendeeEntry(:meeting="meeting" :members="memberProgress")
+
+        section.panel.meeting-detail__rating(v-if="shouldShowFinishPrompt")
+          .section-header.section-header--compact
+            h2 {{ $t('meetings.ratingReview') }}
+          .meeting-detail__rating-prompt
+            BookOpen.meeting-detail__rating-prompt-icon(:size="22" aria-hidden="true")
+            .meeting-detail__rating-prompt-text
+              span.label-text {{ $t('meetings.ratingAction') }}
+              h2 {{ $t('meetings.finishFirstTitle') }}
+              p.body-text {{ $t('meetings.finishFirstText') }}
+          .meeting-detail__rating-actions
+            button.button.button--primary.label-text(
+              type="button"
+              :disabled="updateProgressMutation.isPending.value"
+              @click="markFinished"
+            ) {{ $t('meetings.finishFirstAction') }}
+          p.proposal__error(v-if="updateProgressMutation.error.value") {{ $t('meetings.finishFirstError') }}
 
         CollapseTransition
           form.panel.meeting-detail__rating(v-if="shouldShowRatingForm" @submit.prevent="submitRatingReview" novalidate)
@@ -308,8 +342,13 @@ main.meeting-detail.container
                   label.label-text(for="meeting-review") {{ $t('meetings.review') }}
                   textarea#meeting-review.field-control.meeting-detail__input.meeting-detail__review(
                     v-model="review"
+                    :maxlength="reviewMaxLength"
                     :placeholder="t('meetings.reviewPlaceholder')"
+                    aria-describedby="meeting-review-counter"
                   )
+                  span#meeting-review-counter.label-text.meeting-detail__review-counter(
+                    :class="{ 'meeting-detail__review-counter--warn': isReviewNearLimit }"
+                  ) {{ reviewLengthLabel }}
                 .meeting-detail__rating-actions
                   button.button.button--ghost.label-text(
                     v-if="isEditingRating"
@@ -379,12 +418,17 @@ main.meeting-detail.container
             .inline-alert.inline-alert--success(v-if="rsvpStatus === 'attending'")
               CheckCircle(:size="14" aria-hidden="true")
               span {{ $t('meetings.youAttending') }}
-              button.meeting-detail__decline-text(type="button" :disabled="updateRsvpMutation.isPending.value" @click="setRsvp('not_attending')")
-                | {{ $t('meetings.notAttending') }}
+              button.meeting-detail__decline-text(
+                v-if="isRsvpOpen"
+                type="button"
+                :disabled="updateRsvpMutation.isPending.value"
+                @click="setRsvp('not_attending')"
+              ) {{ $t('meetings.notAttending') }}
             .inline-alert(v-else-if="rsvpStatus === 'not_attending'")
               span {{ $t('meetings.youNotAttending') }}
+            p.body-text.meeting-detail__rsvp-locked(v-if="!isRsvpOpen && !isCurrentUserAttending") {{ $t('meetings.rsvpLocked') }}
             button.button.button--primary.label-text(
-              v-if="!isCurrentUserAttending"
+              v-if="isRsvpOpen && !isCurrentUserAttending"
               type="button"
               :disabled="updateRsvpMutation.isPending.value"
               @click="setRsvp('attending')"
@@ -709,9 +753,17 @@ main.meeting-detail.container
   color: var(--accent);
 }
 
+.meeting-detail__alert-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .meeting-detail__missing-rating,
 .meeting-detail__missing-reading {
   color: var(--text-main);
+  font-weight: 600;
 }
 
 .meeting-detail__topics-section {
@@ -775,6 +827,21 @@ main.meeting-detail.container
 
 .meeting-detail__review {
   min-height: 6rem;
+}
+
+.meeting-detail__rsvp-locked {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.meeting-detail__review-counter {
+  justify-self: end;
+  color: var(--text-subtle);
+  font-family: var(--font-mono);
+}
+
+.meeting-detail__review-counter--warn {
+  color: var(--warn);
 }
 
 .meeting-detail__rating-prompt {

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import {
   meetingsApi,
   type CreateMeetingPayload,
+  type EnterAttendeePayload,
   type UpdateMeetingPayload,
 } from '@/api/endpoints/meetings'
 import { mapMeetingDetail } from '@/mappers/meetingMapper'
@@ -42,6 +43,19 @@ export function useRemoveMeetingRsvpMutation(id: MaybeRefOrGetter<string>) {
     onSuccess: () => {
       client.invalidateQueries({ queryKey: queryKeys.meeting(toValue(id)) })
       client.invalidateQueries({ queryKey: queryKeys.dashboard })
+    },
+  })
+}
+
+export function useEnterMeetingAttendeeMutation(id: MaybeRefOrGetter<string>) {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: EnterAttendeePayload) => meetingsApi.enterAttendee(toValue(id), payload),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: queryKeys.meeting(toValue(id)) })
+      client.invalidateQueries({ queryKey: queryKeys.dashboard })
+      client.invalidateQueries({ queryKey: queryKeys.cycles })
     },
   })
 }

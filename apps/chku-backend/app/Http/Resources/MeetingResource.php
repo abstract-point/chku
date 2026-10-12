@@ -24,14 +24,6 @@ class MeetingResource extends JsonResource
             collect(),
         );
 
-        $ratedMemberIds = $attendingMemberIds->isEmpty()
-            ? collect()
-            : Rating::query()
-                ->where('reading_cycle_id', $this->reading_cycle_id)
-                ->whereIn('club_member_id', $attendingMemberIds)
-                ->pluck('club_member_id');
-
-        $missingRatingIds = $attendingMemberIds->diff($ratedMemberIds)->values();
         $hasQuorum = $attendingMemberIds->count() >= Meeting::MIN_ATTENDING_MEMBERS;
         $cycleIsActive = $this->relationLoaded('readingCycle')
             && $this->readingCycle?->status === ReadingCycleStatusEnum::Active;
@@ -46,6 +38,15 @@ class MeetingResource extends JsonResource
                 ->where('status', ReadingProgressStatusEnum::Finished)
                 ->pluck('club_member_id');
 
+        $ratedMemberIds = $finishedMemberIds->isEmpty()
+            ? collect()
+            : Rating::query()
+                ->where('reading_cycle_id', $this->reading_cycle_id)
+                ->whereIn('club_member_id', $finishedMemberIds)
+                ->pluck('club_member_id');
+
+        // Ratings are required only from attendees who finished the book.
+        $missingRatingIds = $finishedMemberIds->diff($ratedMemberIds)->values();
         $missingReadingIds = $attendingMemberIds->diff($finishedMemberIds)->values();
         $allAttendeesFinished = $missingReadingIds->isEmpty();
         $meetingDateTime = $this->date ? Carbon::parse("{$this->date->format('Y-m-d')} {$this->time}") : null;

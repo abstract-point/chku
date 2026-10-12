@@ -191,7 +191,7 @@ class DashboardApiTest extends TestCase
             ->assertJsonPath('data.nextAction.actionUrl', '/');
     }
 
-    public function test_next_action_prompts_attendee_to_rate_started_meeting(): void
+    public function test_next_action_prompts_finished_attendee_to_rate_started_meeting(): void
     {
         $this->seed(TestDatabaseSeeder::class);
 
@@ -204,6 +204,10 @@ class DashboardApiTest extends TestCase
         MeetingRsvp::updateOrCreate(
             ['meeting_id' => $meeting->id, 'club_member_id' => $member->id],
             ['status' => MeetingRsvpStatusEnum::Attending],
+        );
+        $member->readingProgress()->updateOrCreate(
+            ['reading_cycle_id' => $cycle->id],
+            ['progress_percent' => 100, 'status' => ReadingProgressStatusEnum::Finished, 'finished_at' => now()],
         );
 
         $response = $this->actingAs($user)->getJson('/api/dashboard');

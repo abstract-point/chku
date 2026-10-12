@@ -29,6 +29,7 @@ const attendingMembers = computed(() =>
 
 const visibleAttendees = computed(() => attendingMembers.value.slice(0, 4))
 const extraCount = computed(() => Math.max(0, attendingMembers.value.length - 4))
+const isRsvpOpen = computed(() => props.meeting.status === 'scheduled')
 const sectionLabel = computed(() =>
   props.meeting.status === 'started' ? t('dash.meetingInProgress') : t('dash.nextMeeting'),
 )
@@ -70,13 +71,13 @@ section.panel.dashboard-card(aria-labelledby="meeting-title")
   .inline-alert.inline-alert--success(v-if="myRsvpStatus === 'attending'") {{ $t('dash.youAttending') }}
   .inline-alert(v-else-if="myRsvpStatus === 'not_attending'") {{ $t('dash.youNotAttending') }}
   button.button.button--primary.dashboard-card__button(
-    v-else
+    v-else-if="isRsvpOpen"
     type="button"
     :disabled="rsvpMutation.isPending.value"
     @click="setRsvp('attending')"
   ) {{ $t('dash.confirmAttendance') }}
   button.button.button--secondary.dashboard-card__button(
-    v-if="myRsvpStatus === 'pending'"
+    v-if="isRsvpOpen && myRsvpStatus === 'pending'"
     type="button"
     :disabled="rsvpMutation.isPending.value"
     @click="setRsvp('not_attending')"

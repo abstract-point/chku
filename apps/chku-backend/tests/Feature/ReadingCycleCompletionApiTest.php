@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\ReadingCycleStatusEnum;
+use App\Enums\ReadingProgressStatusEnum;
 use App\Models\ClubMember;
-use App\Models\Rating;
 use App\Models\ReadingCycle;
 use App\Models\TurnOrder;
 use App\Models\User;
@@ -20,7 +20,7 @@ class ReadingCycleCompletionApiTest extends TestCase
     public function test_member_can_save_rating_and_review_for_current_cycle(): void
     {
         $this->seed(TestDatabaseSeeder::class);
-        $this->actingAs(User::where('email', 'elena@example.com')->firstOrFail());
+        $this->actingAs($this->finishedReader('elena@example.com'));
 
         $response = $this->putJson('/api/reading-cycles/current/rating-review', [
             'rating' => 9,
@@ -32,48 +32,40 @@ class ReadingCycleCompletionApiTest extends TestCase
         $this->assertDatabaseHas('reviews', ['text' => 'Хорошая книга для обсуждения.']);
     }
 
-    public function test_admin_cannot_complete_cycle_until_all_active_members_rated(): void
+    public function test_member_can_save_long_review_up_to_limit(): void
     {
         $this->seed(TestDatabaseSeeder::class);
-        $admin = User::where('email', 'elena@example.com')->firstOrFail();
-        $admin->assignRole('admin');
-        $this->actingAs($admin);
+        $this->actingAs($this->finishedReader('elena@example.com'));
 
-        $this->postJson('/api/reading-cycles/current/complete')
-            ->assertUnprocessable();
+        $review = str_repeat('Отзыв ', 1666);
+
+        $this->putJson('/api/reading-cycles/current/rating-review', [
+            'rating' => 8,
+            'review' => $review,
+        ])->assertOk();
+        $this->assertDatabaseHas('reviews', ['text' => trim($review)]);
+
+        $this->putJson('/api/reading-cycles/current/rating-review', [
+            'rating' => 8,
+            'review' => str_repeat('я', 10001),
+        ])->assertUnprocessable()->assertJsonValidationErrors('review');
     }
 
-    public function test_admin_can_complete_cycle_when_all_active_members_rated(): void
+    public function test_member_cannot_rate_before_finishing_book(): void
     {
         $this->seed(TestDatabaseSeeder::class);
-        $admin = User::where('email', 'elena@example.com')->firstOrFail();
-        $admin->assignRole('admin');
-        $this->actingAs($admin);
-
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
         $cycle = ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail();
-        $this->assertSame(['admin@example.com', 'elena@example.com', 'mikhail@example.com'], $this->turnOrderEmails($cycle->club_id));
+        $user->clubMember->readingProgress()->updateOrCreate(
+            ['reading_cycle_id' => $cycle->id],
+            ['progress_percent' => 60, 'status' => ReadingProgressStatusEnum::Reading, 'finished_at' => null],
+        );
 
-        ClubMember::where('club_id', $cycle->club_id)
-            ->where('is_active', true)
-            ->get()
-            ->each(fn (ClubMember $member) => Rating::updateOrCreate(
-                ['reading_cycle_id' => $cycle->id, 'club_member_id' => $member->id],
-                ['rating' => 8],
-            ));
+        $this->actingAs($user)
+            ->putJson('/api/reading-cycles/current/rating-review', ['rating' => 7])
+            ->assertUnprocessable();
 
-        $this->postJson('/api/reading-cycles/current/complete')
-            ->assertOk();
-
-        $this->assertDatabaseHas('reading_cycles', [
-            'id' => $cycle->id,
-            'status' => ReadingCycleStatusEnum::Completed->value,
-        ]);
-        $this->assertDatabaseHas('reading_cycles', [
-            'cycle_number' => 43,
-            'proposer_id' => ClubMember::whereHas('user', fn ($query) => $query->where('email', 'elena@example.com'))->firstOrFail()->id,
-            'status' => ReadingCycleStatusEnum::Proposed->value,
-        ]);
-        $this->assertSame(['elena@example.com', 'mikhail@example.com', 'admin@example.com'], $this->turnOrderEmails($cycle->club_id));
+        $this->assertDatabaseMissing('ratings', ['reading_cycle_id' => $cycle->id, 'club_member_id' => $user->clubMember->id]);
     }
 
     public function test_turn_rotation_moves_completed_cycle_proposer_even_when_proposer_is_not_head(): void
@@ -102,6 +94,17 @@ class ReadingCycleCompletionApiTest extends TestCase
         app(TurnOrderService::class)->rotateAfterCompletedCycle($cycle);
 
         $this->assertSame(['admin@example.com', 'elena@example.com', 'mikhail@example.com'], $this->turnOrderEmails($cycle->club_id));
+    }
+
+    private function finishedReader(string $email): User
+    {
+        $user = User::where('email', $email)->firstOrFail();
+        $user->clubMember->readingProgress()->updateOrCreate(
+            ['reading_cycle_id' => ReadingCycle::where('status', ReadingCycleStatusEnum::Active)->firstOrFail()->id],
+            ['progress_percent' => 100, 'status' => ReadingProgressStatusEnum::Finished, 'finished_at' => now()],
+        );
+
+        return $user;
     }
 
     private function turnOrderEmails(int $clubId): array

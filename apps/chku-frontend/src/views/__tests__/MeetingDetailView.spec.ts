@@ -233,6 +233,55 @@ describe('MeetingDetailView', () => {
     expect(wrapper.find('input[type="number"]').exists()).toBe(false)
   })
 
+  it('asks attendee to mark book as finished before rating', () => {
+    patchMeetingDetail({ status: 'started', rsvpStatus: 'attending', missingReadingMemberIds: [1] })
+    const wrapper = mountMeetingDetail()
+
+    expect(wrapper.text()).toContain('Сначала отметь, что дочитал(а)')
+    expect(wrapper.text()).toContain('Я дочитал(а) книгу')
+    expect(wrapper.find('input[type="number"]').exists()).toBe(false)
+  })
+
+  it('locks participation buttons once meeting has started', () => {
+    patchMeetingDetail({
+      status: 'started',
+      rsvpStatus: 'pending',
+      attendees: [{ id: 2, name: 'Михаил К.', status: 'attending' }],
+    })
+    const wrapper = mountMeetingDetail()
+
+    expect(wrapper.text()).not.toContain('Буду на встрече')
+    expect(wrapper.text()).toContain('состав участников меняет администратор')
+  })
+
+  it('hides decline action for attendee once meeting has started', () => {
+    patchMeetingDetail({
+      status: 'started',
+      rsvpStatus: 'attending',
+      attendees: [{ id: 1, name: 'Екатерина Л.', status: 'attending' }],
+    })
+    const wrapper = mountMeetingDetail()
+
+    expect(wrapper.text()).toContain('Вы участвуете во встрече')
+    expect(wrapper.find('.meeting-detail__decline-text').exists()).toBe(false)
+  })
+
+  it('lets admin open the attendee entry form', async () => {
+    setAuthRoles(['admin'])
+    patchMeetingDetail({ status: 'started' })
+    const wrapper = mountMeetingDetail()
+
+    const openButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Внести за участника'))
+    expect(openButton).toBeTruthy()
+
+    await openButton!.trigger('click')
+
+    expect(wrapper.find('#attendee-entry-member').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Изменение попадёт в журнал действий')
+  })
+
   it('shows saved rating instead of form when user has already rated', () => {
     patchMeetingDetail({
       status: 'started',

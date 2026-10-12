@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\ReadingCycleStatusEnum;
+use App\Enums\ReadingProgressStatusEnum;
 use App\Models\Book;
 use App\Models\ClubMember;
 use App\Models\Meeting;
@@ -530,6 +531,10 @@ class MeetingApiTest extends TestCase
             );
         }
 
+        foreach ($attendees as $member) {
+            $this->markFinished($cycle, $member);
+        }
+
         Rating::create([
             'reading_cycle_id' => $cycle->id,
             'club_member_id' => $attendees->first()->id,
@@ -540,6 +545,143 @@ class MeetingApiTest extends TestCase
             ->postJson("/api/meetings/{$meeting->id}/finish")
             ->assertUnprocessable()
             ->assertJsonPath('missingMemberIds.0', $attendees->last()->id);
+    }
+
+    public function test_attendee_who_did_not_finish_reading_does_not_block_finish(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $admin = User::where('email', 'elena@example.com')->firstOrFail();
+        $cycle = ReadingCycle::where('status', 'active')->first();
+        $meeting = $cycle->meeting()->first();
+        $meeting->update(['started_at' => now()]);
+        $meeting->rsvps()->delete();
+
+        [$reader, $listener] = [$this->member('elena@example.com'), $this->member('mikhail@example.com')];
+        foreach ([$reader, $listener] as $member) {
+            MeetingRsvp::create(['meeting_id' => $meeting->id, 'club_member_id' => $member->id, 'status' => 'attending']);
+        }
+        $this->markFinished($cycle, $reader);
+        ReadingProgress::updateOrCreate(
+            ['reading_cycle_id' => $cycle->id, 'club_member_id' => $listener->id],
+            ['progress_percent' => 40, 'status' => ReadingProgressStatusEnum::Reading, 'finished_at' => null],
+        );
+        Rating::create(['reading_cycle_id' => $cycle->id, 'club_member_id' => $reader->id, 'rating' => 7]);
+
+        $this->actingAs($admin)
+            ->getJson("/api/meetings/{$meeting->id}")
+            ->assertJsonPath('data.canFinish', true)
+            ->assertJsonPath('data.missingRatingMemberIds', []);
+
+        $this->actingAs($admin)
+            ->postJson("/api/meetings/{$meeting->id}/finish")
+            ->assertOk();
+
+        $this->assertDatabaseHas('reviews', ['reading_cycle_id' => $cycle->id, 'club_member_id' => $reader->id, 'text' => 'Промолчал']);
+        $this->assertDatabaseMissing('reviews', ['reading_cycle_id' => $cycle->id, 'club_member_id' => $listener->id]);
+    }
+
+    public function test_member_cannot_change_rsvp_after_meeting_started(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $meeting = ReadingCycle::where('status', 'active')->first()->meeting()->first();
+        $meeting->update(['started_at' => now()]);
+
+        $this->actingAs(User::where('email', 'mikhail@example.com')->firstOrFail())
+            ->patchJson("/api/meetings/{$meeting->id}/rsvps/me", ['status' => 'attending'])
+            ->assertUnprocessable();
+    }
+
+    public function test_admin_can_enter_attendee_with_progress_rating_and_review(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $admin = User::where('email', 'elena@example.com')->firstOrFail();
+        $cycle = ReadingCycle::where('status', 'active')->first();
+        $meeting = $cycle->meeting()->first();
+        $meeting->update(['started_at' => now()]);
+        $member = $this->member('mikhail@example.com');
+        MeetingRsvp::where(['meeting_id' => $meeting->id, 'club_member_id' => $member->id])->delete();
+
+        $this->actingAs($admin)
+            ->postJson("/api/meetings/{$meeting->id}/attendees", [
+                'memberId' => $member->id,
+                'finishedReading' => true,
+                'rating' => 8.5,
+                'review' => 'Сказал на встрече, что понравилось.',
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('meeting_rsvps', ['meeting_id' => $meeting->id, 'club_member_id' => $member->id, 'status' => 'attending']);
+        $this->assertDatabaseHas('reading_progress', [
+            'reading_cycle_id' => $cycle->id,
+            'club_member_id' => $member->id,
+            'progress_percent' => 100,
+            'status' => ReadingProgressStatusEnum::Finished->value,
+        ]);
+        $this->assertDatabaseHas('ratings', ['reading_cycle_id' => $cycle->id, 'club_member_id' => $member->id, 'rating' => 8.5]);
+        $this->assertDatabaseHas('reviews', ['reading_cycle_id' => $cycle->id, 'club_member_id' => $member->id, 'text' => 'Сказал на встрече, что понравилось.']);
+        $this->assertDatabaseHas('audit_logs', ['actor_id' => $admin->id, 'action' => 'meeting.attendee_entered']);
+    }
+
+    public function test_admin_cannot_enter_rating_for_member_who_did_not_finish(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $cycle = ReadingCycle::where('status', 'active')->first();
+        $meeting = $cycle->meeting()->first();
+        $meeting->update(['started_at' => now()]);
+        $member = $this->member('mikhail@example.com');
+        ReadingProgress::updateOrCreate(
+            ['reading_cycle_id' => $cycle->id, 'club_member_id' => $member->id],
+            ['progress_percent' => 40, 'status' => ReadingProgressStatusEnum::Reading, 'finished_at' => null],
+        );
+
+        $this->actingAs(User::where('email', 'elena@example.com')->firstOrFail())
+            ->postJson("/api/meetings/{$meeting->id}/attendees", ['memberId' => $member->id, 'rating' => 6])
+            ->assertUnprocessable();
+
+        $this->assertDatabaseMissing('ratings', ['reading_cycle_id' => $cycle->id, 'club_member_id' => $member->id]);
+    }
+
+    public function test_admin_cannot_enter_rating_before_meeting_started(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $meeting = ReadingCycle::where('status', 'active')->first()->meeting()->first();
+        $meeting->update(['started_at' => null]);
+
+        $this->actingAs(User::where('email', 'elena@example.com')->firstOrFail())
+            ->postJson("/api/meetings/{$meeting->id}/attendees", [
+                'memberId' => $this->member('mikhail@example.com')->id,
+                'finishedReading' => true,
+                'rating' => 6,
+            ])
+            ->assertUnprocessable();
+    }
+
+    public function test_admin_cannot_add_inactive_member_to_meeting(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $meeting = ReadingCycle::where('status', 'active')->first()->meeting()->first();
+
+        $this->actingAs(User::where('email', 'elena@example.com')->firstOrFail())
+            ->postJson("/api/meetings/{$meeting->id}/attendees", ['memberId' => $this->member('anna@example.com')->id])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('memberId');
+    }
+
+    public function test_member_cannot_add_attendees(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+
+        $meeting = ReadingCycle::where('status', 'active')->first()->meeting()->first();
+
+        $this->actingAs(User::where('email', 'mikhail@example.com')->firstOrFail())
+            ->postJson("/api/meetings/{$meeting->id}/attendees", ['memberId' => $this->member('elena@example.com')->id])
+            ->assertForbidden();
     }
 
     public function test_admin_can_finish_meeting_complete_cycle_and_start_next_proposed_cycle(): void
@@ -613,6 +755,19 @@ class MeetingApiTest extends TestCase
         $this->assertEquals(0, $first->silver_owls_count);
         $this->assertEquals(1, $last->refresh()->silver_owls_count);
         $this->assertEquals(0, $last->gold_owls_count);
+    }
+
+    private function member(string $email): ClubMember
+    {
+        return ClubMember::whereHas('user', fn ($query) => $query->where('email', $email))->firstOrFail();
+    }
+
+    private function markFinished(ReadingCycle $cycle, ClubMember $member): void
+    {
+        ReadingProgress::updateOrCreate(
+            ['reading_cycle_id' => $cycle->id, 'club_member_id' => $member->id],
+            ['progress_percent' => 100, 'status' => ReadingProgressStatusEnum::Finished, 'finished_at' => now()],
+        );
     }
 
     private function turnOrderEmails(int $clubId): array

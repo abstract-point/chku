@@ -160,6 +160,12 @@ final class MeetingController extends Controller
         Meeting $meeting,
         CurrentMemberService $currentMember,
     ): MeetingResource {
+        abort_if(
+            $meeting->started_at !== null || $meeting->finished_at !== null,
+            422,
+            'После начала встречи состав участников меняет только администратор.',
+        );
+
         $payload = $request->validate([
             'status' => ['required', Rule::in(['attending', 'not_attending', 'pending'])],
         ]);
@@ -184,10 +190,7 @@ final class MeetingController extends Controller
         abort_if($meeting->finished_at !== null, 422, 'Завершённую встречу нельзя начать заново.');
         abort_if($meeting->readingCycle?->status !== ReadingCycleStatusEnum::Active, 422, 'Встречу можно начать только в активном цикле.');
 
-        $attendingMemberIds = $meeting->rsvps()
-            ->where('status', MeetingRsvpStatusEnum::Attending->value)
-            ->whereHas('clubMember', fn ($q) => $q->where('is_active', true))
-            ->pluck('club_member_id');
+        $attendingMemberIds = $meeting->attendingMemberIds();
 
         abort_if(
             $attendingMemberIds->count() < Meeting::MIN_ATTENDING_MEMBERS,
@@ -242,10 +245,7 @@ final class MeetingController extends Controller
         abort_if($meeting->finished_at !== null, 422, 'Встреча уже завершена.');
         abort_if($meeting->readingCycle?->status !== ReadingCycleStatusEnum::Active, 422, 'Завершить можно только встречу активного цикла.');
 
-        $attendingMemberIds = $meeting->rsvps()
-            ->where('status', MeetingRsvpStatusEnum::Attending->value)
-            ->whereHas('clubMember', fn ($q) => $q->where('is_active', true))
-            ->pluck('club_member_id');
+        $attendingMemberIds = $meeting->attendingMemberIds();
 
         if ($attendingMemberIds->count() < Meeting::MIN_ATTENDING_MEMBERS) {
             return response()->json([
@@ -253,23 +253,25 @@ final class MeetingController extends Controller
             ], 422);
         }
 
+        $requiredRaterIds = $meeting->requiredRaterIds();
+
         $ratedMemberIds = Rating::query()
             ->where('reading_cycle_id', $meeting->reading_cycle_id)
-            ->whereIn('club_member_id', $attendingMemberIds)
+            ->whereIn('club_member_id', $requiredRaterIds)
             ->pluck('club_member_id');
 
-        $missing = $attendingMemberIds->diff($ratedMemberIds);
+        $missing = $requiredRaterIds->diff($ratedMemberIds);
         if ($missing->isNotEmpty()) {
             return response()->json([
-                'message' => 'Встречу можно завершить только после оценок всех участников встречи.',
+                'message' => 'Встречу можно завершить только после оценок всех дочитавших участников встречи.',
                 'missingMemberIds' => $missing->values(),
             ], 422);
         }
 
         $awards = [];
 
-        DB::transaction(function () use ($meeting, $attendingMemberIds, $stateMachine, $turnOrder, &$awards): void {
-            foreach ($attendingMemberIds as $memberId) {
+        DB::transaction(function () use ($meeting, $attendingMemberIds, $requiredRaterIds, $stateMachine, $turnOrder, &$awards): void {
+            foreach ($requiredRaterIds as $memberId) {
                 Review::firstOrCreate(
                     [
                         'reading_cycle_id' => $meeting->reading_cycle_id,
@@ -305,9 +307,103 @@ final class MeetingController extends Controller
         );
     }
 
+    public function storeAttendee(Request $request, Meeting $meeting): MeetingResource
+    {
+        $this->authorize('update', $meeting);
+
+        abort_if($meeting->finished_at !== null, 422, 'Состав завершённой встречи менять нельзя.');
+        abort_if($meeting->readingCycle?->status !== ReadingCycleStatusEnum::Active, 422, 'Добавлять участников можно только во встречу активного цикла.');
+
+        $payload = $request->validate([
+            'memberId' => [
+                'required',
+                'integer',
+                Rule::exists('club_members', 'id')
+                    ->where('club_id', $meeting->readingCycle->club_id)
+                    ->where('is_active', true),
+            ],
+            'finishedReading' => ['boolean'],
+            'rating' => ['nullable', 'numeric', 'min:1', 'max:10'],
+            'review' => ['nullable', 'string', 'max:10000'],
+        ]);
+
+        $memberId = (int) $payload['memberId'];
+        $cycleId = $meeting->reading_cycle_id;
+        $rating = $payload['rating'] ?? null;
+        $review = trim((string) ($payload['review'] ?? ''));
+
+        $progress = ReadingProgress::query()
+            ->where('reading_cycle_id', $cycleId)
+            ->where('club_member_id', $memberId)
+            ->first();
+        $hasFinished = $progress?->status === ReadingProgressStatusEnum::Finished
+            || ($payload['finishedReading'] ?? false);
+
+        if ($rating !== null || $review !== '') {
+            abort_if($meeting->started_at === null, 422, 'Оценку можно внести только после начала встречи.');
+            abort_if(! $hasFinished, 422, 'Оценку можно внести только за участника, который дочитал книгу.');
+            abort_if(
+                $rating === null && ! Rating::where(['reading_cycle_id' => $cycleId, 'club_member_id' => $memberId])->exists(),
+                422,
+                'Чтобы сохранить отзыв, укажите оценку.',
+            );
+        }
+
+        DB::transaction(function () use ($meeting, $memberId, $cycleId, $payload, $progress, $rating, $review): void {
+            MeetingRsvp::updateOrCreate(
+                ['meeting_id' => $meeting->id, 'club_member_id' => $memberId],
+                ['status' => MeetingRsvpStatusEnum::Attending],
+            );
+
+            if (($payload['finishedReading'] ?? false) && $progress?->status !== ReadingProgressStatusEnum::Finished) {
+                ReadingProgress::updateOrCreate(
+                    ['reading_cycle_id' => $cycleId, 'club_member_id' => $memberId],
+                    [
+                        'progress_percent' => 100,
+                        'status' => ReadingProgressStatusEnum::Finished,
+                        'finished_at' => $progress?->finished_at ?? now(),
+                    ],
+                );
+            }
+
+            if ($rating !== null) {
+                Rating::updateOrCreate(
+                    ['reading_cycle_id' => $cycleId, 'club_member_id' => $memberId],
+                    ['rating' => $rating],
+                );
+            }
+
+            if ($review !== '') {
+                Review::updateOrCreate(
+                    ['reading_cycle_id' => $cycleId, 'club_member_id' => $memberId],
+                    ['text' => $review],
+                );
+            }
+        });
+
+        $member = ClubMember::with('user')->findOrFail($memberId);
+        $this->auditLog->log(
+            $request->user(),
+            'meeting.attendee_entered',
+            "meeting:{$meeting->id}",
+            collect([
+                "Участник {$member->user?->name} добавлен во встречу",
+                ($payload['finishedReading'] ?? false) ? 'отмечен как дочитавший' : null,
+                $rating !== null ? "оценка {$rating}" : null,
+                $review !== '' ? 'отзыв внесён' : null,
+            ])->filter()->implode(', '),
+        );
+
+        return new MeetingResource(
+            $meeting->refresh()->load($this->meetingRelations())
+        );
+    }
+
     public function destroyRsvp(Request $request, Meeting $meeting, ClubMember $member): JsonResponse
     {
         $this->authorize('update', $meeting);
+
+        abort_if($meeting->finished_at !== null, 422, 'Состав завершённой встречи менять нельзя.');
 
         $rsvp = MeetingRsvp::where('meeting_id', $meeting->id)
             ->where('club_member_id', $member->id)

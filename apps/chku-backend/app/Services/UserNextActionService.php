@@ -123,7 +123,7 @@ final class UserNextActionService
     ): ?NextAction {
         $rsvp = $meeting->rsvps->firstWhere('club_member_id', $member->id);
 
-        if (! $rsvp || $rsvp->status === MeetingRsvpStatusEnum::Pending) {
+        if ($meeting->started_at === null && (! $rsvp || $rsvp->status === MeetingRsvpStatusEnum::Pending)) {
             return new NextAction(
                 type: 'rsvp_meeting',
                 priority: 80,
@@ -133,7 +133,7 @@ final class UserNextActionService
             );
         }
 
-        if ($rsvp->status !== MeetingRsvpStatusEnum::Attending || ! $currentCycle) {
+        if ($rsvp?->status !== MeetingRsvpStatusEnum::Attending || ! $currentCycle) {
             return null;
         }
 

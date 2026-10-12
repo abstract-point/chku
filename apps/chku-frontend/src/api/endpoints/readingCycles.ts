@@ -9,8 +9,4 @@ export const readingCyclesApi = {
   async saveCurrentRatingReview(payload: RatingReviewPayload) {
     return http.put('/reading-cycles/current/rating-review', payload)
   },
-
-  async completeCurrent() {
-    return http.post('/reading-cycles/current/complete')
-  },
 }

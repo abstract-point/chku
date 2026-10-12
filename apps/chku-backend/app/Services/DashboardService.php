@@ -74,15 +74,13 @@ final class DashboardService
 
         $missingRatings = collect();
         if ($currentCycle && $nextMeeting) {
-            $attendingMemberIds = $nextMeeting->rsvps()
-                ->where('status', \App\Enums\MeetingRsvpStatusEnum::Attending)
-                ->pluck('club_member_id');
+            $requiredRaterIds = $nextMeeting->requiredRaterIds();
 
             $ratedMemberIds = $currentCycle->ratings()->pluck('club_member_id');
 
             $missingRatings = ClubMember::with('user')
                 ->where('club_id', $club->id)
-                ->whereIn('id', $attendingMemberIds)
+                ->whereIn('id', $requiredRaterIds)
                 ->whereNotIn('id', $ratedMemberIds)
                 ->get();
         }
