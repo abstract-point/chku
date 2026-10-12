@@ -281,7 +281,7 @@ final class MeetingController extends Controller
                         'reading_cycle_id' => $meeting->reading_cycle_id,
                         'club_member_id' => $memberId,
                     ],
-                    ['text' => 'Промолчал'],
+                    ['text' => 'Промолчал(а)'],
                 );
             }
 

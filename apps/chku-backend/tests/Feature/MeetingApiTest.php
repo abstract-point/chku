@@ -577,7 +577,7 @@ class MeetingApiTest extends TestCase
             ->postJson("/api/meetings/{$meeting->id}/finish")
             ->assertOk();
 
-        $this->assertDatabaseHas('reviews', ['reading_cycle_id' => $cycle->id, 'club_member_id' => $reader->id, 'text' => 'Промолчал']);
+        $this->assertDatabaseHas('reviews', ['reading_cycle_id' => $cycle->id, 'club_member_id' => $reader->id, 'text' => 'Промолчал(а)']);
         $this->assertDatabaseMissing('reviews', ['reading_cycle_id' => $cycle->id, 'club_member_id' => $listener->id]);
     }
 
@@ -736,7 +736,7 @@ class MeetingApiTest extends TestCase
         $this->assertDatabaseHas('reviews', [
             'reading_cycle_id' => $cycle->id,
             'club_member_id' => $attendees->last()->id,
-            'text' => 'Промолчал',
+            'text' => 'Промолчал(а)',
         ]);
         $this->assertDatabaseHas('reading_cycles', [
             'cycle_number' => 43,
