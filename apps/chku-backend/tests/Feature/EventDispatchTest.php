@@ -208,10 +208,13 @@ class EventDispatchTest extends TestCase
 
     public function test_member_finished_reading_event_dispatched(): void
     {
-        Event::fake([MemberFinishedReading::class]);
+        Event::fake([MemberFinishedReading::class, ReadingProgressUpdated::class]);
 
         $this->seed(TestDatabaseSeeder::class);
         $user = User::where('email', 'elena@example.com')->firstOrFail();
+        $user->clubMember->readingProgress()
+            ->where('reading_cycle_id', ReadingCycle::where('status', 'active')->firstOrFail()->id)
+            ->update(['progress_percent' => 50, 'status' => 'reading', 'finished_at' => null]);
 
         $response = $this->actingAs($user)->patchJson('/api/reading-progress/me', [
             'progressPercent' => 100,
@@ -219,7 +222,23 @@ class EventDispatchTest extends TestCase
 
         $response->assertOk();
 
-        Event::assertDispatched(MemberFinishedReading::class);
+        Event::assertDispatchedTimes(MemberFinishedReading::class, 1);
+        Event::assertNotDispatched(ReadingProgressUpdated::class);
+    }
+
+    public function test_saving_finished_progress_again_does_not_notify(): void
+    {
+        $this->seed(TestDatabaseSeeder::class);
+        $user = User::where('email', 'elena@example.com')->firstOrFail();
+
+        $this->actingAs($user)->patchJson('/api/reading-progress/me', ['progressPercent' => 100])->assertOk();
+
+        Event::fake([MemberFinishedReading::class, ReadingProgressUpdated::class]);
+
+        $this->actingAs($user)->patchJson('/api/reading-progress/me', ['progressPercent' => 100])->assertOk();
+
+        Event::assertNotDispatched(MemberFinishedReading::class);
+        Event::assertNotDispatched(ReadingProgressUpdated::class);
     }
 
     public function test_meeting_scheduled_event_dispatched(): void

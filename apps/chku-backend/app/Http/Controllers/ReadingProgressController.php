@@ -41,10 +41,12 @@ final class ReadingProgressController extends Controller
             'status' => $status,
         ];
 
+        $justFinished = false;
         if ($status === ReadingProgressStatusEnum::Finished) {
             $existing = ReadingProgress::where($attributes)->first();
             if ($existing === null || $existing->finished_at === null) {
                 $values['finished_at'] = now();
+                $justFinished = true;
             }
         }
 
@@ -52,10 +54,11 @@ final class ReadingProgressController extends Controller
 
         $progress->load('clubMember.user', 'readingCycle.book');
 
-        event(new ReadingProgressUpdated($progress));
-
-        if ($status === ReadingProgressStatusEnum::Finished) {
+        // Finishing the book gets a single "finished" notification instead of a 100% progress one.
+        if ($justFinished) {
             event(new MemberFinishedReading($progress));
+        } elseif ($status !== ReadingProgressStatusEnum::Finished) {
+            event(new ReadingProgressUpdated($progress));
         }
 
         return new ReadingProgressResource($progress->load('clubMember.user'));
