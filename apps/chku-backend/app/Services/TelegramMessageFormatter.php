@@ -15,11 +15,14 @@ use App\Events\CycleCompleted;
 use App\Events\MeetingFinished;
 use App\Events\MeetingRescheduled;
 use App\Events\MeetingScheduled;
+use App\Events\MeetingRatingReminder;
+use App\Events\MeetingRsvpReminder;
 use App\Events\MeetingStarted;
 use App\Events\MemberDeactivated;
 use App\Events\MemberFinishedReading;
 use App\Events\MemberJoinedClub;
 use App\Events\OwlAwardsAssigned;
+use App\Events\ReadingProgressReminder;
 use App\Events\ReadingProgressUpdated;
 use RuntimeException;
 
@@ -43,6 +46,9 @@ final class TelegramMessageFormatter
             MeetingFinished::class => $this->formatMeetingFinished($event),
             CycleCompleted::class => $this->formatCycleCompleted($event),
             OwlAwardsAssigned::class => $this->formatOwlAwards($event),
+            MeetingRsvpReminder::class => $this->formatRsvpReminder($event),
+            MeetingRatingReminder::class => $this->formatRatingReminder($event),
+            ReadingProgressReminder::class => $this->formatProgressReminder($event),
             default => throw new RuntimeException('Unknown event: ' . $event::class),
         };
     }
@@ -65,6 +71,9 @@ final class TelegramMessageFormatter
             MeetingFinished::class => 'meeting_finished',
             CycleCompleted::class => 'cycle_completed',
             OwlAwardsAssigned::class => 'owl_awards_assigned',
+            MeetingRsvpReminder::class => 'meeting_rsvp_reminder',
+            MeetingRatingReminder::class => 'meeting_rating_reminder',
+            ReadingProgressReminder::class => 'reading_progress_reminder',
             default => throw new RuntimeException('Unknown event: ' . $event::class),
         };
     }
@@ -231,6 +240,66 @@ final class TelegramMessageFormatter
             $this->escape('Кто: ') . $member,
             $this->escape('Книга: ') . '*' . $book . '*',
         ]);
+    }
+
+    private function formatRsvpReminder(MeetingRsvpReminder $event): string
+    {
+        $meeting = $event->meeting;
+        $meeting->loadMissing(['readingCycle.book']);
+        $book = $this->escape($meeting->readingCycle->book->title);
+        $date = $this->escape($meeting->date->format('d.m.Y'));
+        $time = $this->escape($meeting->time);
+
+        return implode("\n", [
+            '📣 ' . $this->escape('Скоро встреча — отметьте, будете ли вы'),
+            '',
+            $this->escape('Книга: ') . '*' . $book . '*',
+            $this->escape('Когда: ') . '*' . $date . ', ' . $time . '*',
+            $this->escape('Ещё не ответили: ') . $this->memberLinks($event->members),
+            '',
+            $this->escape('👉 Отметить участие: ') . $this->meetingLink($meeting),
+        ]);
+    }
+
+    private function formatRatingReminder(MeetingRatingReminder $event): string
+    {
+        $meeting = $event->meeting;
+        $meeting->loadMissing(['readingCycle.book']);
+        $book = $this->escape($meeting->readingCycle->book->title);
+
+        return implode("\n", [
+            '⭐ ' . $this->escape('Встреча идёт — ждём ваши оценки'),
+            '',
+            $this->escape('Книга: ') . '*' . $book . '*',
+            $this->escape('Ещё не оценили: ') . $this->memberLinks($event->members),
+            '',
+            $this->escape('👉 Поставить оценку: ') . $this->meetingLink($meeting),
+        ]);
+    }
+
+    private function formatProgressReminder(ReadingProgressReminder $event): string
+    {
+        $cycle = $event->cycle;
+        $cycle->loadMissing('book');
+        $book = $this->escape($cycle->book->title);
+        $url = $this->frontendUrl('/?action=update-progress#reading-progress');
+
+        $lines = [
+            '📚 ' . $this->escape('Как продвигается чтение?'),
+            '',
+            $this->escape('Книга: ') . '*' . $book . '*',
+            $this->escape('Прогресс не обновлялся больше недели:'),
+        ];
+
+        foreach ($event->members as $member) {
+            $lines[] = $this->escape('• ') . $this->memberLink($member)
+                . $this->escape(' — ' . (int) $member->progress_percent . '%');
+        }
+
+        $lines[] = '';
+        $lines[] = '👉 ' . $this->link('Обновить прогресс', $url);
+
+        return implode("\n", $lines);
     }
 
     private function formatMeetingScheduled(MeetingScheduled $event): string
@@ -455,6 +524,11 @@ final class TelegramMessageFormatter
         $url = $this->frontendUrl('/cycles/' . $cycle->cycle_number);
 
         return $this->link($label, $url);
+    }
+
+    private function memberLinks(iterable $members): string
+    {
+        return collect($members)->map(fn ($member) => $this->memberLink($member))->implode(', ');
     }
 
     private function meetingLink($meeting): string

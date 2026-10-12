@@ -122,6 +122,30 @@ class TelegramMessageFormatterTest extends TestCase
         $this->assertStringContainsString('дочитал', $message);
     }
 
+    public function test_formats_reminders_with_member_names(): void
+    {
+        $meeting = \App\Models\Meeting::with('readingCycle.book')->firstOrFail();
+        $members = \App\Models\ClubMember::with('user')->where('is_active', true)->orderBy('id')->take(2)->get();
+        $name = $members->first()->user->name;
+
+        $rsvp = $this->formatter->format(new \App\Events\MeetingRsvpReminder($meeting, $members));
+        $this->assertStringContainsString('Ещё не ответили', $rsvp);
+        $this->assertStringContainsString($name, $rsvp);
+        $this->assertStringContainsString('/meetings/' . $meeting->id, $rsvp);
+
+        $rating = $this->formatter->format(new \App\Events\MeetingRatingReminder($meeting, $members));
+        $this->assertStringContainsString('Ещё не оценили', $rating);
+        $this->assertStringContainsString($name, $rating);
+
+        $members->first()->setAttribute('progress_percent', 40);
+        $progress = $this->formatter->format(new \App\Events\ReadingProgressReminder($meeting->readingCycle, $members));
+        $this->assertStringContainsString('больше недели', $progress);
+        $this->assertStringContainsString('40%', $progress);
+        $this->assertStringContainsString('action=update-progress', $progress);
+
+        $this->assertSame('meeting_rsvp_reminder', $this->formatter->eventName(new \App\Events\MeetingRsvpReminder($meeting, $members)));
+    }
+
     public function test_formats_meeting_scheduled(): void
     {
         $meeting = \App\Models\Meeting::with('readingCycle.book')->firstOrFail();

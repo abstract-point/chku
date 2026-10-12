@@ -128,6 +128,10 @@ final class MeetingController extends Controller
         $newTime = $payload['time'] ?? $oldTime;
 
         unset($payload['rescheduleReason']);
+        if ($oldDate !== $newDate || $oldTime !== $newTime) {
+            // The day-before reminder should fire again for the new date.
+            $payload['rsvp_reminder_sent_at'] = null;
+        }
         $meeting->update($payload);
 
         $actor = $request->user();

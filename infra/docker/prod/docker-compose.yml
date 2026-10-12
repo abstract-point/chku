@@ -46,6 +46,21 @@ services:
     networks:
       - chku_prod
 
+  scheduler:
+    build:
+      context: ../../..
+      dockerfile: infra/docker/prod/backend.Dockerfile
+    depends_on:
+      - db
+    env_file:
+      - ../../../apps/chku-backend/.env
+    extra_hosts:
+      - "host.docker.internal:172.30.10.1"
+    command: php artisan schedule:work
+    restart: unless-stopped
+    networks:
+      - chku_prod
+
   db:
     image: postgres:18.3-alpine
     environment:

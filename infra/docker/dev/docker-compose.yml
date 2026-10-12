@@ -46,6 +46,21 @@ services:
       - backend_vendor:/var/www/backend/vendor
     command: php artisan queue:work --tries=1 --sleep=1 --timeout=60
 
+  scheduler:
+    container_name: chku-scheduler
+    build:
+      context: ../../..
+      dockerfile: infra/docker/dev/backend.Dockerfile
+      args:
+        APP_UID: ${APP_UID:-1000}
+        APP_GID: ${APP_GID:-1000}
+    depends_on:
+      - db
+    volumes:
+      - ../../../apps/chku-backend:/var/www/backend
+      - backend_vendor:/var/www/backend/vendor
+    command: php artisan schedule:work
+
   db:
     container_name: chku-db
     image: postgres:18.3-alpine

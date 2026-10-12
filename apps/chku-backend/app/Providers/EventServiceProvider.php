@@ -13,11 +13,14 @@ use App\Events\CycleCompleted;
 use App\Events\MeetingFinished;
 use App\Events\MeetingRescheduled;
 use App\Events\MeetingScheduled;
+use App\Events\MeetingRatingReminder;
+use App\Events\MeetingRsvpReminder;
 use App\Events\MeetingStarted;
 use App\Events\MemberDeactivated;
 use App\Events\MemberFinishedReading;
 use App\Events\MemberJoinedClub;
 use App\Events\OwlAwardsAssigned;
+use App\Events\ReadingProgressReminder;
 use App\Events\ReadingProgressUpdated;
 use App\Listeners\TelegramNotificationListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -68,6 +71,15 @@ class EventServiceProvider extends ServiceProvider
             TelegramNotificationListener::class,
         ],
         OwlAwardsAssigned::class => [
+            TelegramNotificationListener::class,
+        ],
+        MeetingRsvpReminder::class => [
+            TelegramNotificationListener::class,
+        ],
+        MeetingRatingReminder::class => [
+            TelegramNotificationListener::class,
+        ],
+        ReadingProgressReminder::class => [
             TelegramNotificationListener::class,
         ],
     ];
