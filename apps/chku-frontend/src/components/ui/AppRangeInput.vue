@@ -62,8 +62,23 @@ function onInput(event: Event) {
 .app-range-input__slider {
   width: 100%;
   height: 1.7rem;
+  margin: 0;
   cursor: pointer;
   background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.app-range-input__slider:focus-visible {
+  outline: none;
+}
+
+.app-range-input__slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.app-range-input__slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
 .app-range-input__slider::-webkit-slider-runnable-track {
@@ -76,13 +91,16 @@ function onInput(event: Event) {
   );
 }
 
+/* Same visual size as the Firefox thumb: 1rem content + 0.15rem border on each side. */
 .app-range-input__slider::-webkit-slider-thumb {
-  width: 1.25rem;
-  height: 1.25rem;
-  margin-top: -0.52rem;
+  box-sizing: border-box;
+  width: 1.3rem;
+  height: 1.3rem;
+  margin-top: -0.55rem;
   border: 0.15rem solid var(--accent);
   border-radius: 50%;
   background: var(--bg-surface);
+  -webkit-appearance: none;
   appearance: none;
   box-shadow: 0 0 0 0.1rem var(--bg-surface);
 }
@@ -100,8 +118,9 @@ function onInput(event: Event) {
 }
 
 .app-range-input__slider::-moz-range-thumb {
-  width: 1rem;
-  height: 1rem;
+  box-sizing: border-box;
+  width: 1.3rem;
+  height: 1.3rem;
   border: 0.15rem solid var(--accent);
   border-radius: 50%;
   background: var(--bg-surface);
