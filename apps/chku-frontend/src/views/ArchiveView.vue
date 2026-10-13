@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowUpDown, CalendarCheck, MessageSquare, Search, Star, Tags, User } from '@lucide/vue'
+import { ArrowUpDown, MessageSquare, Search, Star, Tags, User, Users } from '@lucide/vue'
 import FilterDropdown from '@/components/ui/FilterDropdown.vue'
 import type { FilterOption } from '@/components/ui/FilterDropdown.vue'
 import { useCyclesQuery } from '@/queries/cycleQueries'
@@ -198,7 +198,7 @@ main.archive.container
                 span.archive-card__stat.label-text(
                   :title="t('archive.attendanceTitle', { attending: cycle.attendingCount ?? 0, total: cycle.rsvpCount ?? 0 })"
                 )
-                  CalendarCheck(:size="15" aria-hidden="true")
+                  Users(:size="15" aria-hidden="true")
                   span {{ $t('archive.attendanceN', { attending: cycle.attendingCount ?? 0, total: cycle.rsvpCount ?? 0 }) }}
 
   section.panel.archive__empty(v-else aria-live="polite")

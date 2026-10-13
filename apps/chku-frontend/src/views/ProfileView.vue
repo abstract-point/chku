@@ -4,12 +4,12 @@ import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   BookOpen,
-  CalendarCheck,
   ListOrdered,
   MessageSquare,
   Settings,
   Sparkles,
   Star,
+  UserCheck,
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import GenrePicker from '@/components/GenrePicker.vue'
@@ -208,7 +208,7 @@ main.profile.container
                 MessageSquare.profile__archive-icon
                 | {{ $t('profile.reviewLabel', { has: book.hasReview ? $t('profile.reviewYes') : $t('profile.reviewNo') }) }}
               span.profile__book-stat.label-text
-                CalendarCheck.profile__archive-icon
+                UserCheck.profile__archive-icon
                 | {{ $t('profile.meetingLabel', { status: rsvpLabel(book) }) }}
 
       section.panel.profile__empty(v-else aria-live="polite")

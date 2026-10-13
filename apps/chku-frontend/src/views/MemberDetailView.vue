@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeft, CalendarCheck, Mail, MessageSquare, Star } from '@lucide/vue'
+import { ArrowLeft, Mail, MessageSquare, Star, UserCheck } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useMemberQuery } from '@/queries/memberQueries'
 import type { ProfileBook } from '@/types/club'
@@ -124,7 +124,7 @@ main.member-detail.container(v-else-if="member")
               MessageSquare.member-detail__icon
               | {{ $t('memberDetail.reviewLabel', { has: book.hasReview ? $t('memberDetail.reviewYes') : $t('memberDetail.reviewNo') }) }}
             span.member-detail__book-stat.label-text
-              CalendarCheck.member-detail__icon
+              UserCheck.member-detail__icon
               | {{ $t('memberDetail.meetingLabel', { status: rsvpLabel(book) }) }}
 
       section.panel.member-detail__empty(v-else aria-live="polite")
