@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { X } from '@lucide/vue'
 defineProps<{
   placeholder?: string
   submitLabel?: string
@@ -34,7 +35,9 @@ import { ref } from 'vue'
     @keydown.ctrl.enter="handleSubmit"
   )
   .discussion-composer__actions
-    button.button.button--secondary.label-text(type="button" @click="$emit('cancel')") {{ $t('discussion.cancel') }}
+    button.button.button--secondary.label-text(type="button" @click="$emit('cancel')")
+      X.button__icon
+      | {{ $t('discussion.cancel') }}
     button.button.button--primary.label-text(type="button" :disabled="!text.trim() || isSubmitting" @click="handleSubmit")
       | {{ isSubmitting ? '...' : submitLabel }}
 </template>

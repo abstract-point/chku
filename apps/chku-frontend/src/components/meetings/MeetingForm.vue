@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { X } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppFormField from '@/components/ui/AppFormField.vue'
@@ -208,7 +209,9 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
       )
 
   .meeting-form__actions
-    button.button.button--secondary.label-text(type="button" @click="$emit('cancel')") {{ $t('common.cancel') }}
+    button.button.button--secondary.label-text(type="button" @click="$emit('cancel')")
+      X.button__icon
+      | {{ $t('common.cancel') }}
     button.button.button--primary.label-text(type="submit" :disabled="isSubmitting")
       | {{ isSubmitting ? $t('meetings.formSaving') : (isEdit ? $t('meetings.formSaveChanges') : $t('meetings.formCreate')) }}
 </template>

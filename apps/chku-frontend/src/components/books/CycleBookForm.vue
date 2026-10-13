@@ -131,7 +131,7 @@ form.cycle-book-form(@submit.prevent="saveBook" novalidate)
     )
   .cycle-book-form__actions
     button.button.button--secondary.label-text(type="button" :disabled="updateBook.isPending.value" @click="cancel")
-      X.cycle-book-form__icon
+      X.button__icon
       | {{ $t('books.cancel') }}
     button.button.button--primary.label-text(type="submit" :disabled="updateBook.isPending.value")
       Save.cycle-book-form__icon

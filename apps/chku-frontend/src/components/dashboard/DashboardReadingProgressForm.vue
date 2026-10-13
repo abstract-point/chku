@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { X } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 import AppRangeInput from '@/components/ui/AppRangeInput.vue'
 
@@ -74,7 +75,9 @@ form.reading-progress-form(@submit.prevent="submitForm")
   p.body-text.reading-progress-form__error(v-if="errorMessage" aria-live="polite") {{ errorMessage }}
 
   .reading-progress-form__actions
-    button.button.button--secondary.label-text(type="button" :disabled="isSaving" @click="emit('cancel')") {{ $t('common.cancel') }}
+    button.button.button--secondary.label-text(type="button" :disabled="isSaving" @click="emit('cancel')")
+      X.button__icon
+      | {{ $t('common.cancel') }}
     button.button.button--primary.label-text(type="submit" :disabled="isSaving")
       | {{ isSaving ? $t('dash.progressFormSaving') : $t('dash.progressFormSave') }}
 </template>

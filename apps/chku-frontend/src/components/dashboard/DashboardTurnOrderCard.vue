@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, TransitionGroup, watch } from 'vue'
 import { RouterLink } from 'vue-router'
-import { ArrowUpDown, Users, ArrowUp, ArrowDown, Lock } from '@lucide/vue'
+import { ArrowUpDown, Users, ArrowUp, ArrowDown, Lock, X } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { useReorderTurnOrderMutation } from '@/queries/memberQueries'
@@ -150,10 +150,12 @@ section.panel.dashboard-card(aria-labelledby="turn-order-title")
         @click="handleSave"
         :disabled="isSaving"
       ) {{ $t('common.save') }}
-      button.button(
+      button.button.button--secondary(
         @click="cancelEdit"
         :disabled="isSaving"
-      ) {{ $t('common.cancel') }}
+      )
+        X.button__icon
+        | {{ $t('common.cancel') }}
 
   template(v-else)
     .turn-order__list

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { UserPlus } from '@lucide/vue'
+import { UserPlus, X } from '@lucide/vue'
 import AppCheckbox from '@/components/ui/AppCheckbox.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
 import SecondaryButton from '@/components/ui/SecondaryButton.vue'
@@ -130,7 +130,9 @@ function submit() {
       p.body-text.attendee-entry__hint(v-else) {{ $t('meetings.entryRatingNeedsFinished') }}
     p.proposal__error(v-if="errorMessage") {{ errorMessage }}
     .attendee-entry__actions
-      button.button.button--secondary.label-text(type="button" @click="close") {{ $t('common.cancel') }}
+      button.button.button--secondary.label-text(type="button" @click="close")
+        X.button__icon
+        | {{ $t('common.cancel') }}
       button.button.button--primary.label-text(type="submit" :disabled="enterMutation.isPending.value")
         | {{ enterMutation.isPending.value ? $t('meetings.entrySaving') : $t('meetings.entrySave') }}
 </template>

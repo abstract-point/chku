@@ -214,7 +214,7 @@ main.proposal.container
               type="button"
               @click="toggleForm"
             )
-              X.proposal__button-icon
+              X.button__icon
               | {{ $t('common.cancel') }}
             .proposal__actions-right
               button.button.button--primary.label-text(type="submit" :disabled="createQueueItem.isPending.value")
@@ -333,7 +333,7 @@ main.proposal.container
                     :disabled="updateQueueItem.isPending.value"
                     @click="cancelEdit"
                   )
-                    X.proposal__button-icon
+                    X.button__icon
                     | {{ $t('books.cancel') }}
                   button.button.button--primary.label-text(
                     type="button"

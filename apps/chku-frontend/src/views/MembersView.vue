@@ -12,6 +12,7 @@ import {
   SlidersHorizontal,
   UserRoundCheck,
   UserRoundMinus,
+  X,
 } from '@lucide/vue'
 import FilterDropdown from '@/components/ui/FilterDropdown.vue'
 import type { FilterOption } from '@/components/ui/FilterDropdown.vue'
@@ -337,7 +338,9 @@ main.members.container
           | {{ ' ' }}{{ pendingDeactivation.reason === 'paused' ? $t('members.pauseText') : $t('members.deactivateText') }}
         p.body-text {{ $t('members.deactivateEffects') }}
     template(#footer)
-      button.button.button--secondary.label-text(type="button" @click="pendingDeactivation = null") {{ $t('common.cancel') }}
+      button.button.button--secondary.label-text(type="button" @click="pendingDeactivation = null")
+        X.button__icon
+        | {{ $t('common.cancel') }}
       button.button.button--primary.label-text(
         type="button"
         :disabled="deactivateMemberMutation.isPending.value"

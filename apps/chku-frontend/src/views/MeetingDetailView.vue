@@ -15,6 +15,7 @@ import {
   Star,
   UserMinus,
   Users,
+  X,
 } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import MeetingAttendeeEntry from '@/components/meetings/MeetingAttendeeEntry.vue'
@@ -352,11 +353,13 @@ main.meeting-detail.container
                     :class="{ 'meeting-detail__review-counter--warn': isReviewNearLimit }"
                   ) {{ reviewLengthLabel }}
                 .meeting-detail__rating-actions
-                  button.button.button--ghost.label-text(
+                  button.button.button--secondary.label-text(
                     v-if="isEditingRating"
                     type="button"
                     @click="isEditingRating = false"
-                  ) {{ $t('common.cancel') }}
+                  )
+                    X.button__icon
+                    | {{ $t('common.cancel') }}
                   button.button.button--primary.label-text(type="submit" :disabled="saveRatingReviewMutation.isPending.value")
                     | {{ saveRatingReviewMutation.isPending.value ? $t('meetings.savingRating') : $t('meetings.saveRating') }}
                 p.body-text(v-if="saveRatingReviewMutation.isSuccess.value") {{ $t('meetings.ratingSaved') }}

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { AlertTriangle } from '@lucide/vue'
+import { AlertTriangle, X } from '@lucide/vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import AppCheckbox from '@/components/ui/AppCheckbox.vue'
@@ -168,7 +168,9 @@ AppModal(:is-open="isOpen" :title="t('meetings.finishTitle')" @close="$emit('clo
       span.body-text {{ $t('meetings.finishApproveOwls') }}
 
   template(#footer)
-    button.button.button--secondary.label-text(type="button" @click="$emit('close')") {{ $t('meetings.finishCancel') }}
+    button.button.button--secondary.label-text(type="button" @click="$emit('close')")
+      X.button__icon
+      | {{ $t('meetings.finishCancel') }}
     button.button.button--primary.label-text(
       type="button"
       :disabled="hasMissingRatings || !allOwlsApproved"

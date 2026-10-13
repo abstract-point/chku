@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref, TransitionGroup, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Pencil } from '@lucide/vue'
+import { Pencil, Users, X } from '@lucide/vue'
 import CycleBookForm from '@/components/books/CycleBookForm.vue'
 import DashboardReadingProgressForm from '@/components/dashboard/DashboardReadingProgressForm.vue'
 import AppModal from '@/components/ui/AppModal.vue'
@@ -234,7 +234,9 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
         span.label-text {{ member.progress }}%
       span.label-text(v-else) {{ $t('dash.notStarted') }}
   .club-progress__links
-    RouterLink.button.button--ghost.label-text(to="/members") {{ $t('dash.allMembers') }}
+    RouterLink.button.button--secondary.label-text(to="/members")
+      Users.button__icon
+      | {{ $t('dash.allMembers') }}
 
   AppModal(
     :is-open="isConfirmModalOpen"
@@ -245,7 +247,9 @@ section.dashboard__main(aria-labelledby="current-cycle-title")
       p.body-text {{ $t('dash.confirmReadText') }}
       p.body-text {{ $t('dash.confirmReadHint') }}
     template(#footer)
-      button.button.button--secondary.label-text(type="button" @click="isConfirmModalOpen = false") {{ $t('common.cancel') }}
+      button.button.button--secondary.label-text(type="button" @click="isConfirmModalOpen = false")
+        X.button__icon
+        | {{ $t('common.cancel') }}
       button.button.button--primary.label-text(type="button" @click="confirmProgress") {{ $t('dash.confirmReadBtn') }}
 </template>
 

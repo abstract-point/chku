@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ShieldCheck, UserPlus } from '@lucide/vue'
+import { ShieldCheck, UserPlus, X } from '@lucide/vue'
 import { useAuthSession } from '@/queries/authQueries'
 import { useCreateMemberMutation } from '@/queries/memberQueries'
 import { useFormErrors } from '@/composables/useFormErrors'
@@ -121,7 +121,9 @@ main.add-member.container
       p.add-member__error(v-if="createMemberMutation.error.value && !Object.keys(formErrors.fieldErrors.value).length")
         | {{ createMemberMutation.error.value.message }}
       .add-member__actions
-        button.button.button--secondary.label-text(type="button" @click="router.back()") {{ $t('common.cancel') }}
+        button.button.button--secondary.label-text(type="button" @click="router.back()")
+          X.button__icon
+          | {{ $t('common.cancel') }}
         button.button.button--primary.label-text(type="submit" :disabled="createMemberMutation.isPending.value")
           | {{ createMemberMutation.isPending.value ? $t('common.saving') : 'Создать участника' }}
 </template>
