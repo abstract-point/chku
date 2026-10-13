@@ -20,7 +20,7 @@ const formattedDate = computed(() => formatRelativeDate(props.message.createdAt)
 </script>
 
 <script lang="ts">
-import { ref, computed, Transition } from 'vue'
+import { ref, computed } from 'vue'
 </script>
 
 <template lang="pug">

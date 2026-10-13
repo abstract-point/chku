@@ -19,7 +19,7 @@ const showNewComposer = ref(false)
 </script>
 
 <script lang="ts">
-import { ref, Transition } from 'vue'
+import { ref } from 'vue'
 </script>
 
 <template lang="pug">

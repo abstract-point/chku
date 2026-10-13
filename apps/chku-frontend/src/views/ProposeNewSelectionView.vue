@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, Transition } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BookCheck, BookMarked, CheckCircle2, GitBranch, Pencil, Plus, Trash2, X } from '@lucide/vue'
 import AppTabs from '@/components/ui/AppTabs.vue'

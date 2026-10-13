@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Plus, X } from '@lucide/vue'
+import { Plus } from '@lucide/vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import AppCheckbox from '@/components/ui/AppCheckbox.vue'
 import CharCounter from '@/components/ui/CharCounter.vue'

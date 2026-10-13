@@ -28,7 +28,7 @@ describe('DashboardCurrentCycle', () => {
       query: { action: 'update-progress' },
       hash: '#reading-progress',
     }
-    const scrollIntoView = vi.fn()
+    const scrollIntoView = vi.fn<() => void>()
     window.HTMLElement.prototype.scrollIntoView = scrollIntoView
 
     const wrapper = mount(DashboardCurrentCycle, {
