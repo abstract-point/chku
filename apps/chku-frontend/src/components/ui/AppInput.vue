@@ -16,6 +16,7 @@ const props = defineProps<{
   pattern?: string
   inputmode?: string
   minlength?: string | number
+  maxlength?: string | number
   ariaInvalid?: boolean
   accept?: string
 }>()
@@ -74,6 +75,7 @@ input.app-input.field-control(
   :pattern="pattern"
   :inputmode="inputmode"
   :minlength="minlength"
+  :maxlength="maxlength"
   :aria-invalid="ariaInvalid || undefined"
   :accept="accept"
   @input="onInput"

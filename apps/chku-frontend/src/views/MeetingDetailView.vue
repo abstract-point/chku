@@ -23,6 +23,7 @@ import MeetingFinishModal from '@/components/meetings/MeetingFinishModal.vue'
 import DiscussionBlock from '@/components/discussion/DiscussionBlock.vue'
 import AppRangeInput from '@/components/ui/AppRangeInput.vue'
 import CollapseTransition from '@/components/ui/CollapseTransition.vue'
+import CharCounter from '@/components/ui/CharCounter.vue'
 import SecondaryButton from '@/components/ui/SecondaryButton.vue'
 import {
   useFinishMeetingMutation,
@@ -31,6 +32,7 @@ import {
   useStartMeetingMutation,
   useUpdateMeetingRsvpMutation,
 } from '@/queries/meetingQueries'
+import { FIELD_LIMITS } from '@/constants/fieldLimits'
 import { useCreateDiscussionMessageMutation } from '@/queries/discussionQueries'
 import { useAuthSession } from '@/queries/authQueries'
 import { useDashboardQuery, useUpdateReadingProgressMutation } from '@/queries/dashboardQueries'
@@ -66,12 +68,6 @@ const memberProgress = computed(() => dashboardQuery.data.value?.memberProgress 
 const rsvpStatus = ref<'attending' | 'not_attending' | 'pending'>('pending')
 const rating = ref<number | null>(null)
 const review = ref('')
-const reviewMaxLength = 10000
-const reviewLengthLabel = computed(
-  () =>
-    `${review.value.length.toLocaleString('ru-RU')} / ${reviewMaxLength.toLocaleString('ru-RU')}`,
-)
-const isReviewNearLimit = computed(() => review.value.length >= reviewMaxLength * 0.9)
 const ratingSubmitted = ref(false)
 const isFinishModalOpen = ref(false)
 const isEditingRating = ref(false)
@@ -345,13 +341,11 @@ main.meeting-detail.container
                   label.label-text(for="meeting-review") {{ $t('meetings.review') }}
                   textarea#meeting-review.field-control.meeting-detail__input.meeting-detail__review(
                     v-model="review"
-                    :maxlength="reviewMaxLength"
+                    :maxlength="FIELD_LIMITS.review"
                     :placeholder="t('meetings.reviewPlaceholder')"
                     aria-describedby="meeting-review-counter"
                   )
-                  span#meeting-review-counter.label-text.meeting-detail__review-counter(
-                    :class="{ 'meeting-detail__review-counter--warn': isReviewNearLimit }"
-                  ) {{ reviewLengthLabel }}
+                  CharCounter#meeting-review-counter(:current="review.length" :max="FIELD_LIMITS.review")
                 .meeting-detail__rating-actions
                   button.button.button--secondary.label-text(
                     v-if="isEditingRating"
@@ -793,16 +787,6 @@ main.meeting-detail.container
 .meeting-detail__rsvp-locked {
   margin: 0;
   color: var(--text-muted);
-}
-
-.meeting-detail__review-counter {
-  justify-self: end;
-  color: var(--text-subtle);
-  font-family: var(--font-mono);
-}
-
-.meeting-detail__review-counter--warn {
-  color: var(--warn);
 }
 
 .meeting-detail__rating-prompt {

@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { X } from '@lucide/vue'
+import CharCounter from '@/components/ui/CharCounter.vue'
+import { FIELD_LIMITS } from '@/constants/fieldLimits'
+
 defineProps<{
   placeholder?: string
   submitLabel?: string
@@ -30,10 +33,12 @@ import { ref } from 'vue'
   textarea.discussion-composer__input.field-control(
     v-model="text"
     rows="2"
+    :maxlength="FIELD_LIMITS.discussionMessage"
     :placeholder="placeholder"
     @keydown.meta.enter="handleSubmit"
     @keydown.ctrl.enter="handleSubmit"
   )
+  CharCounter(:current="text.length" :max="FIELD_LIMITS.discussionMessage")
   .discussion-composer__actions
     button.button.button--secondary.label-text(type="button" @click="$emit('cancel')")
       X.button__icon

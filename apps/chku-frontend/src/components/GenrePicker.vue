@@ -3,6 +3,8 @@ import { ref, computed } from 'vue'
 import { Plus, X } from '@lucide/vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import AppCheckbox from '@/components/ui/AppCheckbox.vue'
+import CharCounter from '@/components/ui/CharCounter.vue'
+import { FIELD_LIMITS } from '@/constants/fieldLimits'
 import type { ApiGenre } from '@/api/types'
 
 const props = withDefaults(
@@ -15,7 +17,7 @@ const props = withDefaults(
     error?: string
   }>(),
   {
-    max: 5,
+    max: FIELD_LIMITS.genres,
     label: '',
     disabled: false,
     error: '',
@@ -90,6 +92,7 @@ div
           span.genre-picker__item-name {{ genre.name }}
 
     template(#footer)
+      CharCounter.genre-picker__modal-counter(:current="selectedGenres.length" :max="max")
       button.button.button--primary.label-text(type="button" @click="closeModal")
         | {{ $t('genrePicker.done') }}
 </template>
@@ -162,6 +165,11 @@ div
   color: var(--danger);
   font-size: 0.8rem;
   line-height: 1.4;
+}
+
+.genre-picker__modal-counter {
+  margin-right: auto;
+  margin-left: 0;
 }
 
 .genre-picker__modal-body {

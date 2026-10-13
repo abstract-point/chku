@@ -5,6 +5,7 @@ import { KeyRound, UserRound } from '@lucide/vue'
 import FilePicker from '@/components/ui/FilePicker.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppInput from '@/components/ui/AppInput.vue'
+import { FIELD_LIMITS, SHORT_FIELD_COUNTER_THRESHOLD } from '@/constants/fieldLimits'
 import {
   useUpdateAvatarMutation,
   useUpdatePasswordMutation,
@@ -113,8 +114,9 @@ main.profile-settings.container
           :existing-url="currentMember.avatarUrl"
           :name="profileForm.name || currentMember.name"
         )
-      AppFormField(:label="t('settings.name')" label-for="settings-name" required :error="profileErrors.getError('name')")
+      AppFormField(:label="t('settings.name')" label-for="settings-name" required :error="profileErrors.getError('name')" :count="profileForm.name.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
         AppInput#settings-name(
+          :maxlength="FIELD_LIMITS.shortText"
           type="text"
           v-model="profileForm.name"
           required

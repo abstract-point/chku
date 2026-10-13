@@ -10,6 +10,7 @@ import FilePicker from '@/components/ui/FilePicker.vue'
 import AppFormField from '@/components/ui/AppFormField.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
+import { FIELD_LIMITS, SHORT_FIELD_COUNTER_THRESHOLD } from '@/constants/fieldLimits'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -78,8 +79,9 @@ main.add-member.container
         UserPlus.add-member__intro-icon
         p.body-text {{ $t('members.add') }}
       .add-member__fields
-        AppFormField(:label="t('settings.name')" label-for="am-name" required :error="formErrors.getError('name')")
+        AppFormField(:label="t('settings.name')" label-for="am-name" required :error="formErrors.getError('name')" :count="form.name.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
           AppInput#am-name(
+            :maxlength="FIELD_LIMITS.shortText"
             type="text"
             v-model="form.name"
             required

@@ -6,6 +6,7 @@ import AppFormField from '@/components/ui/AppFormField.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
 import FilePicker from '@/components/ui/FilePicker.vue'
 import GenrePicker from '@/components/GenrePicker.vue'
+import { FIELD_LIMITS, SHORT_FIELD_COUNTER_THRESHOLD } from '@/constants/fieldLimits'
 import { useFormErrors } from '@/composables/useFormErrors'
 import { useUpdateCycleBookMutation } from '@/queries/cycleQueries'
 import { useGenresQuery } from '@/queries/genreQueries'
@@ -86,29 +87,29 @@ function cancel() {
 
 <template lang="pug">
 form.cycle-book-form(@submit.prevent="saveBook" novalidate)
-  AppFormField(:label="t('books.titleLabel')" :label-for="`${idPrefix}-title`" required :error="formErrors.getError('title')" :hint="`${form.title.length}/255`")
+  AppFormField(:label="t('books.titleLabel')" :label-for="`${idPrefix}-title`" required :error="formErrors.getError('title')" :count="form.title.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
     input.field-control.cycle-book-form__input(
       :id="`${idPrefix}-title`"
       v-model="form.title"
       type="text"
-      :maxlength="255"
+      :maxlength="FIELD_LIMITS.shortText"
       :placeholder="t('books.titlePlaceholder')"
       :aria-invalid="formErrors.hasError('title')"
     )
-  AppFormField(:label="t('books.authorLabel')" :label-for="`${idPrefix}-author`" required :error="formErrors.getError('author')" :hint="`${form.author.length}/255`")
+  AppFormField(:label="t('books.authorLabel')" :label-for="`${idPrefix}-author`" required :error="formErrors.getError('author')" :count="form.author.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
     input.field-control.cycle-book-form__input(
       :id="`${idPrefix}-author`"
       v-model="form.author"
       type="text"
-      :maxlength="255"
+      :maxlength="FIELD_LIMITS.shortText"
       :placeholder="t('books.authorPlaceholder')"
       :aria-invalid="formErrors.hasError('author')"
     )
-  AppFormField(:label="t('books.descLabel')" :label-for="`${idPrefix}-description`" :error="formErrors.getError('description')" :hint="`${form.description.length}/500`")
+  AppFormField(:label="t('books.descLabel')" :label-for="`${idPrefix}-description`" :error="formErrors.getError('description')" :count="form.description.length" :maxlength="FIELD_LIMITS.bookDescription")
     AppTextarea(
       :id="`${idPrefix}-description`"
       v-model="form.description"
-      :maxlength="500"
+      :maxlength="FIELD_LIMITS.bookDescription"
       :placeholder="t('books.descPlaceholder')"
       :aria-invalid="formErrors.hasError('description')"
     )

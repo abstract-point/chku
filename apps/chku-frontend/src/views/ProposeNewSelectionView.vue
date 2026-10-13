@@ -7,6 +7,8 @@ import AppFormField from '@/components/ui/AppFormField.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
 import FilePicker from '@/components/ui/FilePicker.vue'
 import GenrePicker from '@/components/GenrePicker.vue'
+import CharCounter from '@/components/ui/CharCounter.vue'
+import { FIELD_LIMITS, SHORT_FIELD_COUNTER_THRESHOLD } from '@/constants/fieldLimits'
 import {
   useBookQueueQuery,
   useCreateBookQueueItemMutation,
@@ -166,28 +168,28 @@ main.proposal.container
           h2#queue-form-title {{ $t('books.addBook') }}
           Plus.proposal__button-icon
         form.proposal__form-fields(@submit.prevent="submitBook" novalidate)
-          AppFormField(:label="t('books.titleLabel')" label-for="book-title" required :error="formErrors.getError('title')" :hint="`${form.title.length}/255`")
+          AppFormField(:label="t('books.titleLabel')" label-for="book-title" required :error="formErrors.getError('title')" :count="form.title.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
             input#book-title.field-control.proposal__text-input(
               v-model="form.title"
               type="text"
-              :maxlength="255"
+              :maxlength="FIELD_LIMITS.shortText"
               :placeholder="t('books.titlePlaceholder')"
               :aria-invalid="formErrors.hasError('title')"
             )
 
-          AppFormField(:label="t('books.authorLabel')" label-for="book-author" required :error="formErrors.getError('author')" :hint="`${form.author.length}/255`")
+          AppFormField(:label="t('books.authorLabel')" label-for="book-author" required :error="formErrors.getError('author')" :count="form.author.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
             input#book-author.field-control.proposal__text-input(
               v-model="form.author"
               type="text"
-              :maxlength="255"
+              :maxlength="FIELD_LIMITS.shortText"
               :placeholder="t('books.authorPlaceholder')"
               :aria-invalid="formErrors.hasError('author')"
             )
 
-          AppFormField(:label="t('books.descLabel')" label-for="book-description" :error="formErrors.getError('description')" :hint="`${form.description.length}/500`")
+          AppFormField(:label="t('books.descLabel')" label-for="book-description" :error="formErrors.getError('description')" :count="form.description.length" :maxlength="FIELD_LIMITS.bookDescription")
             AppTextarea#book-description(
               v-model="form.description"
-              :maxlength="500"
+              :maxlength="FIELD_LIMITS.bookDescription"
               :placeholder="t('books.descPlaceholder')"
               :aria-invalid="formErrors.hasError('description')"
             )
@@ -288,8 +290,15 @@ main.proposal.container
                     :id="`edit-title-${item.id}`"
                     v-model="editForms[item.id].title"
                     type="text"
-                    :maxlength="255"
+                    :maxlength="FIELD_LIMITS.shortText"
                     :placeholder="t('books.titlePlaceholder')"
+                    :aria-describedby="`edit-title-${item.id}-counter`"
+                  )
+                  CharCounter(
+                    :id="`edit-title-${item.id}-counter`"
+                    :current="editForms[item.id].title.length"
+                    :max="FIELD_LIMITS.shortText"
+                    :threshold="SHORT_FIELD_COUNTER_THRESHOLD"
                   )
                 .proposal__field
                   label.label-text(:for="`edit-author-${item.id}`") {{ $t('books.authorLabel') }}
@@ -297,18 +306,30 @@ main.proposal.container
                     :id="`edit-author-${item.id}`"
                     v-model="editForms[item.id].author"
                     type="text"
-                    :maxlength="255"
+                    :maxlength="FIELD_LIMITS.shortText"
                     :placeholder="t('books.authorPlaceholder')"
+                    :aria-describedby="`edit-author-${item.id}-counter`"
+                  )
+                  CharCounter(
+                    :id="`edit-author-${item.id}-counter`"
+                    :current="editForms[item.id].author.length"
+                    :max="FIELD_LIMITS.shortText"
+                    :threshold="SHORT_FIELD_COUNTER_THRESHOLD"
                   )
                 .proposal__field
                   label.label-text(:for="`edit-desc-${item.id}`") {{ $t('books.descLabel') }}
                   textarea.field-control.proposal__textarea(
                     :id="`edit-desc-${item.id}`"
                     v-model="editForms[item.id].description"
-                    :maxlength="500"
+                    :maxlength="FIELD_LIMITS.bookDescription"
                     :placeholder="t('books.descPlaceholder')"
+                    :aria-describedby="`edit-desc-${item.id}-counter`"
                   )
-                  span.label-text {{ `${editForms[item.id]?.description?.length ?? 0}/500` }}
+                  CharCounter(
+                    :id="`edit-desc-${item.id}-counter`"
+                    :current="editForms[item.id].description?.length ?? 0"
+                    :max="FIELD_LIMITS.bookDescription"
+                  )
                 .proposal__field
                   label.label-text(:for="`edit-genres-${item.id}`") {{ $t('genrePicker.bookGenres') }}
                   GenrePicker(

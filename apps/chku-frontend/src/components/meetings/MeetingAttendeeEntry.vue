@@ -4,8 +4,10 @@ import { useI18n } from 'vue-i18n'
 import { UserPlus, X } from '@lucide/vue'
 import AppCheckbox from '@/components/ui/AppCheckbox.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
+import CharCounter from '@/components/ui/CharCounter.vue'
 import SecondaryButton from '@/components/ui/SecondaryButton.vue'
 import { ApiError } from '@/api/http'
+import { FIELD_LIMITS } from '@/constants/fieldLimits'
 import { useEnterMeetingAttendeeMutation } from '@/queries/meetingQueries'
 import type { BookProgressMember, MeetingDetail } from '@/types/dashboard'
 
@@ -123,9 +125,11 @@ function submit() {
           label.label-text(for="attendee-entry-review") {{ $t('meetings.review') }}
           textarea#attendee-entry-review.field-control.attendee-entry__input.attendee-entry__review(
             v-model="review"
-            maxlength="10000"
+            :maxlength="FIELD_LIMITS.review"
             :placeholder="t('meetings.entryReviewPlaceholder')"
+            aria-describedby="attendee-entry-review-counter"
           )
+          CharCounter#attendee-entry-review-counter(:current="review.length" :max="FIELD_LIMITS.review")
       p.body-text.attendee-entry__hint(v-else-if="!isStarted") {{ $t('meetings.entryRatingAfterStart') }}
       p.body-text.attendee-entry__hint(v-else) {{ $t('meetings.entryRatingNeedsFinished') }}
     p.proposal__error(v-if="errorMessage") {{ errorMessage }}

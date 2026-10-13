@@ -7,6 +7,7 @@ import AppInput from '@/components/ui/AppInput.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
 import AppTextarea from '@/components/ui/AppTextarea.vue'
 import AppRadioGroup from '@/components/ui/AppRadioGroup.vue'
+import { FIELD_LIMITS, SHORT_FIELD_COUNTER_THRESHOLD } from '@/constants/fieldLimits'
 import type { MeetingDetail } from '@/types/dashboard'
 
 const { t, tm } = useI18n()
@@ -143,8 +144,9 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
     span.label-text(v-if="cycleLabel") {{ cycleLabel }}
 
   .meeting-form__fields
-    AppFormField(:label="t('meetings.formTitle')" label-for="meeting-title" required :error="fieldError('title')")
+    AppFormField(:label="t('meetings.formTitle')" label-for="meeting-title" required :error="fieldError('title')" :count="title.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
       AppInput#meeting-title(
+        :maxlength="FIELD_LIMITS.shortText"
         v-model="title"
         required
         :placeholder="t('meetings.formTitlePlaceholder')"
@@ -164,28 +166,32 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
       AppRadioGroup(name="meeting-format" v-model="isOnline" :options="formatOptions")
 
     template(v-if="!isOnline")
-      AppFormField(:label="t('meetings.formPlace')" label-for="meeting-place" required :error="fieldError('place')")
+      AppFormField(:label="t('meetings.formPlace')" label-for="meeting-place" required :error="fieldError('place')" :count="place.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
         AppInput#meeting-place(
+          :maxlength="FIELD_LIMITS.shortText"
           v-model="place"
           required
           :placeholder="t('meetings.formPlacePlaceholder')"
           :aria-invalid="isInvalid('place')"
         )
-      AppFormField(:label="t('meetings.formAddress')" label-for="meeting-address" :error="fieldError('address')")
+      AppFormField(:label="t('meetings.formAddress')" label-for="meeting-address" :error="fieldError('address')" :count="address.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
         AppInput#meeting-address(
+          :maxlength="FIELD_LIMITS.shortText"
           v-model="address"
           :placeholder="t('meetings.formAddressPlaceholder')"
           :aria-invalid="isInvalid('address')"
         )
-      AppFormField(:label="t('meetings.formReservation')" label-for="meeting-reservation" :error="fieldError('reservation')")
+      AppFormField(:label="t('meetings.formReservation')" label-for="meeting-reservation" :error="fieldError('reservation')" :count="reservation.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
         AppInput#meeting-reservation(
+          :maxlength="FIELD_LIMITS.shortText"
           v-model="reservation"
           :placeholder="t('meetings.formReservationPlaceholder')"
           :aria-invalid="isInvalid('reservation')"
         )
 
-    AppFormField(v-if="isOnline" :label="t('meetings.formLink')" label-for="meeting-link" required :error="fieldError('link')")
+    AppFormField(v-if="isOnline" :label="t('meetings.formLink')" label-for="meeting-link" required :error="fieldError('link')" :count="link.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
       AppInput#meeting-link(
+        :maxlength="FIELD_LIMITS.shortText"
         type="url"
         v-model="link"
         :placeholder="t('meetings.formLink')"
@@ -193,8 +199,9 @@ form.meeting-form(@submit.prevent="onSubmit" novalidate)
         :aria-invalid="isInvalid('link')"
       )
 
-    AppFormField(v-if="!isOnline" :label="t('meetings.formLinkOptional')" label-for="meeting-link-optional" :error="fieldError('link')")
+    AppFormField(v-if="!isOnline" :label="t('meetings.formLinkOptional')" label-for="meeting-link-optional" :error="fieldError('link')" :count="link.length" :maxlength="FIELD_LIMITS.shortText" :counter-threshold="SHORT_FIELD_COUNTER_THRESHOLD")
       AppInput#meeting-link-optional(
+        :maxlength="FIELD_LIMITS.shortText"
         type="url"
         v-model="link"
         :placeholder="t('meetings.formLink')"

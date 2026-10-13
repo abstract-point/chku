@@ -1,11 +1,21 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue'
+import CharCounter from '@/components/ui/CharCounter.vue'
+
+const props = defineProps<{
   label?: string
   labelFor?: string
   hint?: string
   error?: string
   required?: boolean
+  /** Current value length; together with `maxlength` renders a counter. */
+  count?: number
+  maxlength?: number
+  counterThreshold?: number
 }>()
+
+const hasCounter = computed(() => props.count !== undefined && props.maxlength !== undefined)
+const counterId = computed(() => (props.labelFor ? `${props.labelFor}-counter` : undefined))
 </script>
 
 <template lang="pug">
@@ -15,8 +25,16 @@ defineProps<{
     span.app-form-field__required(v-if="required" aria-hidden="true") *
   .app-form-field__control
     slot
-  p.app-form-field__hint(v-if="hint && !error") {{ hint }}
-  p.app-form-field__error(v-if="error" aria-live="polite") {{ error }}
+  .app-form-field__meta(v-if="hint || error || hasCounter")
+    p.app-form-field__hint(v-if="hint && !error") {{ hint }}
+    p.app-form-field__error(v-if="error" aria-live="polite") {{ error }}
+    CharCounter(
+      v-if="hasCounter"
+      :id="counterId"
+      :current="count ?? 0"
+      :max="maxlength ?? 0"
+      :threshold="counterThreshold"
+    )
 </template>
 
 <style scoped>
@@ -33,6 +51,16 @@ defineProps<{
 .app-form-field__required {
   margin-left: 0.15rem;
   color: var(--danger);
+}
+
+.app-form-field__meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+}
+
+.app-form-field__meta:empty {
+  display: none;
 }
 
 .app-form-field__hint {
