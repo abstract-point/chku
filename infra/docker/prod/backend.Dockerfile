@@ -1,4 +1,4 @@
-FROM php:8.5.5-fpm-trixie
+FROM php:8.5.12-fpm-trixie
 
 WORKDIR /var/www/backend
 
