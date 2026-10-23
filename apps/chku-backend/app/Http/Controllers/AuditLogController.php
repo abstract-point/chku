@@ -14,9 +14,11 @@ final class AuditLogController extends Controller
     {
         $this->authorize('viewAny', AuditLog::class);
 
+        $perPage = min(max((int) $request->input('per_page', 25), 1), 100);
+
         $logs = AuditLog::with(['actor', 'targetMember.user'])
             ->latest()
-            ->paginate($request->input('per_page', 25));
+            ->paginate($perPage);
 
         return response()->json($logs);
     }
