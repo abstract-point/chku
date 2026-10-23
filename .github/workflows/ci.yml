@@ -34,6 +34,23 @@ jobs:
             -f infra/docker/dev/docker-compose.yml \
             run --rm backend php artisan test
 
+      - name: Backend dependency audit
+        run: |
+          docker compose \
+            --env-file apps/chku-backend/.env \
+            -f infra/docker/dev/docker-compose.yml \
+            run --rm --no-deps backend composer audit --locked
+
+      - name: Frontend dependency audit
+        run: |
+          # GHSA-vfj7-8cjw-p6xm: braces has no fixed release yet and is only
+          # reachable through @vue/eslint-config-typescript -> fast-glob
+          # (dev tooling, patterns come from the repo, not from users).
+          docker compose \
+            --env-file apps/chku-backend/.env \
+            -f infra/docker/dev/docker-compose.yml \
+            run --rm --no-deps frontend bun audit --ignore GHSA-vfj7-8cjw-p6xm
+
   deploy:
     name: Deploy production
     runs-on: ubuntu-latest
