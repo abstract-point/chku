@@ -183,7 +183,8 @@ Deployment is automated via GitHub Actions. The workflow lives in `.github/workf
 2. Configure `.env`: `cp apps/chku-backend/.env.example apps/chku-backend/.env` and edit with production values
 3. Set up Caddy:
    ```bash
-   sudo apt install caddy
+   # Ubuntu 24.04 ships Caddy 2.6.2, which has known CVEs.
+   # Install Caddy 2.11.4+ from https://caddyserver.com/docs/install#debian-ubuntu-raspbian
    # Edit infra/caddy/Caddyfile — replace YOUR_DOMAIN with the real domain
    sudo mkdir -p /var/log/caddy
    sudo cp infra/caddy/Caddyfile /etc/caddy/Caddyfile
