@@ -36,7 +36,11 @@ YOUR_DOMAIN {
     reverse_proxy 127.0.0.1:8080
 
     log {
-        output file /var/log/caddy/YOUR_DOMAIN.access.log
+        output file /var/log/caddy/YOUR_DOMAIN.access.log {
+            roll_size 50MiB
+            roll_keep 5
+            roll_keep_for 720h
+        }
         format console
     }
 }
