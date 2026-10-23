@@ -57,8 +57,11 @@ echo "Uploading backup snapshot to restic: ${SNAPSHOT_PATH}"
 restic backup "$SNAPSHOT_PATH" --tag "$CHKU_RESTIC_TAG"
 
 echo "Applying restic retention policy for tag ${CHKU_RESTIC_TAG}..."
+# Snapshot paths include a timestamp, so restic's default host+path grouping
+# would put every snapshot into its own group and retention would never prune.
 restic forget \
   --tag "$CHKU_RESTIC_TAG" \
+  --group-by host \
   --keep-daily "$CHKU_RESTIC_KEEP_DAILY" \
   --keep-weekly "$CHKU_RESTIC_KEEP_WEEKLY" \
   --keep-monthly "$CHKU_RESTIC_KEEP_MONTHLY" \

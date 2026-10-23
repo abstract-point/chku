@@ -32,7 +32,7 @@ mkdir -p "$TMP_SNAPSHOT/database" "$TMP_SNAPSHOT/storage"
 infra/scripts/backup-db.sh "$TMP_SNAPSHOT/database/chku.dump" >&2
 infra/scripts/backup-storage.sh "$TMP_SNAPSHOT/storage/backend_storage_public.tar.gz" >&2
 
-GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || printf "unknown")
+GIT_COMMIT=$(git -c safe.directory="$PWD" rev-parse --short HEAD 2>/dev/null || printf "unknown")
 HOSTNAME_VALUE=$(hostname 2>/dev/null || printf "unknown")
 
 cat > "$TMP_SNAPSHOT/manifest.env" <<EOF
