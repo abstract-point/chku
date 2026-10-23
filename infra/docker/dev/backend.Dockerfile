@@ -26,7 +26,7 @@ RUN groupadd --gid ${APP_GID} app \
 
 COPY infra/docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
-COPY --from=composer:2.9 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.10.3 /usr/bin/composer /usr/bin/composer
 
 COPY apps/chku-backend/composer.json apps/chku-backend/composer.lock ./
 RUN composer install --no-interaction --prefer-dist --no-scripts --optimize-autoloader

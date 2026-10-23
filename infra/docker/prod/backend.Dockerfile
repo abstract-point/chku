@@ -18,7 +18,7 @@ RUN apt-get update \
 
 COPY infra/docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
-COPY --from=composer:2.9 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.10.3 /usr/bin/composer /usr/bin/composer
 
 COPY apps/chku-backend/composer.json apps/chku-backend/composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-autoloader

@@ -20,7 +20,7 @@ dev-logs:
 	$(DEV_DOCKER_COMPOSE) logs -f
 
 prod:
-	$(PROD_DOCKER_COMPOSE) up -d --build
+	$(PROD_DOCKER_COMPOSE) up -d --build --pull always
 
 prod-build:
 	$(PROD_DOCKER_COMPOSE) build

@@ -11,7 +11,7 @@ RUN bun install --frozen-lockfile
 COPY apps/chku-frontend/ .
 RUN bun run build
 
-FROM nginx:1.29-alpine
+FROM nginx:1.31.8-alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY infra/docker/prod/frontend.conf /etc/nginx/conf.d/default.conf
