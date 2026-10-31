@@ -53,6 +53,11 @@
     "vue-eslint-parser-template-tokenizer-pug": "^1.0.0",
     "vue-tsc": "3.2.7"
   },
+  "overrides": {
+    "follow-redirects": "^1.16.2",
+    "glob": "^14.0.2",
+    "minimatch": "^11.0.1"
+  },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   }
