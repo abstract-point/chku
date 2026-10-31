@@ -193,6 +193,11 @@ Deployment is automated via GitHub Actions. The workflow lives in `.github/workf
    ```
 4. Start the stack: `make prod`
 5. Run first migration: use `docker compose exec` with prod compose file
+6. Restrict the `deploy` user. It needs the `docker` group for `make deploy`, but not `sudo` (`sudo gpasswd -d deploy sudo`). Pin the CI key in `/home/deploy/.ssh/authorized_keys` to the deploy command, so a leaked `PROD_SSH_KEY` cannot open a shell:
+   ```
+   restrict,command="cd /var/www/chku && make deploy" ssh-ed25519 AAAA... chku-ci-deploy
+   ```
+   The forced command replaces the `script` sent by `appleboy/ssh-action`. Use a separate, unrestricted key for manual access.
 
 ### Database Backups
 
