@@ -17,6 +17,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY infra/docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+COPY infra/docker/php/security.ini /usr/local/etc/php/conf.d/security.ini
 
 COPY --from=composer:2.10.3 /usr/bin/composer /usr/bin/composer
 
