@@ -21,6 +21,8 @@ use App\Models\User;
 use App\Services\TurnOrderService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use RuntimeException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -33,6 +35,11 @@ class ChatHistorySeeder extends Seeder
 
     public function run(): void
     {
+        // Demo accounts below use the well-known password "password".
+        if (app()->environment('production')) {
+            throw new RuntimeException('ChatHistorySeeder creates demo accounts and must not run in production.');
+        }
+
         $this->seedPermissions();
         $this->seedClubAndGenres();
         $this->seedUsersAndMembers();
@@ -148,7 +155,7 @@ class ChatHistorySeeder extends Seeder
                     'name' => $data['name'],
                     'password' => Hash::make(
                         $data['role'] === 'admin'
-                            ? env('CHKU_DEVELOPER_PASSWORD', 'password')
+                            ? (env('CHKU_DEVELOPER_PASSWORD') ?: Str::random(32))
                             : 'password'
                     ),
                 ],

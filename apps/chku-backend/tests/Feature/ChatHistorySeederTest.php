@@ -8,6 +8,7 @@ use App\Models\TurnOrder;
 use App\Services\TurnOrderService;
 use Database\Seeders\ChatHistorySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use RuntimeException;
 use Tests\TestCase;
 
 class ChatHistorySeederTest extends TestCase
@@ -32,6 +33,20 @@ class ChatHistorySeederTest extends TestCase
             'andrey@chku.local',
             'nastya@chku.local',
         ], $this->turnOrderEmails($cycle->club_id));
+    }
+
+    public function test_seeder_refuses_to_run_in_production(): void
+    {
+        $this->app['env'] = 'production';
+
+        try {
+            $this->seed(ChatHistorySeeder::class);
+            $this->fail('ChatHistorySeeder must not run in production.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('must not run in production', $exception->getMessage());
+        }
+
+        $this->assertDatabaseMissing('users', ['email' => 'ivan@chku.local']);
     }
 
     private function turnOrderEmails(int $clubId): array
