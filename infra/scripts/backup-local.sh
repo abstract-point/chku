@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
+# Dumps contain member data and password hashes: keep them root-only.
+umask 077
+
 cd "$(dirname "$0")/../.."
 
 CHKU_BACKUP_DIR="${CHKU_BACKUP_DIR:-/var/backups/chku}"
@@ -27,6 +30,7 @@ cleanup_tmp() {
 trap cleanup_tmp EXIT INT TERM
 
 mkdir -p "$SNAPSHOT_ROOT" "$TMP_ROOT"
+chmod 700 "$CHKU_BACKUP_DIR" "$SNAPSHOT_ROOT" "$TMP_ROOT"
 mkdir -p "$TMP_SNAPSHOT/database" "$TMP_SNAPSHOT/storage"
 
 infra/scripts/backup-db.sh "$TMP_SNAPSHOT/database/chku.dump" >&2

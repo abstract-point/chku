@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
+# Dumps contain member data and password hashes: keep them root-only.
+umask 077
+
 cd "$(dirname "$0")/../.."
 
 CHKU_BACKUP_DIR="${CHKU_BACKUP_DIR:-/var/backups/chku}"

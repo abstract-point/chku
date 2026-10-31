@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
+# Archives contain member uploads: keep them root-only.
+umask 077
+
 cd "$(dirname "$0")/../.."
 
 CHKU_BACKUP_DIR="${CHKU_BACKUP_DIR:-/var/backups/chku}"
